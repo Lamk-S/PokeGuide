@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "PokeGuide — Inteligencia Competitiva de Pokémon",
-  description: "Analiza, simula y optimiza estrategias competitivas de Pokémon.",
+  description:
+    "Analiza, simula y optimiza estrategias competitivas de Pokémon.",
 };
 
 export default function RootLayout({
