@@ -18,7 +18,7 @@ Este proyecto es una demostración de **Arquitectura de Software y Domain-Driven
 
 ## Arquitectura
 
-\`\`\`text
+```
 UI (Next.js / React)
   ↓
 Application (Use Cases)
@@ -32,13 +32,13 @@ Domain (Engines & Core Logic)
   └── Generation Intelligence
   ↓
 Infrastructure (Repositories / Data Adapters)
-\`\`\`
+```
 
 ## Getting Started
 
 El entorno de desarrollo requiere [Node.js](https://nodejs.org/) v20+ y [pnpm](https://pnpm.io/).
 
-\`\`\`bash
+```bash
 # Instalar dependencias
 pnpm install
 
@@ -49,7 +49,7 @@ pnpm test
 
 # Iniciar servidor local
 pnpm dev
-\`\`\`
+```
 
 ## Limitaciones Conocidas
 * **UI Work-in-Progress:** Los motores de dominio están al 100% testeados, pero la conexión con la interfaz visual (Dashboards de React) se encuentra en estado de *placeholder*.
