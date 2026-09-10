@@ -5,7 +5,10 @@ import { ReportWebVitals } from "@/infrastructure/performance/ReportWebVitals";
 import { Header } from "@/components/layout/Header";
 
 export const metadata: Metadata = {
-  title: "PokeGuide — Inteligencia Competitiva de Pokémon",
+  title: {
+    default: "PokeGuide — Inteligencia Competitiva de Pokémon",
+    template: "%s | PokeGuide",
+  },
   description:
     "Analiza, simula y optimiza estrategias competitivas de Pokémon.",
 };
