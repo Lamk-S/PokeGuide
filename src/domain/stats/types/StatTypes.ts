@@ -1,4 +1,5 @@
 import type { StatName } from "@/domain/pokemon/types/pokemon";
+export type { StatName };
 
 export interface Nature {
   name: string;

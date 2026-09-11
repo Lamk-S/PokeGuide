@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BattleLabView } from "@/features/battle/components/BattleLabView";
 
 export const metadata: Metadata = {
   title: "Battle Lab",
@@ -19,15 +20,7 @@ export default function BattleLabPage() {
         </p>
       </div>
 
-      <div
-        role="status"
-        aria-label="En construcción"
-        className="rounded-xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-800"
-      >
-        <p className="text-sm font-medium text-zinc-500">
-          Interfaz de simulación en construcción (Fase D)
-        </p>
-      </div>
+      <BattleLabView />
     </div>
   );
 }
