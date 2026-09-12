@@ -21,6 +21,21 @@ export const pokeApiTypeSchema = z.object({
   }),
 });
 
+const pokeApiAbilitySchema = z.object({
+  ability: z.object({ name: z.string() }),
+  is_hidden: z.boolean(),
+});
+
+const pokeApiMoveSchema = z.object({
+  move: z.object({ name: z.string() }),
+  version_group_details: z.array(
+    z.object({
+      level_learned_at: z.number(),
+      move_learn_method: z.object({ name: z.string() }),
+    }),
+  ),
+});
+
 export const pokeApiPokemonSchema = z.object({
   id: z.number().positive(),
   name: z.string().min(1),
@@ -28,6 +43,8 @@ export const pokeApiPokemonSchema = z.object({
   weight: z.number().nonnegative(),
   stats: z.array(pokeApiStatSchema),
   types: z.array(pokeApiTypeSchema),
+  abilities: z.array(pokeApiAbilitySchema),
+  moves: z.array(pokeApiMoveSchema),
 });
 
 export type PokeApiPokemonDto = z.infer<typeof pokeApiPokemonSchema>;

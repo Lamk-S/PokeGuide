@@ -9,12 +9,13 @@ export type StatName =
   | "speed";
 export type PokemonType = string;
 
-export interface BaseStat {
-  name: StatName;
-  value: number;
+// Define cómo un Pokémon aprende un movimiento
+export interface PokemonMoveRef {
+  name: string;
+  learnMethod: "level-up" | "machine";
+  levelLearnedAt: number; // 0 si es por máquina (MT/MO)
 }
 
-// Entidad principal purgada de datos basura de PokeAPI
 export interface Pokemon {
   id: PokemonId;
   name: PokemonName;
@@ -22,4 +23,6 @@ export interface Pokemon {
   baseStats: Record<StatName, number>;
   height: number;
   weight: number;
+  abilities: string[];
+  moves: PokemonMoveRef[];
 }

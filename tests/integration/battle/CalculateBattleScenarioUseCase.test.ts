@@ -1,36 +1,46 @@
-import { describe, it, expect, } from "vitest";
+import { describe, it, expect } from "vitest";
 import { CalculateBattleScenarioUseCase } from "@/application/battle/CalculateBattleScenarioUseCase";
 import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCalculatorAdapter";
 import type { PokemonRepository } from "@/domain/pokemon/repositories/pokemon-repository";
 import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 
-// Mock básico del PokemonRepository devolviendo datos simulados del JSON
+// Se implementa la interfaz como una clase respetando estrictamente los tipos (null en vez de undefined)
 class MockPokemonRepository implements PokemonRepository {
   async getById(id: number): Promise<Pokemon | null> {
-    if (id === 445) { // Garchomp
+    if (id === 445) { // Garchomp mockeado
       return {
         id: 445,
         name: "Garchomp",
-        types: ["dragon", "ground"],
+        types: ["Dragon", "Ground"],
         baseStats: { hp: 108, attack: 130, defense: 95, "special-attack": 80, "special-defense": 85, speed: 102 },
         height: 19,
         weight: 950,
+        abilities: ["Sand Veil"],
+        moves: [], 
       };
     }
-    if (id === 25) { // Pikachu
+    if (id === 25) { // Pikachu mockeado
       return {
         id: 25,
         name: "Pikachu",
-        types: ["electric"],
+        types: ["Electric"],
         baseStats: { hp: 35, attack: 55, defense: 40, "special-attack": 50, "special-defense": 50, speed: 90 },
         height: 4,
         weight: 60,
+        abilities: ["Static"],
+        moves: [],
       };
     }
-    return null;
+    return null; // El dominio espera null, no undefined
   }
-  async getByName(): Promise<Pokemon | null> { return null; }
-  async getAll(): Promise<Pokemon[]> { return []; }
+  
+  async getByName(_name: string): Promise<Pokemon | null> { 
+    return null; 
+  }
+  
+  async getAll(): Promise<Pokemon[]> { 
+    return []; 
+  }
 }
 
 describe("CalculateBattleScenarioUseCase Integration", () => {
