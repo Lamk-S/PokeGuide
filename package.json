@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "data:fetch": "tsx scripts/fetch-pokeapi.ts"
+    "data:fetch": "tsx scripts/fetch-pokeapi.ts",
+    "data:fetch:moves":"tsx scripts/fetch-moves.ts",
+    "data:fetch:all":"tsx scripts/fetch-pokeapi.ts && tsx scripts/fetch-moves.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
