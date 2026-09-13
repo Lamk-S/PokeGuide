@@ -36,9 +36,22 @@ function toSmogonStats(input: Record<StatName, number>) {
   );
 }
 
+function translateSmogonSummary(desc: string): string {
+  return desc
+    .replace(/guaranteed/g, "garantizado")
+    .replace(/chance to/g, "probabilidad de")
+    .replace(/OHKO/g, "KO de 1 golpe")
+    .replace(/(\d)HKO/g, "KO en $1 golpes")
+    .replace(/Atk/g, "Ataque")
+    .replace(/Def/g, "Defensa")
+    .replace(/SpA/g, "Atq. Esp.")
+    .replace(/SpD/g, "Def. Esp.")
+    .replace(/Spe/g, "Vel")
+    .replace(/vs./g, "contra");
+}
+
 export class SmogonCalculatorAdapter implements BattleCalculator {
   calculate(scenario: BattleScenario): BattleResult {
-    // Atacante - sin undefined
     const attacker = new Pokemon(
       scenario.generation as GenerationNum,
       scenario.attacker.name,
@@ -148,7 +161,8 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
     return {
       damage: { minDamage, maxDamage, minPercent, maxPercent, damageRolls },
       koAnalysis: { hitsToKO, guaranteed, probability },
-      explanation: { summary: result.desc(), factors },
+      // Se aplica la traducción aquí antes de enviarlo al dominio
+      explanation: { summary: translateSmogonSummary(result.desc()), factors },
     };
   }
 }
