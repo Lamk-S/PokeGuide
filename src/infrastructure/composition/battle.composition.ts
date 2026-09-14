@@ -1,11 +1,13 @@
 import { CalculateBattleScenarioUseCase } from "@/application/battle/CalculateBattleScenarioUseCase";
 import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
 import { LocalMoveRepository } from "@/infrastructure/local-data/repositories/local-move.repository";
+import { LocalItemRepository } from "@/infrastructure/local-data/repositories/local-item.repository";
 import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCalculatorAdapter";
 
 export interface BattleComposition {
   pokemonRepository: LocalPokemonRepository;
   moveRepository: LocalMoveRepository;
+  itemRepository: LocalItemRepository;
   calculatorAdapter: SmogonCalculatorAdapter;
   calculateBattleScenarioUseCase: CalculateBattleScenarioUseCase;
 }
@@ -13,6 +15,7 @@ export interface BattleComposition {
 export function createBattleComposition(): BattleComposition {
   const pokemonRepository = new LocalPokemonRepository();
   const moveRepository = new LocalMoveRepository();
+  const itemRepository = new LocalItemRepository();
   const calculatorAdapter = new SmogonCalculatorAdapter();
   const calculateBattleScenarioUseCase = new CalculateBattleScenarioUseCase(
     pokemonRepository,
@@ -21,6 +24,7 @@ export function createBattleComposition(): BattleComposition {
   return {
     pokemonRepository,
     moveRepository,
+    itemRepository,
     calculatorAdapter,
     calculateBattleScenarioUseCase,
   };
@@ -30,6 +34,7 @@ export const battleComposition = createBattleComposition();
 export const {
   pokemonRepository,
   moveRepository,
+  itemRepository,
   calculatorAdapter,
   calculateBattleScenarioUseCase,
 } = battleComposition;
