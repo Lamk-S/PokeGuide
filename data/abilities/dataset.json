@@ -1,0 +1,2204 @@
+[
+  {
+    "name": "stench",
+    "nameEs": "Hedor",
+    "effect": "Has a 10% chance of making target Pokémon flinch with each hit.",
+    "effectEs": "Es posible que el rival retroceda por el mal olor."
+  },
+  {
+    "name": "drizzle",
+    "nameEs": "Llovizna",
+    "effect": "Summons rain that lasts indefinitely upon entering battle.",
+    "effectEs": "Invoca lluvia al entrar en combate."
+  },
+  {
+    "name": "speed-boost",
+    "nameEs": "Impulso",
+    "effect": "Raises Speed one stage after each turn.",
+    "effectEs": "Aumenta 1 nivel la Velocidad al final de cada turno."
+  },
+  {
+    "name": "battle-armor",
+    "nameEs": "Armadura Batalla",
+    "effect": "Protects against critical hits.",
+    "effectEs": "Bloquea golpes críticos."
+  },
+  {
+    "name": "sturdy",
+    "nameEs": "Robustez",
+    "effect": "Prevents being KOed from full HP, leaving 1 HP instead.  Protects against the one-hit KO moves regardless of HP.",
+    "effectEs": "Si tiene el PS al 100%, sobrevive con 1 PS a cualquier movimiento fulminante. Inmune a movimientos OHKO."
+  },
+  {
+    "name": "damp",
+    "nameEs": "Humedad",
+    "effect": "Prevents Self-Destruct, Explosion, and Aftermath from working while the Pokémon is in battle.",
+    "effectEs": "Evita que Autodestrucción, Explosión y la habilidad Posquemadura (Aftermath) funcionen mientras este Pokémon esté en combate."
+  },
+  {
+    "name": "limber",
+    "nameEs": "Flexibilidad",
+    "effect": "Prevents paralysis.",
+    "effectEs": "Evita ser paralizado."
+  },
+  {
+    "name": "sand-veil",
+    "nameEs": "Velo Arena",
+    "effect": "Increases evasion to 1.25× during a sandstorm.  Protects against sandstorm damage.",
+    "effectEs": "Aumenta la evasión x1.25 durante tormenta de arena y otorga inmunidad al daño residual de la tormenta."
+  },
+  {
+    "name": "static",
+    "nameEs": "Electricidad Estática",
+    "effect": "Has a 30% chance of paralyzing attacking Pokémon on contact.",
+    "effectEs": "Puede paralizar al mínimo contacto."
+  },
+  {
+    "name": "volt-absorb",
+    "nameEs": "Absorbe Electricidad",
+    "effect": "Absorbs Electric moves, healing for 1/4 max HP.",
+    "effectEs": "Restaura 1/4 del PS máximo al ser golpeado por un movimiento de tipo Eléctrico. Inmunidad a tipo Eléctrico."
+  },
+  {
+    "name": "water-absorb",
+    "nameEs": "Absorbe Agua",
+    "effect": "Absorbs Water moves, healing for 1/4 max HP.",
+    "effectEs": "Restaura 1/4 del PS máximo al ser golpeado por un movimiento de tipo Agua. Inmunidad a tipo Agua."
+  },
+  {
+    "name": "oblivious",
+    "nameEs": "Despiste",
+    "effect": "Prevents infatuation and protects against Captivate.",
+    "effectEs": "Evita que el Pokémon sea atraído o provocado."
+  },
+  {
+    "name": "cloud-nine",
+    "nameEs": "Aclimatación",
+    "effect": "Negates all effects of weather, but does not prevent the weather itself.",
+    "effectEs": "Anula los efectos del tiempo atmosférico."
+  },
+  {
+    "name": "compound-eyes",
+    "nameEs": "Ojo Compuesto",
+    "effect": "Increases moves' accuracy to 1.3×.",
+    "effectEs": "Aumenta la Precisión del Pokémon."
+  },
+  {
+    "name": "insomnia",
+    "nameEs": "Insomnio",
+    "effect": "Prevents sleep.",
+    "effectEs": "Evita el quedarse dormido."
+  },
+  {
+    "name": "color-change",
+    "nameEs": "Cambio Color",
+    "effect": "Changes type to match when hit by a damaging move.",
+    "effectEs": "Adopta el tipo del último movimiento del que sea blanco."
+  },
+  {
+    "name": "immunity",
+    "nameEs": "Inmunidad",
+    "effect": "Prevents poison.",
+    "effectEs": "Evita el envenenamiento."
+  },
+  {
+    "name": "flash-fire",
+    "nameEs": "Absorbe Fuego",
+    "effect": "Protects against Fire moves.  Once one has been blocked, the Pokémon's own Fire moves inflict 1.5× damage until it leaves battle.",
+    "effectEs": "Inmune a tipo Fuego. Si es golpeado por un movimiento de Fuego, potencia sus propios movimientos de Fuego x1.5."
+  },
+  {
+    "name": "shield-dust",
+    "nameEs": "Polvo Escudo",
+    "effect": "Protects against incoming moves' extra effects.",
+    "effectEs": "Anula el efecto secundario del ataque sufrido."
+  },
+  {
+    "name": "own-tempo",
+    "nameEs": "Ritmo Propio",
+    "effect": "Prevents confusion.",
+    "effectEs": "Evita ser confundido."
+  },
+  {
+    "name": "suction-cups",
+    "nameEs": "Ventosas",
+    "effect": "Prevents being forced out of battle by other Pokémon's moves.",
+    "effectEs": "Anula movimientos y objetos que fuerzan el relevo."
+  },
+  {
+    "name": "intimidate",
+    "nameEs": "Intimidación",
+    "effect": "Lowers opponents' Attack one stage upon entering battle.",
+    "effectEs": "Al entrar en combate, reduce 1 nivel el Ataque de todos los rivales adyacentes."
+  },
+  {
+    "name": "shadow-tag",
+    "nameEs": "Sombra Trampa",
+    "effect": "Prevents opponents from fleeing or switching out.",
+    "effectEs": "Evita que el enemigo huya."
+  },
+  {
+    "name": "rough-skin",
+    "nameEs": "Piel Tosca",
+    "effect": "Damages attacking Pokémon for 1/8 their max HP on contact.",
+    "effectEs": "Hiere al tacto."
+  },
+  {
+    "name": "wonder-guard",
+    "nameEs": "Superguarda",
+    "effect": "Protects against damaging moves that are not super effective.",
+    "effectEs": "Solo le hacen daño los movimientos supereficaces."
+  },
+  {
+    "name": "levitate",
+    "nameEs": "Levitación",
+    "effect": "Evades Ground moves.",
+    "effectEs": "Otorga inmunidad total a movimientos de tipo Tierra, Púas, Trampa Venenosa y al daño de arena no, pero sí a Spikes."
+  },
+  {
+    "name": "effect-spore",
+    "nameEs": "Efecto Espora",
+    "effect": "Has a 30% chance of inflcting either paralysis, poison, or sleep on attacking Pokémon on contact.",
+    "effectEs": "Puede dormir, envenenar o paralizar al contacto."
+  },
+  {
+    "name": "synchronize",
+    "nameEs": "Sincronía",
+    "effect": "Copies burns, paralysis, and poison received onto the Pokémon that inflicted them.",
+    "effectEs": "Contagia envenenamiento, parálisis o quemaduras."
+  },
+  {
+    "name": "clear-body",
+    "nameEs": "Cuerpo Puro",
+    "effect": "Prevents stats from being lowered by other Pokémon.",
+    "effectEs": "Evita que sus estadísticas sean reducidas por el rival o aliados."
+  },
+  {
+    "name": "natural-cure",
+    "nameEs": "Cura Natural",
+    "effect": "Cures any major status ailment upon switching out.",
+    "effectEs": "Cura cualquier problema de estado al salir del combate."
+  },
+  {
+    "name": "lightning-rod",
+    "nameEs": "Pararrayos",
+    "effect": "Redirects single-target Electric moves to this Pokémon where possible.  Absorbs Electric moves, raising Special Attack one stage.",
+    "effectEs": "Atrae y neutraliza movimientos de tipo Eléctrico y sube el At. Esp."
+  },
+  {
+    "name": "serene-grace",
+    "nameEs": "Dicha",
+    "effect": "Doubles the chance of moves' extra effects occurring.",
+    "effectEs": "Duplica la probabilidad de efectos secundarios de sus movimientos."
+  },
+  {
+    "name": "swift-swim",
+    "nameEs": "Nado Rápido",
+    "effect": "Doubles Speed during rain.",
+    "effectEs": "Duplica la Velocidad bajo lluvia."
+  },
+  {
+    "name": "chlorophyll",
+    "nameEs": "Clorofila",
+    "effect": "Doubles Speed during strong sunlight.",
+    "effectEs": "Duplica la Velocidad bajo sol."
+  },
+  {
+    "name": "illuminate",
+    "nameEs": "Iluminación",
+    "effect": "Doubles the wild encounter rate.",
+    "effectEs": "Aumenta la probabilidad de encontrar Pokémon."
+  },
+  {
+    "name": "trace",
+    "nameEs": "Calco",
+    "effect": "Copies an opponent's ability upon entering battle.",
+    "effectEs": "Copia la habilidad del rival."
+  },
+  {
+    "name": "huge-power",
+    "nameEs": "Potencia",
+    "effect": "Doubles Attack in battle.",
+    "effectEs": "Duplica el Ataque."
+  },
+  {
+    "name": "poison-point",
+    "nameEs": "Punto Tóxico",
+    "effect": "Has a 30% chance of poisoning attacking Pokémon on contact.",
+    "effectEs": "Puede envenenar al mínimo contacto."
+  },
+  {
+    "name": "inner-focus",
+    "nameEs": "Fuerza Mental",
+    "effect": "Prevents flinching.",
+    "effectEs": "Inmune a retroceso (flinch)."
+  },
+  {
+    "name": "magma-armor",
+    "nameEs": "Escudo Magma",
+    "effect": "Prevents freezing.",
+    "effectEs": "Evita la congelación."
+  },
+  {
+    "name": "water-veil",
+    "nameEs": "Velo Agua",
+    "effect": "Prevents burns.",
+    "effectEs": "Evita las quemaduras."
+  },
+  {
+    "name": "magnet-pull",
+    "nameEs": "Imán",
+    "effect": "Prevents Steel opponents from fleeing or switching out.",
+    "effectEs": "Impide huir a los Pokémon de tipo Acero."
+  },
+  {
+    "name": "soundproof",
+    "nameEs": "Insonorizar",
+    "effect": "Protects against sound-based moves.",
+    "effectEs": "Evita ataques de sonido."
+  },
+  {
+    "name": "rain-dish",
+    "nameEs": "Cura Lluvia",
+    "effect": "Heals for 1/16 max HP after each turn during rain.",
+    "effectEs": "Restaura 1/16 de PS máximo al final de cada turno bajo lluvia."
+  },
+  {
+    "name": "sand-stream",
+    "nameEs": "Chorro Arena",
+    "effect": "Summons a sandstorm that lasts indefinitely upon entering battle.",
+    "effectEs": "Invoca tormenta de arena al entrar en combate."
+  },
+  {
+    "name": "pressure",
+    "nameEs": "Presión",
+    "effect": "Increases the PP cost of moves targetting the Pokémon by one.",
+    "effectEs": "Hace que los PP del rival se acaben antes."
+  },
+  {
+    "name": "thick-fat",
+    "nameEs": "Sebo",
+    "effect": "Halves damage from Fire and Ice moves.",
+    "effectEs": "Reduce a la mitad el daño recibido de movimientos de tipo Fuego y Hielo."
+  },
+  {
+    "name": "early-bird",
+    "nameEs": "Madrugar",
+    "effect": "Makes sleep pass twice as quickly.",
+    "effectEs": "El Pokémon se despierta rápidamente."
+  },
+  {
+    "name": "flame-body",
+    "nameEs": "Cuerpo Llama",
+    "effect": "Has a 30% chance of burning attacking Pokémon on contact.",
+    "effectEs": "Puede quemar al mínimo contacto."
+  },
+  {
+    "name": "run-away",
+    "nameEs": "Fuga",
+    "effect": "Ensures success fleeing from wild battles.",
+    "effectEs": "Permite escapar de todos los Pokémon salvajes."
+  },
+  {
+    "name": "keen-eye",
+    "nameEs": "Vista Lince",
+    "effect": "Prevents accuracy from being lowered.",
+    "effectEs": "Evita que disminuya la Precisión."
+  },
+  {
+    "name": "hyper-cutter",
+    "nameEs": "Corte Fuerte",
+    "effect": "Prevents Attack from being lowered by other Pokémon.",
+    "effectEs": "Evita que disminuya el Ataque."
+  },
+  {
+    "name": "pickup",
+    "nameEs": "Recogida",
+    "effect": "Picks up other Pokémon's used and Flung held items.  May also pick up an item after battle.",
+    "effectEs": "El Pokémon puede encontrar objetos."
+  },
+  {
+    "name": "truant",
+    "nameEs": "Ausente",
+    "effect": "Skips every second turn.",
+    "effectEs": "El Pokémon no atacará en turnos consecutivos."
+  },
+  {
+    "name": "hustle",
+    "nameEs": "Entusiasmo",
+    "effect": "Strengthens physical moves to inflict 1.5× damage, but decreases their accuracy to 0.8×.",
+    "effectEs": "Aumenta el Ataque, pero reduce la Precisión."
+  },
+  {
+    "name": "cute-charm",
+    "nameEs": "Gran Encanto",
+    "effect": "Has a 30% chance of infatuating attacking Pokémon on contact.",
+    "effectEs": "Tocar al Pokémon puede causar enamoramiento."
+  },
+  {
+    "name": "plus",
+    "nameEs": "Más",
+    "effect": "Increases Special Attack to 1.5× when a friendly Pokémon has Plus or Minus.",
+    "effectEs": "Potencia el At. Esp. si algún otro Pokémon tiene Más o Menos."
+  },
+  {
+    "name": "minus",
+    "nameEs": "Menos",
+    "effect": "Increases Special Attack to 1.5× when a friendly Pokémon has Plus or Minus.",
+    "effectEs": "Potencia el At. Esp. si algún otro Pokémon tiene Más o Menos."
+  },
+  {
+    "name": "forecast",
+    "nameEs": "Predicción",
+    "effect": "Changes Castform's type and form to match the weather.",
+    "effectEs": "Se transforma según el tiempo atmosférico."
+  },
+  {
+    "name": "sticky-hold",
+    "nameEs": "Viscosidad",
+    "effect": "Prevents a held item from being removed by other Pokémon.",
+    "effectEs": "Protege al Pokémon del robo de objetos."
+  },
+  {
+    "name": "shed-skin",
+    "nameEs": "Mudar",
+    "effect": "Has a 33% chance of curing any major status ailment after each turn.",
+    "effectEs": "Cura los problemas de estado mudando la piel."
+  },
+  {
+    "name": "guts",
+    "nameEs": "Agallas",
+    "effect": "Increases Attack to 1.5× with a major status ailment.",
+    "effectEs": "Aumenta el Ataque x1.5 cuando tiene un problema de estado. Ignora la bajada de Ataque por quemadura."
+  },
+  {
+    "name": "marvel-scale",
+    "nameEs": "Escama Especial",
+    "effect": "Increases Defense to 1.5× with a major status ailment.",
+    "effectEs": "Aumenta la Defensa x1.5 cuando tiene problema de estado."
+  },
+  {
+    "name": "liquid-ooze",
+    "nameEs": "Lodo Líquido",
+    "effect": "Damages opponents using leeching moves for as much as they would heal.",
+    "effectEs": "Hiere a los Pokémon que drenan PS."
+  },
+  {
+    "name": "overgrow",
+    "nameEs": "Espesura",
+    "effect": "Strengthens Grass moves to inflict 1.5× damage at 1/3 max HP or less.",
+    "effectEs": "Potencia los ataques de tipo Planta en un apuro."
+  },
+  {
+    "name": "blaze",
+    "nameEs": "Mar Llamas",
+    "effect": "Strengthens Fire moves to inflict 1.5× damage at 1/3 max HP or less.",
+    "effectEs": "Potencia los ataques de tipo Fuego en un apuro."
+  },
+  {
+    "name": "torrent",
+    "nameEs": "Torrente",
+    "effect": "Strengthens Water moves to inflict 1.5× damage at 1/3 max HP or less.",
+    "effectEs": "Potencia los ataques de tipo Agua en un apuro."
+  },
+  {
+    "name": "swarm",
+    "nameEs": "Enjambre",
+    "effect": "Strengthens Bug moves to inflict 1.5× damage at 1/3 max HP or less.",
+    "effectEs": "Potencia los ataques de tipo Bicho en un apuro."
+  },
+  {
+    "name": "rock-head",
+    "nameEs": "Cabeza Roca",
+    "effect": "Protects against recoil damage.",
+    "effectEs": "Impide que el Pokémon se dañe con sus movimientos."
+  },
+  {
+    "name": "drought",
+    "nameEs": "Sequía",
+    "effect": "Summons strong sunlight that lasts indefinitely upon entering battle.",
+    "effectEs": "Invoca sol al entrar en combate."
+  },
+  {
+    "name": "arena-trap",
+    "nameEs": "Trampa Arena",
+    "effect": "Prevents opponents from fleeing or switching out.  Eluded by Flying-types and Pokémon in the air.",
+    "effectEs": "Evita que el rival huya."
+  },
+  {
+    "name": "vital-spirit",
+    "nameEs": "Espíritu Vital",
+    "effect": "Prevents sleep.",
+    "effectEs": "Evita el quedarse dormido."
+  },
+  {
+    "name": "white-smoke",
+    "nameEs": "Humo Blanco",
+    "effect": "Prevents stats from being lowered by other Pokémon.",
+    "effectEs": "Evita que sus estadísticas sean reducidas por el rival o aliados."
+  },
+  {
+    "name": "pure-power",
+    "nameEs": "Energía Pura",
+    "effect": "Doubles Attack in battle.",
+    "effectEs": "Duplica el Ataque."
+  },
+  {
+    "name": "shell-armor",
+    "nameEs": "Caparazón",
+    "effect": "Protects against critical hits.",
+    "effectEs": "Bloquea los golpes críticos."
+  },
+  {
+    "name": "air-lock",
+    "nameEs": "Bucle Aire",
+    "effect": "Negates all effects of weather, but does not prevent the weather itself.",
+    "effectEs": "Anula los efectos del tiempo atmosférico."
+  },
+  {
+    "name": "tangled-feet",
+    "nameEs": "Tumbos",
+    "effect": "Doubles evasion when confused.",
+    "effectEs": "Sube la Evasión si el Pokémon está confuso."
+  },
+  {
+    "name": "motor-drive",
+    "nameEs": "Electromotor",
+    "effect": "Absorbs Electric moves, raising Speed one stage.",
+    "effectEs": "Sube la Velocidad si le alcanza un ataque eléctrico."
+  },
+  {
+    "name": "rivalry",
+    "nameEs": "Rivalidad",
+    "effect": "Increases damage inflicted to 1.25× against Pokémon of the same gender, but decreases damage to 0.75× against the opposite gender.",
+    "effectEs": "Si el objetivo es del mismo sexo, inflige más daño."
+  },
+  {
+    "name": "steadfast",
+    "nameEs": "Impasible",
+    "effect": "Raises Speed one stage upon flinching.",
+    "effectEs": "Cada vez que retrocede sube su Velocidad."
+  },
+  {
+    "name": "snow-cloak",
+    "nameEs": "Manto Níveo",
+    "effect": "Increases evasion to 1.25× during hail.  Protects against hail damage.",
+    "effectEs": "Aumenta la evasión x1.25 durante nieve/hail."
+  },
+  {
+    "name": "gluttony",
+    "nameEs": "Gula",
+    "effect": "Makes the Pokémon eat any held Berry triggered by low HP below 1/2 its max HP.",
+    "effectEs": "Fomenta el uso rápido de la baya que porte."
+  },
+  {
+    "name": "anger-point",
+    "nameEs": "Irascible",
+    "effect": "Raises Attack to the maximum of six stages upon receiving a critical hit.",
+    "effectEs": "Sube el Ataque al máximo tras un golpe crítico."
+  },
+  {
+    "name": "unburden",
+    "nameEs": "Liviano",
+    "effect": "Doubles Speed upon using or losing a held item.",
+    "effectEs": "Duplica la Velocidad al perder, consumir o usar su objeto."
+  },
+  {
+    "name": "heatproof",
+    "nameEs": "Ignífugo",
+    "effect": "Halves damage from Fire moves and burns.",
+    "effectEs": "Atenúa los movimientos de tipo Fuego."
+  },
+  {
+    "name": "simple",
+    "nameEs": "Simple",
+    "effect": "Doubles the Pokémon's stat modifiers.  These doubled modifiers are still capped at -6 or 6 stages.",
+    "effectEs": "Aumenta los cambios en las características."
+  },
+  {
+    "name": "dry-skin",
+    "nameEs": "Piel Seca",
+    "effect": "Causes 1/8 max HP in damage each turn during strong sunlight, but heals for 1/8 max HP during rain.  Increases damage from Fire moves to 1.25×, but absorbs Water moves, healing for 1/4 max HP.",
+    "effectEs": "Restaura 1/8 de PS bajo lluvia y pierde 1/8 bajo sol. Reduce 25% el daño de tipo Agua, debilidad x1.25 a Fuego."
+  },
+  {
+    "name": "download",
+    "nameEs": "Descarga",
+    "effect": "Raises the attack stat corresponding to the opponents' weaker defense one stage upon entering battle.",
+    "effectEs": "Adapta su fuerza para cada rival."
+  },
+  {
+    "name": "iron-fist",
+    "nameEs": "Puño Férreo",
+    "effect": "Strengthens punch-based moves to 1.2× their power.",
+    "effectEs": "Aumenta la fuerza de los puñetazos."
+  },
+  {
+    "name": "poison-heal",
+    "nameEs": "Antídoto",
+    "effect": "Heals for 1/8 max HP after each turn when poisoned in place of damage.",
+    "effectEs": "Restaura 1/8 de PS por turno si está envenenado en lugar de perder PS."
+  },
+  {
+    "name": "adaptability",
+    "nameEs": "Adaptable",
+    "effect": "Increases the same-type attack bonus from 1.5× to 2×.",
+    "effectEs": "Aumenta el bonus STAB de x1.5 a x2."
+  },
+  {
+    "name": "skill-link",
+    "nameEs": "Encadenado",
+    "effect": "Extends two-to-five-hit moves and Triple Kick to their full length every time.",
+    "effectEs": "Aumenta la frecuencia de los movimientos múltiples."
+  },
+  {
+    "name": "hydration",
+    "nameEs": "Hidratación",
+    "effect": "Cures any major status ailment after each turn during rain.",
+    "effectEs": "Cura los problemas de estado si está lloviendo."
+  },
+  {
+    "name": "solar-power",
+    "nameEs": "Poder Solar",
+    "effect": "Increases Special Attack to 1.5× but costs 1/8 max HP after each turn during strong sunlight.",
+    "effectEs": "Aumenta el At. Especial x1.5 bajo sol a costa de perder 1/8 de PS máximo por turno."
+  },
+  {
+    "name": "quick-feet",
+    "nameEs": "Pies Rápidos",
+    "effect": "Increases Speed to 1.5× with a major status ailment.",
+    "effectEs": "Aumenta la Velocidad x1.5 cuando tiene problema de estado. Ignora la bajada por parálisis."
+  },
+  {
+    "name": "normalize",
+    "nameEs": "Normalidad",
+    "effect": "Makes the Pokémon's moves all act Normal-type.",
+    "effectEs": "Todos los movimientos se vuelven de tipo Normal."
+  },
+  {
+    "name": "sniper",
+    "nameEs": "Francotirador",
+    "effect": "Strengthens critical hits to inflict 3× damage rather than 2×.",
+    "effectEs": "Potencia los movimientos si se vuelven críticos."
+  },
+  {
+    "name": "magic-guard",
+    "nameEs": "Muro Mágico",
+    "effect": "Protects against damage not directly caused by a move.",
+    "effectEs": "Solo recibe daño de ataques directos. Inmune a daño residual, clima, retroceso, veneno, etc."
+  },
+  {
+    "name": "no-guard",
+    "nameEs": "Indefenso",
+    "effect": "Ensures all moves used by and against the Pokémon hit.",
+    "effectEs": "El movimiento del Pokémon y el del rival acertarán."
+  },
+  {
+    "name": "stall",
+    "nameEs": "Rezagado",
+    "effect": "Makes the Pokémon move last within its move's priority bracket.",
+    "effectEs": "El Pokémon se mueve tras todos los demás."
+  },
+  {
+    "name": "technician",
+    "nameEs": "Experto",
+    "effect": "Strengthens moves of 60 base power or less to 1.5× their power.",
+    "effectEs": "Potencia x1.5 los movimientos con potencia base 60 o menos."
+  },
+  {
+    "name": "leaf-guard",
+    "nameEs": "Defensa Hoja",
+    "effect": "Protects against major status ailments during strong sunlight.",
+    "effectEs": "Evita los problemas de estado si hace sol."
+  },
+  {
+    "name": "klutz",
+    "nameEs": "Zoquete",
+    "effect": "Prevents the Pokémon from using its held item in battle.",
+    "effectEs": "El Pokémon no puede usar objetos equipados."
+  },
+  {
+    "name": "mold-breaker",
+    "nameEs": "Rompemoldes",
+    "effect": "Bypasses targets' abilities if they could hinder or prevent a move.",
+    "effectEs": "Ignora las habilidades del defensor que podrían impedir o reducir el movimiento."
+  },
+  {
+    "name": "super-luck",
+    "nameEs": "Afortunado",
+    "effect": "Raises moves' critical hit rates one stage.",
+    "effectEs": "Aumenta la probabilidad de dar golpes críticos."
+  },
+  {
+    "name": "aftermath",
+    "nameEs": "Detonación",
+    "effect": "Damages the attacker for 1/4 its max HP when knocked out by a contact move.",
+    "effectEs": "Daña al agresor que le ha dado el golpe de gracia."
+  },
+  {
+    "name": "anticipation",
+    "nameEs": "Anticipación",
+    "effect": "Notifies all trainers upon entering battle if an opponent has a super-effective move, Self-Destruct, Explosion, or a one-hit KO move.",
+    "effectEs": "Prevé los movimientos peligrosos del rival."
+  },
+  {
+    "name": "forewarn",
+    "nameEs": "Alerta",
+    "effect": "Reveals the opponents' strongest move upon entering battle.",
+    "effectEs": "Determina el movimiento más potente del rival."
+  },
+  {
+    "name": "unaware",
+    "nameEs": "Ignorante",
+    "effect": "Ignores other Pokémon's stat modifiers for damage and accuracy calculation.",
+    "effectEs": "Ignora los cambios de estadísticas del rival al calcular daño (tanto a favor como en contra)."
+  },
+  {
+    "name": "tinted-lens",
+    "nameEs": "Cromolente",
+    "effect": "Doubles damage inflicted with not-very-effective moves.",
+    "effectEs": "Duplica el daño de movimientos poco efectivos (x0.5 pasa a x1)."
+  },
+  {
+    "name": "filter",
+    "nameEs": "Filtro",
+    "effect": "Decreases damage taken from super-effective moves by 1/4.",
+    "effectEs": "Reduce el daño super efectivo en un 25% (x0.75)."
+  },
+  {
+    "name": "slow-start",
+    "nameEs": "Inicio Lento",
+    "effect": "Halves Attack and Speed for five turns upon entering battle.",
+    "effectEs": "Baja a la mitad el Ataque y la Velocidad durante un rato."
+  },
+  {
+    "name": "scrappy",
+    "nameEs": "Intrépido",
+    "effect": "Lets the Pokémon's Normal and Fighting moves hit Ghost Pokémon.",
+    "effectEs": "Permite golpear a tipo Fantasma con movimientos de tipo Normal y Lucha."
+  },
+  {
+    "name": "storm-drain",
+    "nameEs": "Colector",
+    "effect": "Redirects single-target Water moves to this Pokémon where possible.  Absorbs Water moves, raising Special Attack one stage.",
+    "effectEs": "Atrae y neutraliza los movimientos de tipo Agua y sube el At. Esp."
+  },
+  {
+    "name": "ice-body",
+    "nameEs": "Gélido",
+    "effect": "Heals for 1/16 max HP after each turn during hail.  Protects against hail damage.",
+    "effectEs": "Recupera algunos PS cuando hay tormentas de granizo."
+  },
+  {
+    "name": "solid-rock",
+    "nameEs": "Roca Sólida",
+    "effect": "Decreases damage taken from super-effective moves by 1/4.",
+    "effectEs": "Reduce el daño super efectivo en un 25% (x0.75)."
+  },
+  {
+    "name": "snow-warning",
+    "nameEs": "Nevada",
+    "effect": "Summons hail that lasts indefinitely upon entering battle.",
+    "effectEs": "Invoca nieve al entrar en combate."
+  },
+  {
+    "name": "honey-gather",
+    "nameEs": "Recogemiel",
+    "effect": "The Pokémon may pick up Honey after battle.",
+    "effectEs": "El Pokémon recoge Miel de donde puede."
+  },
+  {
+    "name": "frisk",
+    "nameEs": "Cacheo",
+    "effect": "Reveals an opponent's held item upon entering battle.",
+    "effectEs": "El Pokémon puede ver el objeto que lleva el rival."
+  },
+  {
+    "name": "reckless",
+    "nameEs": "Audaz",
+    "effect": "Strengthens recoil moves to 1.2× their power.",
+    "effectEs": "Potencia los movimientos que dañan al usuario."
+  },
+  {
+    "name": "multitype",
+    "nameEs": "Multitipo",
+    "effect": "Changes Arceus's type and form to match its held Plate.",
+    "effectEs": "Cambia el tipo al de la tabla que lleve."
+  },
+  {
+    "name": "flower-gift",
+    "nameEs": "Don Floral",
+    "effect": "Increases friendly Pokémon's Attack and Special Defense to 1.5× during strong sunlight.",
+    "effectEs": "Potencia los Pokémon del equipo si está soleado."
+  },
+  {
+    "name": "bad-dreams",
+    "nameEs": "Mal Sueño",
+    "effect": "Damages sleeping opponents for 1/8 their max HP after each turn.",
+    "effectEs": "Reduce los PS de cualquier rival que esté dormido."
+  },
+  {
+    "name": "pickpocket",
+    "nameEs": "Hurto",
+    "effect": "Steals attacking Pokémon's held items on contact.",
+    "effectEs": "Al ser golpeado, roba el objeto del objetivo."
+  },
+  {
+    "name": "sheer-force",
+    "nameEs": "Potencia Bruta",
+    "effect": "Strengthens moves with extra effects to 1.3× their power, but prevents their extra effects.",
+    "effectEs": "Elimina los efectos secundarios de sus movimientos a cambio de aumentar su potencia x1.3."
+  },
+  {
+    "name": "contrary",
+    "nameEs": "Respondón",
+    "effect": "Inverts stat changes.",
+    "effectEs": "Invierte los cambios en las características."
+  },
+  {
+    "name": "unnerve",
+    "nameEs": "Nerviosismo",
+    "effect": "Prevents opposing Pokémon from eating held Berries.",
+    "effectEs": "Pone nervioso al rival y le impide usar bayas."
+  },
+  {
+    "name": "defiant",
+    "nameEs": "Competitivo",
+    "effect": "Raises Attack two stages upon having any stat lowered.",
+    "effectEs": "Aumenta 2 niveles el Ataque cuando una de sus estadísticas es reducida por el rival."
+  },
+  {
+    "name": "defeatist",
+    "nameEs": "Flaqueza",
+    "effect": "Halves Attack and Special Attack at 50% max HP or less.",
+    "effectEs": "Baja las características al llegar a la mitad los PS."
+  },
+  {
+    "name": "cursed-body",
+    "nameEs": "Cuerpo Maldito",
+    "effect": "Has a 30% chance of Disabling any move that hits the Pokémon.",
+    "effectEs": "Puede anular el movimiento usado en su contra."
+  },
+  {
+    "name": "healer",
+    "nameEs": "Alma Cura",
+    "effect": "Has a 30% chance of curing each adjacent ally of any major status ailment after each turn.",
+    "effectEs": "A veces cura los cambios de estado de un aliado."
+  },
+  {
+    "name": "friend-guard",
+    "nameEs": "Compiescolta",
+    "effect": "Decreases all direct damage taken by friendly Pokémon to 0.75×.",
+    "effectEs": "Reduce el daño que sufren los aliados."
+  },
+  {
+    "name": "weak-armor",
+    "nameEs": "Armadura Frágil",
+    "effect": "Raises Speed and lowers Defense by one stage each upon being hit by a physical move.",
+    "effectEs": "Un ataque físico baja la Defensa y sube la Velocidad."
+  },
+  {
+    "name": "heavy-metal",
+    "nameEs": "Metal Pesado",
+    "effect": "Doubles the Pokémon's weight.",
+    "effectEs": "Duplica el peso del Pokémon."
+  },
+  {
+    "name": "light-metal",
+    "nameEs": "Metal Liviano",
+    "effect": "Halves the Pokémon's weight.",
+    "effectEs": "Reduce a la mitad el peso del Pokémon."
+  },
+  {
+    "name": "multiscale",
+    "nameEs": "Multiescamas",
+    "effect": "Halves damage taken from full HP.",
+    "effectEs": "Reduce el daño recibido a la mitad si tiene el PS al 100%."
+  },
+  {
+    "name": "toxic-boost",
+    "nameEs": "Ímpetu Tóxico",
+    "effect": "Increases Attack to 1.5× when poisoned.",
+    "effectEs": "Aumenta el Ataque x1.5 cuando está gravemente envenenado."
+  },
+  {
+    "name": "flare-boost",
+    "nameEs": "Ímpetu Ardiente",
+    "effect": "Increases Special Attack to 1.5× when burned.",
+    "effectEs": "Aumenta el At. Especial x1.5 cuando está quemado."
+  },
+  {
+    "name": "harvest",
+    "nameEs": "Cosecha",
+    "effect": "Has a 50% chance of restoring a used Berry after each turn if the Pokémon has held no items in the meantime.",
+    "effectEs": "Permite reutilizar varias veces una misma baya."
+  },
+  {
+    "name": "telepathy",
+    "nameEs": "Telepatía",
+    "effect": "Protects against friendly Pokémon's damaging moves.",
+    "effectEs": "Elude los ataques de aliados en batalla."
+  },
+  {
+    "name": "moody",
+    "nameEs": "Veleta",
+    "effect": "Raises a random stat two stages and lowers another one stage after each turn.",
+    "effectEs": "Sube una característica mucho, pero baja otra."
+  },
+  {
+    "name": "overcoat",
+    "nameEs": "Funda",
+    "effect": "Protects against damage from weather.",
+    "effectEs": "Inmune a daño de climas y a movimientos de polvos y esporas."
+  },
+  {
+    "name": "poison-touch",
+    "nameEs": "Toque Tóxico",
+    "effect": "Has a 30% chance of poisoning target Pokémon upon contact.",
+    "effectEs": "Puede envenenar al objetivo con solo tocarlo."
+  },
+  {
+    "name": "regenerator",
+    "nameEs": "Regeneración",
+    "effect": "Heals for 1/3 max HP upon switching out.",
+    "effectEs": "Restaura 1/3 del PS máximo al salir del combate."
+  },
+  {
+    "name": "big-pecks",
+    "nameEs": "Sacapecho",
+    "effect": "Protects against Defense drops.",
+    "effectEs": "Protege de los ataques que bajan la Defensa."
+  },
+  {
+    "name": "sand-rush",
+    "nameEs": "Ímpetu Arena",
+    "effect": "Doubles Speed during a sandstorm.  Protects against sandstorm damage.",
+    "effectEs": "Duplica la Velocidad durante tormenta de arena e inmunidad al daño de la tormenta."
+  },
+  {
+    "name": "wonder-skin",
+    "nameEs": "Piel Milagro",
+    "effect": "Lowers incoming non-damaging moves' base accuracy to exactly 50%.",
+    "effectEs": "Dificulta que le afecten los ataques de estado."
+  },
+  {
+    "name": "analytic",
+    "nameEs": "Cálculo Final",
+    "effect": "Strengthens moves to 1.3× their power when moving last.",
+    "effectEs": "Potencia el movimiento si es el último en atacar."
+  },
+  {
+    "name": "illusion",
+    "nameEs": "Ilusión",
+    "effect": "Takes the appearance of the last conscious party Pokémon upon being sent out until hit by a damaging move.",
+    "effectEs": "Se convierte en el último Pokémon del equipo."
+  },
+  {
+    "name": "imposter",
+    "nameEs": "Impostor",
+    "effect": "Transforms upon entering battle.",
+    "effectEs": "Se transforma en el Pokémon que tiene enfrente."
+  },
+  {
+    "name": "infiltrator",
+    "nameEs": "Allanamiento",
+    "effect": "Bypasses Light Screen, Reflect, and Safeguard.",
+    "effectEs": "Ataca rodeando la barrera del rival."
+  },
+  {
+    "name": "mummy",
+    "nameEs": "Momia",
+    "effect": "Changes attacking Pokémon's abilities to Mummy on contact.",
+    "effectEs": "Contagia Momia al rival que lo toque."
+  },
+  {
+    "name": "moxie",
+    "nameEs": "Autoestima",
+    "effect": "Raises Attack one stage upon KOing a Pokémon.",
+    "effectEs": "Aumenta 1 nivel el Ataque cada vez que debilita a un oponente."
+  },
+  {
+    "name": "justified",
+    "nameEs": "Justiciero",
+    "effect": "Raises Attack one stage upon taking damage from a Dark move.",
+    "effectEs": "Sube el Ataque al recibir uno de tipo Siniestro."
+  },
+  {
+    "name": "rattled",
+    "nameEs": "Cobardía",
+    "effect": "Raises Speed one stage upon being hit by a Dark, Ghost, or Bug move.",
+    "effectEs": "El miedo a algunos ataques sube su Velocidad."
+  },
+  {
+    "name": "magic-bounce",
+    "nameEs": "Espejo Mágico",
+    "effect": "Reflects most non-damaging moves back at their user.",
+    "effectEs": "Rebota al rival los movimientos de estado que lo afecten."
+  },
+  {
+    "name": "sap-sipper",
+    "nameEs": "Herbívoro",
+    "effect": "Absorbs Grass moves, raising Attack one stage.",
+    "effectEs": "Neutraliza los movimientos de tipo Planta y sube el Ataque."
+  },
+  {
+    "name": "prankster",
+    "nameEs": "Bromista",
+    "effect": "Raises non-damaging moves' priority by one stage.",
+    "effectEs": "Otorga +1 de prioridad a movimientos de estado (no de daño directo)."
+  },
+  {
+    "name": "sand-force",
+    "nameEs": "Poder Arena",
+    "effect": "Strengthens Rock, Ground, and Steel moves to 1.3× their power during a sandstorm.  Protects against sandstorm damage.",
+    "effectEs": "Potencia algunos movimientos durante las tormentas de arena."
+  },
+  {
+    "name": "iron-barbs",
+    "nameEs": "Punta Acero",
+    "effect": "Damages attacking Pokémon for 1/8 their max HP on contact.",
+    "effectEs": "Hiere al hacer contacto."
+  },
+  {
+    "name": "zen-mode",
+    "nameEs": "Modo Daruma",
+    "effect": "Changes Darmanitan's form after each turn depending on its HP: Zen Mode below 50% max HP, and Standard Mode otherwise.",
+    "effectEs": "Cambia de forma en un apuro."
+  },
+  {
+    "name": "victory-star",
+    "nameEs": "Tinovictoria",
+    "effect": "Increases moves' accuracy to 1.1× for friendly Pokémon.",
+    "effectEs": "Sube la Precisión de todo el equipo."
+  },
+  {
+    "name": "turboblaze",
+    "nameEs": "Turbollama",
+    "effect": "Bypasses targets' abilities if they could hinder or prevent moves.",
+    "effectEs": "Ignora las habilidades del defensor que podrían impedir o reducir el movimiento."
+  },
+  {
+    "name": "teravolt",
+    "nameEs": "Terravoltaje",
+    "effect": "Bypasses targets' abilities if they could hinder or prevent moves.",
+    "effectEs": "Ignora las habilidades del defensor que podrían impedir o reducir el movimiento."
+  },
+  {
+    "name": "aroma-veil",
+    "nameEs": "Velo Aroma",
+    "effect": "Protects allies against moves that affect their mental state.",
+    "effectEs": "Protege al equipo de movimientos que limitan elección (Anulación, Otra Vez, etc)."
+  },
+  {
+    "name": "flower-veil",
+    "nameEs": "Velo Flor",
+    "effect": "Protects friendly Grass Pokémon from having their stats lowered by other Pokémon.",
+    "effectEs": "Evita que bajen las características de Pokémon tipo Planta aliados."
+  },
+  {
+    "name": "cheek-pouch",
+    "nameEs": "Carrillo",
+    "effect": "Restores HP upon eating a Berry, in addition to the Berry's effect.",
+    "effectEs": "Recupera PS al comer bayas."
+  },
+  {
+    "name": "protean",
+    "nameEs": "Mutatipo",
+    "effect": "Changes the bearer's type to match each move it uses.",
+    "effectEs": "Cambia el tipo del Pokémon al tipo del movimiento que va a usar. Una vez por entrada."
+  },
+  {
+    "name": "fur-coat",
+    "nameEs": "Pelaje Recio",
+    "effect": "Halves damage from physical attacks.",
+    "effectEs": "Duplica la Defensa."
+  },
+  {
+    "name": "magician",
+    "nameEs": "Prestidigitador",
+    "effect": "Steals the target's held item when the bearer uses a damaging move.",
+    "effectEs": "Roba el objeto del Pokémon al que alcance con un movimiento."
+  },
+  {
+    "name": "bulletproof",
+    "nameEs": "Antibalas",
+    "effect": "Protects against bullet, ball, and bomb-based moves.",
+    "effectEs": "Inmune a movimientos bala."
+  },
+  {
+    "name": "competitive",
+    "nameEs": "Tenacidad",
+    "effect": "Raises Special Attack by two stages upon having any stat lowered.",
+    "effectEs": "Aumenta 2 niveles el At. Especial cuando una de sus estadísticas es reducida por el rival."
+  },
+  {
+    "name": "strong-jaw",
+    "nameEs": "Mandíbula Fuerte",
+    "effect": "Strengthens biting moves to 1.5× their power.",
+    "effectEs": "Su robusta mandíbula le confiere una potente mordedura."
+  },
+  {
+    "name": "refrigerate",
+    "nameEs": "Piel Helada",
+    "effect": "Turns the bearer's Normal moves into Ice moves and strengthens them to 1.3× their power.",
+    "effectEs": "Convierte movimientos de tipo Normal en tipo Hielo."
+  },
+  {
+    "name": "sweet-veil",
+    "nameEs": "Velo Dulce",
+    "effect": "Prevents friendly Pokémon from sleeping.",
+    "effectEs": "Evita que el equipo se duerma."
+  },
+  {
+    "name": "stance-change",
+    "nameEs": "Cambio Táctico",
+    "effect": "Changes Aegislash to Blade Forme before using a damaging move, or Shield Forme before using King’s Shield.",
+    "effectEs": "Cambia de forma según su estilo de combate."
+  },
+  {
+    "name": "gale-wings",
+    "nameEs": "Alas Vendaval",
+    "effect": "Raises Flying moves' priority by one stage.",
+    "effectEs": "Da prioridad a los movimientos de tipo Volador."
+  },
+  {
+    "name": "mega-launcher",
+    "nameEs": "Megadisparador",
+    "effect": "Strengthens aura and pulse moves to 1.5× their power.",
+    "effectEs": "Aumenta la potencia de algunos movimientos de pulsos y auras."
+  },
+  {
+    "name": "grass-pelt",
+    "nameEs": "Manto Frondoso",
+    "effect": "Boosts Defense while Grassy Terrain is in effect.",
+    "effectEs": "Aumenta la Defensa mientras dura el efecto de Campo de Hierba."
+  },
+  {
+    "name": "symbiosis",
+    "nameEs": "Simbiosis",
+    "effect": "Passes the bearer's held item to an ally when the ally uses up its item.",
+    "effectEs": "El Pokémon puede pasar su objeto a un aliado."
+  },
+  {
+    "name": "tough-claws",
+    "nameEs": "Garra Dura",
+    "effect": "Strengthens moves that make contact to 1.33× their power.",
+    "effectEs": "Aumenta la potencia de los movimientos de contacto directo."
+  },
+  {
+    "name": "pixilate",
+    "nameEs": "Piel Feérica",
+    "effect": "Turns the bearer's Normal moves into Fairy moves and strengthens them to 1.3× their power.",
+    "effectEs": "Convierte movimientos de tipo Normal en tipo Hada."
+  },
+  {
+    "name": "gooey",
+    "nameEs": "Baba",
+    "effect": "Lowers attacking Pokémon's Speed by one stage on contact.",
+    "effectEs": "Baja la Velocidad del Pokémon con el que entra en contacto."
+  },
+  {
+    "name": "aerilate",
+    "nameEs": "Piel Celeste",
+    "effect": "Turns the bearer's Normal moves into Flying moves and strengthens them to 1.3× their power.",
+    "effectEs": "Convierte movimientos de tipo Normal en tipo Volador."
+  },
+  {
+    "name": "parental-bond",
+    "nameEs": "Amor Filial",
+    "effect": "Lets the bearer hit twice with damaging moves.  The second hit has half power.",
+    "effectEs": "Ataque en familia."
+  },
+  {
+    "name": "dark-aura",
+    "nameEs": "Aura Oscura",
+    "effect": "Strengthens Dark moves to 1.33× their power for all friendly and opposing Pokémon.",
+    "effectEs": "Aumenta la potencia de todos los movimientos de tipo Siniestro."
+  },
+  {
+    "name": "fairy-aura",
+    "nameEs": "Aura Feérica",
+    "effect": "Strengthens Fairy moves to 1.33× their power for all friendly and opposing Pokémon.",
+    "effectEs": "Aumenta la potencia de todos los movimientos de tipo Hada."
+  },
+  {
+    "name": "aura-break",
+    "nameEs": "Rompeaura",
+    "effect": "Makes Dark Aura and Fairy Aura weaken moves of their respective types.",
+    "effectEs": "Invierte los efectos que causan las auras."
+  },
+  {
+    "name": "primordial-sea",
+    "nameEs": "Mar del Albor",
+    "effect": "Creates heavy rain, which has all the properties of Rain Dance, cannot be replaced, and causes damaging Fire moves to fail.",
+    "effectEs": "Altera el clima para anular los ataques de tipo Fuego."
+  },
+  {
+    "name": "desolate-land",
+    "nameEs": "Tierra del Ocaso",
+    "effect": "Creates extremely harsh sunlight, which has all the properties of Sunny Day, cannot be replaced, and causes damaging Water moves to fail.",
+    "effectEs": "Altera el clima para anular los ataques de tipo Agua."
+  },
+  {
+    "name": "delta-stream",
+    "nameEs": "Ráfaga Delta",
+    "effect": "Creates a mysterious air current, which cannot be replaced and causes moves to never be super effective against Flying Pokémon.",
+    "effectEs": "Altera el clima para anular las vulnerabilidades del tipo Volador."
+  },
+  {
+    "name": "stamina",
+    "nameEs": "Firmeza",
+    "effect": "Raises this Pokémon's Defense by one stage when it takes damage from a move.",
+    "effectEs": "Aumenta 1 nivel la Defensa cada vez que es golpeado por un ataque."
+  },
+  {
+    "name": "wimp-out",
+    "nameEs": "Huida",
+    "effect": "This Pokémon automatically switches out when its HP drops below half.",
+    "effectEs": "Se asusta y abandona el terreno de combate cuando sus PS se ven reducidos a la mitad."
+  },
+  {
+    "name": "emergency-exit",
+    "nameEs": "Retirada",
+    "effect": "This Pokémon automatically switches out when its HP drops below half.",
+    "effectEs": "Abandona el terreno de combate cuando sus PS se ven reducidos a la mitad para evitar males mayores."
+  },
+  {
+    "name": "water-compaction",
+    "nameEs": "Hidrorrefuerzo",
+    "effect": "Raises this Pokémon's Defense by two stages when it's hit by a Water move.",
+    "effectEs": "Aumenta mucho la Defensa si le alcanza un movimiento de tipo Agua."
+  },
+  {
+    "name": "merciless",
+    "nameEs": "Ensañamiento",
+    "effect": "This Pokémon's moves critical hit against poisoned targets.",
+    "effectEs": "Hace que los movimientos asesten siempre un golpe crítico si el rival está envenenado."
+  },
+  {
+    "name": "shields-down",
+    "nameEs": "Escudo Limitado",
+    "effect": "Transforms this Minior between Core Form and Meteor Form.  Prevents major status ailments and drowsiness while in Meteor Form.",
+    "effectEs": "Rompe su coraza cuando sus PS se ven reducidos a la mitad y adopta una forma ofensiva."
+  },
+  {
+    "name": "stakeout",
+    "nameEs": "Vigilante",
+    "effect": "This Pokémon's moves have double power against Pokémon that switched in this turn.",
+    "effectEs": "Duplica el daño infligido a un Pokémon que se haya incorporado al combate mediante un cambio."
+  },
+  {
+    "name": "water-bubble",
+    "nameEs": "Pompa",
+    "effect": "Halves damage from Fire moves, doubles damage of Water moves, and prevents burns.",
+    "effectEs": "Duplica el daño de movimientos de tipo Agua, previene quemaduras y reduce a la mitad el daño de tipo Fuego recibido."
+  },
+  {
+    "name": "steelworker",
+    "nameEs": "Acero Templado",
+    "effect": "This Pokémon's Steel moves have 1.5× power.",
+    "effectEs": "Potencia los movimientos de tipo Acero."
+  },
+  {
+    "name": "berserk",
+    "nameEs": "Cólera",
+    "effect": "Raises this Pokémon's Special Attack by one stage every time its HP drops below half.",
+    "effectEs": "Aumenta el Ataque Especial si los ataques del oponente le reducen los PS a la mitad."
+  },
+  {
+    "name": "slush-rush",
+    "nameEs": "Quitanieves",
+    "effect": "During Hail, this Pokémon has double Speed.",
+    "effectEs": "Duplica la Velocidad durante nieve."
+  },
+  {
+    "name": "long-reach",
+    "nameEs": "Remoto",
+    "effect": "This Pokémon's moves do not make contact.",
+    "effectEs": "Permite usar cualquier movimiento sin entrar en contacto con el rival."
+  },
+  {
+    "name": "liquid-voice",
+    "nameEs": "Voz Fluida",
+    "effect": "Sound-based moves become Water-type.",
+    "effectEs": "Hace que todos los movimientos del Pokémon basados en sonido pasen a ser de tipo Agua."
+  },
+  {
+    "name": "triage",
+    "nameEs": "Primer Auxilio",
+    "effect": "This Pokémon's healing moves have their priority increased by 3.",
+    "effectEs": "Da prioridad a los movimientos que curan PS directamente al Pokémon."
+  },
+  {
+    "name": "galvanize",
+    "nameEs": "Piel Eléctrica",
+    "effect": "This Pokémon's Normal moves are Electric and have their power increased to 1.2×.",
+    "effectEs": "Convierte los movimientos de tipo Normal en tipo Eléctrico y aumenta ligeramente su potencia."
+  },
+  {
+    "name": "surge-surfer",
+    "nameEs": "Cola Surf",
+    "effect": "Doubles this Pokémon's Speed on Electric Terrain.",
+    "effectEs": "Duplica la Velocidad si hay un campo eléctrico en el terreno de combate."
+  },
+  {
+    "name": "schooling",
+    "nameEs": "Banco",
+    "effect": "Wishiwashi becomes Schooling Form when its HP is 25% or higher.",
+    "effectEs": "Forma bancos con sus congéneres cuando tiene muchos PS, lo cual le otorga más fuerza. Cuando le quedan pocos PS, el banco se dispersa."
+  },
+  {
+    "name": "disguise",
+    "nameEs": "Disfraz",
+    "effect": "Prevents the first instance of battle damage.",
+    "effectEs": "Permite eludir un único ataque valiéndose de la tela que le cubre el cuerpo."
+  },
+  {
+    "name": "battle-bond",
+    "nameEs": "Fuerte Afecto",
+    "effect": "Transforms this Pokémon into Ash-Greninja after fainting an opponent.  Water Shuriken's power is 20 and always hits three times.",
+    "effectEs": "Al derrotar a un rival, los vínculos con su Entrenador se refuerzan y se convierte en Greninja Ash. Su Shuriken de Agua también se ve potenciado."
+  },
+  {
+    "name": "power-construct",
+    "nameEs": "Agrupamiento",
+    "effect": "Transforms 10% or 50% Zygarde into Complete Forme when its HP is below 50%.",
+    "effectEs": "Cuando sus PS se ven reducidos a la mitad, las células se reagrupan y adopta su Forma Completa."
+  },
+  {
+    "name": "corrosion",
+    "nameEs": "Corrosión",
+    "effect": "This Pokémon can inflict poison on Poison and Steel Pokémon.",
+    "effectEs": "Permite envenenar incluso a rivales de tipo Acero o Veneno."
+  },
+  {
+    "name": "comatose",
+    "nameEs": "Letargo Perenne",
+    "effect": "This Pokémon always  acts as though it were Asleep.",
+    "effectEs": "No despierta jamás de su profundo letargo e incluso ataca dormido."
+  },
+  {
+    "name": "queenly-majesty",
+    "nameEs": "Regia Presencia",
+    "effect": "Opposing Pokémon cannot use priority attacks.",
+    "effectEs": "Intimida al rival y le impide usar movimientos con prioridad dirigidos al Pokémon."
+  },
+  {
+    "name": "innards-out",
+    "nameEs": "Revés",
+    "effect": "When this Pokémon faints from an opponent's move, that opponent takes damage equal to the HP this Pokémon had remaining.",
+    "effectEs": "Al caer debilitado, inflige al rival un daño equivalente a los PS que le quedaran."
+  },
+  {
+    "name": "dancer",
+    "nameEs": "Pareja de Baile",
+    "effect": "Whenever another Pokémon uses a dance move, this Pokémon will use the same move immediately afterwards.",
+    "effectEs": "Permite copiar inmediatamente cualquier movimiento de baile que haya usado otro Pokémon presente en el combate."
+  },
+  {
+    "name": "battery",
+    "nameEs": "Batería",
+    "effect": "Ally Pokémon's moves have their power increased to 1.3×.",
+    "effectEs": "Potencia los movimientos especiales de los aliados."
+  },
+  {
+    "name": "fluffy",
+    "nameEs": "Peluche",
+    "effect": "Damage from contact moves is halved.  Damage from Fire moves is doubled.",
+    "effectEs": "Reduce a la mitad el daño de movimientos de contacto, pero duplica el daño recibido de tipo Fuego."
+  },
+  {
+    "name": "dazzling",
+    "nameEs": "Cuerpo Vívido",
+    "effect": "Opposing Pokémon cannot use priority attacks.",
+    "effectEs": "Desconcierta al rival y le impide utilizar movimientos con prioridad contra el usuario."
+  },
+  {
+    "name": "soul-heart",
+    "nameEs": "Coránima",
+    "effect": "This Pokémon's Special Attack rises by one stage every time any Pokémon faints.",
+    "effectEs": "Aumenta el Ataque Especial cada vez que un Pokémon cae debilitado."
+  },
+  {
+    "name": "tangling-hair",
+    "nameEs": "Rizos Rebeldes",
+    "effect": "When this Pokémon takes regular damage from a contact move, the attacking Pokémon's Speed lowers by one stage.",
+    "effectEs": "Baja la Velocidad del rival cuando este ataca al Pokémon con un movimiento de contacto."
+  },
+  {
+    "name": "receiver",
+    "nameEs": "Receptor",
+    "effect": "When an ally faints, this Pokémon gains its Ability.",
+    "effectEs": "Adquiere la habilidad de un aliado debilitado."
+  },
+  {
+    "name": "power-of-alchemy",
+    "nameEs": "Reacción Química",
+    "effect": "When an ally faints, this Pokémon gains its Ability.",
+    "effectEs": "Reacciona copiando la habilidad de un aliado debilitado."
+  },
+  {
+    "name": "beast-boost",
+    "nameEs": "Ultraimpulso",
+    "effect": "Raises this Pokémon's highest stat by one stage when it faints another Pokémon.",
+    "effectEs": "Aumenta 1 nivel la estadística más alta cada vez que debilita a un oponente."
+  },
+  {
+    "name": "rks-system",
+    "nameEs": "Sistema Alfa",
+    "effect": "Changes this Pokémon's type to match its held Memory.",
+    "effectEs": "Cambia su tipo según el disco que lleve instalado."
+  },
+  {
+    "name": "electric-surge",
+    "nameEs": "Electrogénesis",
+    "effect": "When this Pokémon enters battle, it changes the terrain to Electric Terrain.",
+    "effectEs": "Invoca Campo Eléctrico al entrar en combate."
+  },
+  {
+    "name": "psychic-surge",
+    "nameEs": "Psicogénesis",
+    "effect": "When this Pokémon enters battle, it changes the terrain to Psychic Terrain.",
+    "effectEs": "Invoca Campo Psíquico al entrar en combate."
+  },
+  {
+    "name": "misty-surge",
+    "nameEs": "Nebulogénesis",
+    "effect": "When this Pokémon enters battle, it changes the terrain to Misty Terrain.",
+    "effectEs": "Invoca Campo de Niebla al entrar en combate."
+  },
+  {
+    "name": "grassy-surge",
+    "nameEs": "Herbogénesis",
+    "effect": "When this Pokémon enters battle, it changes the terrain to Grassy Terrain.",
+    "effectEs": "Invoca Campo de Hierba al entrar en combate."
+  },
+  {
+    "name": "full-metal-body",
+    "nameEs": "Guardia Metálica",
+    "effect": "Other Pokémon cannot lower this Pokémon's stats.",
+    "effectEs": "Evita que bajen sus características a causa de movimientos o habilidades de otros Pokémon."
+  },
+  {
+    "name": "shadow-shield",
+    "nameEs": "Guardia Espectro",
+    "effect": "When this Pokémon has full HP, regular damage from moves is halved.",
+    "effectEs": "Reduce el daño sufrido si los PS están al máximo."
+  },
+  {
+    "name": "prism-armor",
+    "nameEs": "Armadura Prisma",
+    "effect": "Reduces super-effective damage to 0.75×.",
+    "effectEs": "Mitiga el daño que le infligen los movimientos supereficaces."
+  },
+  {
+    "name": "neuroforce",
+    "nameEs": "Fuerza Cerebral",
+    "effect": "Increases super-effective damage dealt to 1.25×.",
+    "effectEs": "Potencia los ataques supereficaces."
+  },
+  {
+    "name": "intrepid-sword",
+    "nameEs": "Espada Indómita",
+    "effect": "Boosts Attack in battle.",
+    "effectEs": "Aumenta su Ataque al entrar en combate."
+  },
+  {
+    "name": "dauntless-shield",
+    "nameEs": "Escudo Recio",
+    "effect": "Boosts Defense in battle.",
+    "effectEs": "Aumenta su Defensa al entrar en combate."
+  },
+  {
+    "name": "libero",
+    "nameEs": "Líbero",
+    "effect": "Libero changes the Pokémon's type to that of its previously used attack.",
+    "effectEs": "Cambia el tipo del Pokémon al tipo del movimiento que va a usar. Una vez por entrada."
+  },
+  {
+    "name": "ball-fetch",
+    "nameEs": "Recogebolas",
+    "effect": "If the Pokémon is not holding an item, it will fetch the Poké Ball from the first failed throw of the battle.",
+    "effectEs": "Si no lleva equipado ningún objeto, recupera la Poké Ball del primer intento de captura fallido."
+  },
+  {
+    "name": "cotton-down",
+    "nameEs": "Pelusa",
+    "effect": "When Ignores moves and abilities that draw in moves.",
+    "effectEs": "Al ser alcanzado por un ataque, suelta una pelusa de algodón que reduce la Velocidad de todos los demás Pokémon."
+  },
+  {
+    "name": "propeller-tail",
+    "nameEs": "Hélice Caudal",
+    "effect": "Ignores moves and abilities that draw in moves.",
+    "effectEs": "Impide que el rival pueda atraer ataques hacia sí mismo por efecto de su habilidad o sus movimientos."
+  },
+  {
+    "name": "mirror-armor",
+    "nameEs": "Coraza Reflejo",
+    "effect": "Reflects any stat-lowering effects.",
+    "effectEs": "Refleja al rival cualquier bajada de estadísticas que intente aplicarle."
+  },
+  {
+    "name": "gulp-missile",
+    "nameEs": "Tragamisil",
+    "effect": "If a Cramorant with Gulp Missile uses Surf or Dive, it catches prey and changes its form depending on its remaining HP.",
+    "effectEs": "Tras usar Surf o Buceo, emerge con una presa en la boca. Al recibir daño, ataca escupiéndola al rival."
+  },
+  {
+    "name": "stalwart",
+    "nameEs": "Acérrimo",
+    "effect": "Ignores moves and abilities that draw in moves.",
+    "effectEs": "Impide que el rival pueda atraer ataques hacia sí mismo por efecto de su habilidad o sus movimientos."
+  },
+  {
+    "name": "steam-engine",
+    "nameEs": "Combustible",
+    "effect": "Boosts the Speed stat drastically when the Pokémon is hit by a Fire- or Water-type move.",
+    "effectEs": "Si le alcanza un movimiento de tipo Fuego o Agua, le sube muchísimo la Velocidad."
+  },
+  {
+    "name": "punk-rock",
+    "nameEs": "Punk Rock",
+    "effect": "Boosts sound-based moves and halves damage from the same moves.",
+    "effectEs": "Aumenta x1.3 el daño de movimientos de sonido y reduce a la mitad el daño recibido de ellos."
+  },
+  {
+    "name": "sand-spit",
+    "nameEs": "Expulsarena",
+    "effect": "Creates a sandstorm when hit by an attack.",
+    "effectEs": "Provoca una tormenta de arena al recibir un ataque."
+  },
+  {
+    "name": "ice-scales",
+    "nameEs": "Escama de Hielo",
+    "effect": "Halves damage from Special moves.",
+    "effectEs": "Reduce a la mitad el daño recibido de movimientos especiales."
+  },
+  {
+    "name": "ripen",
+    "nameEs": "Maduración",
+    "effect": "Doubles the effect of berries.",
+    "effectEs": "Hace madurar las bayas, por lo que duplica sus efectos."
+  },
+  {
+    "name": "ice-face",
+    "nameEs": "Cara de Hielo",
+    "effect": "The Pokémon’s ice head can take a physical attack as a substitute, but the attack also changes the Pokémon’s appearance. The ice will be restored when it snows.",
+    "effectEs": "Bloquea completamente el primer golpe físico recibido. Cambia de forma tras recibirlo. Se restaura con nieve/hail."
+  },
+  {
+    "name": "power-spot",
+    "nameEs": "Fuente Energía",
+    "effect": "Just being next to the Pokémon powers up moves.",
+    "effectEs": "Potencia los movimientos de los Pokémon adyacentes."
+  },
+  {
+    "name": "mimicry",
+    "nameEs": "Mimetismo",
+    "effect": "Changes type depending on the terrain.",
+    "effectEs": "Cambia su tipo según el campo que haya en el terreno de combate."
+  },
+  {
+    "name": "screen-cleaner",
+    "nameEs": "Antibarrera",
+    "effect": "Nullifies effects of Light Screen, Reflect, and Aurora Veil.",
+    "effectEs": "Anula los efectos de Pantalla de Luz, Reflejo y Velo Aurora tanto de rivales como de aliados al entrar en combate."
+  },
+  {
+    "name": "steely-spirit",
+    "nameEs": "Alma Acerada",
+    "effect": "Powers up ally Pokémon's Steel-type moves.",
+    "effectEs": "Potencia los movimientos de tipo Acero de los aliados."
+  },
+  {
+    "name": "perish-body",
+    "nameEs": "Cuerpo Mortal",
+    "effect": "When hit by a move that makes direct contact, the Pokémon and the attacker will faint after three turns unless they switch out of battle.",
+    "effectEs": "Si le alcanza un movimiento de contacto, se debilitará al cabo de 3 turnos, así como su agresor, a menos que abandonen el terreno de combate."
+  },
+  {
+    "name": "wandering-spirit",
+    "nameEs": "Alma Errante",
+    "effect": "Swaps abilities with opponents on contact.",
+    "effectEs": "Si le alcanza un movimiento de contacto, intercambia su habilidad con la del agresor."
+  },
+  {
+    "name": "gorilla-tactics",
+    "nameEs": "Monotema",
+    "effect": "Boosts the Pokémon's Attack stat but only allows the use of the first selected move.",
+    "effectEs": "Potencia su Ataque, pero solo puede usar el primer movimiento escogido."
+  },
+  {
+    "name": "neutralizing-gas",
+    "nameEs": "Gas Reactivo",
+    "effect": "Neutralizes abilities of all Pokémon in battle.",
+    "effectEs": "Anula los efectos de las habilidades de los demás Pokémon presentes mientras esté en el terreno de combate."
+  },
+  {
+    "name": "pastel-veil",
+    "nameEs": "Velo Pastel",
+    "effect": "Prevents the Pokémon and its allies from being poisoned.",
+    "effectEs": "Se protege a sí mismo y a sus aliados del envenenamiento."
+  },
+  {
+    "name": "hunger-switch",
+    "nameEs": "Mutapetito",
+    "effect": "Causes Morpeko to change its form each turn, alternating between Full Belly Mode and Hangry Mode",
+    "effectEs": "Alterna entre su Forma Saciada y Forma Voraz al final de cada turno."
+  },
+  {
+    "name": "quick-draw",
+    "nameEs": "Mano Rápida",
+    "effect": "Enables the Pokémon to move first occasionally.",
+    "effectEs": "A veces, puede atacar el primero."
+  },
+  {
+    "name": "unseen-fist",
+    "nameEs": "Puño Invisible",
+    "effect": "Contact moves can strike through Protect/Detect.",
+    "effectEs": "Si usa un movimiento de contacto, puede infligir daño al objetivo aunque este se proteja."
+  },
+  {
+    "name": "curious-medicine",
+    "nameEs": "Medicina Extraña",
+    "effect": "Resets all stat changes upon entering battlefield.",
+    "effectEs": "Al entrar en combate, rezuma una substancia medicinal por la caracola que revierte los cambios en las características de los aliados."
+  },
+  {
+    "name": "transistor",
+    "nameEs": "Transistor",
+    "effect": "Powers up Electric-type moves.",
+    "effectEs": "Potencia los movimientos de tipo Eléctrico."
+  },
+  {
+    "name": "dragons-maw",
+    "nameEs": "Mandíbula Dragón",
+    "effect": "Powers up Dragon-type moves.",
+    "effectEs": "Potencia los movimientos de tipo Dragón."
+  },
+  {
+    "name": "chilling-neigh",
+    "nameEs": "Relincho Blanco",
+    "effect": "Boosts Attack after knocking out a Pokémon.",
+    "effectEs": "Al derrotar a un objetivo, emite un relincho gélido y aumenta su Ataque."
+  },
+  {
+    "name": "grim-neigh",
+    "nameEs": "Relincho Negro",
+    "effect": "Boosts Special Attack after knocking out a Pokémon.",
+    "effectEs": "Al derrotar a un objetivo, emite un relincho aterrador y aumenta su Ataque Especial."
+  },
+  {
+    "name": "as-one-glastrier",
+    "nameEs": "Unidad Ecuestre",
+    "effect": "Combines the effects of Unnerve and Chilling Neigh.",
+    "effectEs": "El Pokémon tiene dos habilidades: Relincho Blanco de Glastrier y Nerviosismo de Calyrex."
+  },
+  {
+    "name": "as-one-spectrier",
+    "nameEs": "Unidad Ecuestre",
+    "effect": "Combines the effects of Unnerve and Grim Neigh.",
+    "effectEs": "El Pokémon tiene dos habilidades: Relincho Negro de Spectrier y Nerviosismo de Calyrex."
+  },
+  {
+    "name": "lingering-aroma",
+    "nameEs": "Olor Persistente",
+    "effect": "Contact changes the attacker's Ability to Lingering Aroma.",
+    "effectEs": "Contact changes the attacker's Ability to Lingering Aroma."
+  },
+  {
+    "name": "seed-sower",
+    "nameEs": "Disemillar",
+    "effect": "Turns the ground into Grassy Terrain when the Pokémon is hit by an attack.",
+    "effectEs": "Turns the ground into Grassy Terrain when the Pokémon is hit by an attack."
+  },
+  {
+    "name": "thermal-exchange",
+    "nameEs": "Termoconversión",
+    "effect": "Raises Attack when hit by a Fire-type move. Cannot be burned.",
+    "effectEs": "Raises Attack when hit by a Fire-type move. Cannot be burned."
+  },
+  {
+    "name": "anger-shell",
+    "nameEs": "Coraza Ira",
+    "effect": "When the Pokémon's HP drops below half, Anger Shell lowers its Defense and Special Defense but its Attack, Special Attack and Speed are raised.",
+    "effectEs": "When the Pokémon's HP drops below half, Anger Shell lowers its Defense and Special Defense but its Attack, Special Attack and Speed are raised."
+  },
+  {
+    "name": "purifying-salt",
+    "nameEs": "Sal Purificadora",
+    "effect": "Protects from status conditions and halves damage from Ghost-type moves.",
+    "effectEs": "Inmune a problemas de estado y reduce el daño de tipo Fantasma a la mitad."
+  },
+  {
+    "name": "well-baked-body",
+    "nameEs": "Cuerpo Horneado",
+    "effect": "Immune to Fire-type moves, and Defense is sharply boosted.",
+    "effectEs": "Inmune a tipo Fuego. Si es golpeado por un movimiento de Fuego, aumenta 2 niveles su Defensa."
+  },
+  {
+    "name": "wind-rider",
+    "nameEs": "Surcavientos",
+    "effect": "Gives immunity to wind moves, and causes the Pokémon's Attack to increase by one stage when hit by one.",
+    "effectEs": "Inmune a viento, sube Ataque."
+  },
+  {
+    "name": "guard-dog",
+    "nameEs": "Perro Guardián",
+    "effect": "Boosts Attack if intimidated, and prevents being forced to switch out.",
+    "effectEs": "Boosts Attack if intimidated, and prevents being forced to switch out."
+  },
+  {
+    "name": "rocky-payload",
+    "nameEs": "Transportarrocas",
+    "effect": "Powers up Rock-type moves.",
+    "effectEs": "Powers up Rock-type moves."
+  },
+  {
+    "name": "wind-power",
+    "nameEs": "Energía Eólica",
+    "effect": "When hit by a wind move, the power of the next Electric-type move it uses is doubled.",
+    "effectEs": "When hit by a wind move, the power of the next Electric-type move it uses is doubled."
+  },
+  {
+    "name": "zero-to-hero",
+    "nameEs": "Cambio Heroico",
+    "effect": "Transforms into its Hero Form when switching out.",
+    "effectEs": "Transforms into its Hero Form when switching out."
+  },
+  {
+    "name": "commander",
+    "nameEs": "Comandar",
+    "effect": "Goes inside the mouth of an ally Dondozo if one is on the field.",
+    "effectEs": "Goes inside the mouth of an ally Dondozo if one is on the field."
+  },
+  {
+    "name": "electromorphosis",
+    "nameEs": "Dinamo",
+    "effect": "When hit by an attack, the power of the next Electric-type move it uses is doubled.",
+    "effectEs": "When hit by an attack, the power of the next Electric-type move it uses is doubled."
+  },
+  {
+    "name": "protosynthesis",
+    "nameEs": "Paleosíntesis",
+    "effect": "Raises highest stat in harsh sunlight, or if holding Booster Energy.",
+    "effectEs": "Raises highest stat in harsh sunlight, or if holding Booster Energy."
+  },
+  {
+    "name": "quark-drive",
+    "nameEs": "Carga Cuark",
+    "effect": "Raises highest stat on Electric Terrain, or if holding Booster Energy.",
+    "effectEs": "Raises highest stat on Electric Terrain, or if holding Booster Energy."
+  },
+  {
+    "name": "good-as-gold",
+    "nameEs": "Cuerpo Áureo",
+    "effect": "Gives immunity to status moves.",
+    "effectEs": "Inmunidad total a movimientos de estado (espora, onda trueno, etc)."
+  },
+  {
+    "name": "vessel-of-ruin",
+    "nameEs": "Caldero Debacle",
+    "effect": "Lowers Special Attack of all Pokémon except itself.",
+    "effectEs": "Lowers Special Attack of all Pokémon except itself."
+  },
+  {
+    "name": "sword-of-ruin",
+    "nameEs": "Espada Debacle",
+    "effect": "Lowers Defense of all Pokémon except itself.",
+    "effectEs": "Lowers Defense of all Pokémon except itself."
+  },
+  {
+    "name": "tablets-of-ruin",
+    "nameEs": "Tablilla Debacle",
+    "effect": "Lowers Attack of all Pokémon except itself.",
+    "effectEs": "Lowers Attack of all Pokémon except itself."
+  },
+  {
+    "name": "beads-of-ruin",
+    "nameEs": "Abalorio Debacle",
+    "effect": "Lowers Special Defense of all Pokémon except itself.",
+    "effectEs": "Lowers Special Defense of all Pokémon except itself."
+  },
+  {
+    "name": "orichalcum-pulse",
+    "nameEs": "Latido Oricalco",
+    "effect": "Turns the sunlight harsh when entering battle, and boosts Attack while active.",
+    "effectEs": "Turns the sunlight harsh when entering battle, and boosts Attack while active."
+  },
+  {
+    "name": "hadron-engine",
+    "nameEs": "Motor Hadrónico",
+    "effect": "Creates an Electric Terrain when entering battle, and boosts Special Attack while active.",
+    "effectEs": "Creates an Electric Terrain when entering battle, and boosts Special Attack while active."
+  },
+  {
+    "name": "opportunist",
+    "nameEs": "Oportunista",
+    "effect": "Copies stat boosts by the opponent.",
+    "effectEs": "Copies stat boosts by the opponent."
+  },
+  {
+    "name": "cud-chew",
+    "nameEs": "Rumia",
+    "effect": "Causes the Pokémon to reuse an already consumed Berry at the end of the next turn.",
+    "effectEs": "Causes the Pokémon to reuse an already consumed Berry at the end of the next turn."
+  },
+  {
+    "name": "sharpness",
+    "nameEs": "Cortante",
+    "effect": "Powers up slicing moves.",
+    "effectEs": "Powers up slicing moves."
+  },
+  {
+    "name": "supreme-overlord",
+    "nameEs": "General Supremo",
+    "effect": "Attack and Special Attack are boosted for each party Pokémon that has been defeated.",
+    "effectEs": "Aumenta el daño de sus movimientos hasta x1.33 según el número de aliados debilitados."
+  },
+  {
+    "name": "costar",
+    "nameEs": "Unísono",
+    "effect": "Copies ally's stat changes on entering battle.",
+    "effectEs": "Copies ally's stat changes on entering battle."
+  },
+  {
+    "name": "toxic-debris",
+    "nameEs": "Capa Tóxica",
+    "effect": "Scatters poison spikes at the feet of the opposing team when the Pokémon takes damage from physical moves.",
+    "effectEs": "Scatters poison spikes at the feet of the opposing team when the Pokémon takes damage from physical moves."
+  },
+  {
+    "name": "armor-tail",
+    "nameEs": "Cola Armadura",
+    "effect": "Prevents the opponent from using any moves that have priority, such as Quick Attack.",
+    "effectEs": "Prevents the opponent from using any moves that have priority, such as Quick Attack."
+  },
+  {
+    "name": "earth-eater",
+    "nameEs": "Geofagia",
+    "effect": "Restores HP when hit by a Ground-type move.",
+    "effectEs": "Restores HP when hit by a Ground-type move."
+  },
+  {
+    "name": "mycelium-might",
+    "nameEs": "Poder Fúngico",
+    "effect": "Status moves go last, but are not affected by the opponent's ability.",
+    "effectEs": "Status moves go last, but are not affected by the opponent's ability."
+  },
+  {
+    "name": "minds-eye",
+    "nameEs": "Ojo Mental",
+    "effect": "The Pokémon ignores changes to opponents' evasiveness, its accuracy can't be lowered, and it can hit Ghost types with Normal- and Fighting-type moves.",
+    "effectEs": "The Pokémon ignores changes to opponents' evasiveness, its accuracy can't be lowered, and it can hit Ghost types with Normal- and Fighting-type moves."
+  },
+  {
+    "name": "supersweet-syrup",
+    "nameEs": "Néctar Dulce",
+    "effect": "Once per battle, when a Pokémon with Supersweet Syrup enters the battle, it lowers the evasion stat of all adjacent opponents by one stage. ",
+    "effectEs": "Once per battle, when a Pokémon with Supersweet Syrup enters the battle, it lowers the evasion stat of all adjacent opponents by one stage. "
+  },
+  {
+    "name": "hospitality",
+    "nameEs": "Hospitalidad",
+    "effect": "When a Pokémon with Hospitality enters a battle, it restores HP for an ally by 25%.",
+    "effectEs": "When a Pokémon with Hospitality enters a battle, it restores HP for an ally by 25%."
+  },
+  {
+    "name": "toxic-chain",
+    "nameEs": "Cadena Tóxica",
+    "effect": "May cause bad poisoning when the Pokémon hits an opponent with a move.",
+    "effectEs": "May cause bad poisoning when the Pokémon hits an opponent with a move."
+  },
+  {
+    "name": "embody-aspect",
+    "nameEs": "Evocarrecuerdos",
+    "effect": "Embody Aspect boosts a particular stat, depending on the form of a Terastallized Ogerpon",
+    "effectEs": "Embody Aspect boosts a particular stat, depending on the form of a Terastallized Ogerpon"
+  },
+  {
+    "name": "tera-shift",
+    "nameEs": "Teracambio",
+    "effect": "When Terapagos enters the battle, it turns into its Terastal Form until the end of the battle. ",
+    "effectEs": "When Terapagos enters the battle, it turns into its Terastal Form until the end of the battle. "
+  },
+  {
+    "name": "tera-shell",
+    "nameEs": "Teracaparazón",
+    "effect": "All damage-dealing moves that hit the Pokémon when its HP is full will not be very effective.",
+    "effectEs": "All damage-dealing moves that hit the Pokémon when its HP is full will not be very effective."
+  },
+  {
+    "name": "teraform-zero",
+    "nameEs": "Teraformación 0",
+    "effect": "As soon as Terapagos assumes its Stellar Form, it will immediately neutralize weather and terrain effects. ",
+    "effectEs": "As soon as Terapagos assumes its Stellar Form, it will immediately neutralize weather and terrain effects. "
+  },
+  {
+    "name": "poison-puppeteer",
+    "nameEs": "Títere Tóxico",
+    "effect": "Pokémon poisoned by Pecharunt's moves will also become confused.",
+    "effectEs": "Pokémon poisoned by Pecharunt's moves will also become confused."
+  },
+  {
+    "name": "piercing-drill",
+    "nameEs": "Turbotaladro",
+    "effect": "When the Pokémon uses contact moves, it can hit even targets that are protecting themselves.",
+    "effectEs": "When the Pokémon uses contact moves, it can hit even targets that are protecting themselves."
+  },
+  {
+    "name": "dragonize",
+    "nameEs": "Piel Dragontina",
+    "effect": "The Pokémon's Normal-type moves become Dragon-type moves and their power is boosted by 20%.",
+    "effectEs": "The Pokémon's Normal-type moves become Dragon-type moves and their power is boosted by 20%."
+  },
+  {
+    "name": "mega-sol",
+    "nameEs": "Megasolar",
+    "effect": "The Pokémon can use its moves as if the weather were harsh sunlight.",
+    "effectEs": "The Pokémon can use its moves as if the weather were harsh sunlight."
+  },
+  {
+    "name": "spicy-spray",
+    "nameEs": "Salpicante",
+    "effect": "When the Pokémon takes damage from a move, it burns the attacker.",
+    "effectEs": "When the Pokémon takes damage from a move, it burns the attacker."
+  },
+  {
+    "name": "eelevate",
+    "nameEs": "eelevate",
+    "effect": "The Pokémon floats off the ground, making it immune to Ground-type moves, as well as the Spikes, Toxic Spikes, and Sticky Web statuses. When the Pokémon knocks out a target with an attack, its highest stat is boosted by 1 stage.",
+    "effectEs": "The Pokémon floats off the ground, making it immune to Ground-type moves, as well as the Spikes, Toxic Spikes, and Sticky Web statuses. When the Pokémon knocks out a target with an attack, its highest stat is boosted by 1 stage."
+  },
+  {
+    "name": "fire-mane",
+    "nameEs": "fire-mane",
+    "effect": "Boosts the power of the Pokémon's Fire-type moves by 50%.",
+    "effectEs": "Boosts the power of the Pokémon's Fire-type moves by 50%."
+  },
+  {
+    "name": "aura-guard",
+    "nameEs": "aura-guard",
+    "effect": "A Pokémon with Aura Guard takes half damage from moves that make contact.",
+    "effectEs": "A Pokémon with Aura Guard takes half damage from moves that make contact."
+  },
+  {
+    "name": "mountaineer",
+    "nameEs": "mountaineer",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "wave-rider",
+    "nameEs": "wave-rider",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "skater",
+    "nameEs": "skater",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "thrust",
+    "nameEs": "thrust",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "perception",
+    "nameEs": "perception",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "parry",
+    "nameEs": "parry",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "instinct",
+    "nameEs": "instinct",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "dodge",
+    "nameEs": "dodge",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "jagged-edge",
+    "nameEs": "jagged-edge",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "frostbite",
+    "nameEs": "frostbite",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "tenacity",
+    "nameEs": "tenacity",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "pride",
+    "nameEs": "pride",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "deep-sleep",
+    "nameEs": "deep-sleep",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "power-nap",
+    "nameEs": "power-nap",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "spirit",
+    "nameEs": "spirit",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "warm-blanket",
+    "nameEs": "warm-blanket",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "gulp",
+    "nameEs": "gulp",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "herbivore",
+    "nameEs": "herbivore",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "sandpit",
+    "nameEs": "sandpit",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "hot-blooded",
+    "nameEs": "hot-blooded",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "medic",
+    "nameEs": "medic",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "life-force",
+    "nameEs": "life-force",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "lunchbox",
+    "nameEs": "lunchbox",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "nurse",
+    "nameEs": "nurse",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "melee",
+    "nameEs": "melee",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "sponge",
+    "nameEs": "sponge",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "bodyguard",
+    "nameEs": "bodyguard",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "hero",
+    "nameEs": "hero",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "last-bastion",
+    "nameEs": "last-bastion",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "stealth",
+    "nameEs": "stealth",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "vanguard",
+    "nameEs": "vanguard",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "nomad",
+    "nameEs": "nomad",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "sequence",
+    "nameEs": "sequence",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "grass-cloak",
+    "nameEs": "grass-cloak",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "celebrate",
+    "nameEs": "celebrate",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "lullaby",
+    "nameEs": "lullaby",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "calming",
+    "nameEs": "calming",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "daze",
+    "nameEs": "daze",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "frighten",
+    "nameEs": "frighten",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "interference",
+    "nameEs": "interference",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "mood-maker",
+    "nameEs": "mood-maker",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "confidence",
+    "nameEs": "confidence",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "fortune",
+    "nameEs": "fortune",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "bonanza",
+    "nameEs": "bonanza",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "explode",
+    "nameEs": "explode",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "omnipotent",
+    "nameEs": "omnipotent",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "share",
+    "nameEs": "share",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "black-hole",
+    "nameEs": "black-hole",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "shadow-dash",
+    "nameEs": "shadow-dash",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "sprint",
+    "nameEs": "sprint",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "disgust",
+    "nameEs": "disgust",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "high-rise",
+    "nameEs": "high-rise",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "climber",
+    "nameEs": "climber",
+    "effect": "",
+    "effectEs": ""
+  }
+]

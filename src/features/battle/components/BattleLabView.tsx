@@ -2,6 +2,7 @@
 import { useEffect, useMemo } from "react";
 import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 import { useMoveStore } from "@/features/moves/store/useMoveStore";
+import { useItemStore } from "@/features/items/store/useItemStore";
 import { useBattleStore } from "@/features/battle/store/useBattleStore";
 import { BattleParticipantSelect } from "./BattleParticipantSelect";
 import { BattleResultCard } from "./BattleResultCard";
@@ -12,6 +13,7 @@ import { Combobox } from "@/components/ui/combobox";
 export function BattleLabView() {
   const { pokemonList, loadPokemon } = usePokedexStore();
   const { moveList, loadMoves } = useMoveStore();
+  const { itemList, loadItems } = useItemStore();
   const {
     attackerInput,
     setAttacker,
@@ -28,9 +30,9 @@ export function BattleLabView() {
   useEffect(() => {
     loadPokemon();
     loadMoves();
-  }, [loadPokemon, loadMoves]);
+    loadItems();
+  }, [loadPokemon, loadMoves, loadItems]);
 
-  // REGLA DE NEGOCIO: Filtrar movimientos reales
   const availableMoves = useMemo(() => {
     if (!attackerInput) return [];
     const attackerData = pokemonList.find(
@@ -55,7 +57,6 @@ export function BattleLabView() {
       .filter(Boolean) as { value: string; label: string }[];
   }, [attackerInput, pokemonList, moveList]);
 
-  // REGLA DE NEGOCIO: Si el nivel baja y el movimiento ya no es válido, se limpia.
   useEffect(() => {
     if (moveName && availableMoves.length > 0) {
       const isValid = availableMoves.some((m) => m.value === moveName);
@@ -76,12 +77,14 @@ export function BattleLabView() {
         <BattleParticipantSelect
           label="Atacante"
           pokemonList={pokemonList}
+          itemList={itemList}
           onSelect={setAttacker}
           currentInput={attackerInput}
         />
         <BattleParticipantSelect
           label="Defensor"
           pokemonList={pokemonList}
+          itemList={itemList}
           onSelect={setDefender}
           currentInput={defenderInput}
         />

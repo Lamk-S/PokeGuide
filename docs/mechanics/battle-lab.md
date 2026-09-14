@@ -27,4 +27,8 @@ El motor extrae los factores que alteraron el resultado estándar (Modificadores
 * Potenciadores de Clima (ej. Sol incrementando ataques tipo Fuego)
 * Objetos Equipados (ej. *Life Orb* x1.3)
 
-Esta estructura permite que la interfaz de usuario renderice tarjetas o tooltips explicativos sin contener la lógica condicional en el frontend.
+## 5. UI Guardrails y Restricciones Estrictas
+La capa de Presentación (React) implementa validaciones dependientes para evitar estados imposibles en el juego real:
+* **Filtro de Learnset:** El `<Combobox>` de movimientos solo muestra ataques que el Pokémon puede aprender (por nivel actual o MT). Si el nivel decrece, los movimientos inválidos se purgan.
+* **Filtro de Habilidades:** La habilidad seleccionada se restringe al array de habilidades legales de la especie. Al cambiar de Pokémon, se evalúa si la habilidad sigue siendo válida.
+* **Inyección Limpia:** El store consolida los opcionales en objetos sin valores `undefined` explícitos, garantizando compatibilidad con `exactOptionalPropertyTypes`.
