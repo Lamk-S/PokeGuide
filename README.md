@@ -52,8 +52,8 @@ pnpm dev
 ```
 
 ## Limitaciones Conocidas
-* **UI Work-in-Progress:** Los motores de dominio están al 100% testeados, pero la conexión con la interfaz visual (Dashboards de React) se encuentra en estado de *placeholder*.
-* **Soporte Generacional:** Gen VI y Gen IX están soportadas como prueba de concepto. Generaciones antiguas requieren el volcado del dataset correspondiente.
+- **Soporte Generacional:** Gen VI y Gen IX están soportadas como prueba de concepto. Generaciones antiguas requieren el volcado del dataset correspondiente.
+(Se removió: "UI Work-in-Progress")
 
 ## Licencia
 MIT. Pokémon es propiedad de Nintendo/Game Freak. Proyecto de fans no oficial.

@@ -16,3 +16,10 @@
 
 ### Known Issues
 - UI dashboards en placeholder, lógica de dominio lista para conectar
+
+### [v1.1.0] - React UI Foundation & Battle Lab
+#### Added
+- **Application Shell:** Header responsivo, menús de navegación, tema y Zustand `ui-store`.
+- **Route Scaffolding:** Estructura completa de rutas (App Router) con SEO metadatos y estados de carga (`loading.tsx`).
+- **Feature Layer:** Patrón ViewModel estricto con `useBattleStore`, `usePokedexStore`, `useMoveStore` y `useItemStore`.
+- **Battle Lab UI:** Panel de simulación 1vs1 con validación estricta de Learnsets, niveles, habilidades, objetos y Naturalezas. Traductor de Smogon al español integrado.
