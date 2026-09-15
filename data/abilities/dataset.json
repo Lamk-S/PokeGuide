@@ -33,7 +33,7 @@
     "name": "damp",
     "nameEs": "Humedad",
     "effect": "Prevents Self-Destruct, Explosion, and Aftermath from working while the Pokémon is in battle.",
-    "effectEs": "Evita que Autodestrucción, Explosión y la habilidad Posquemadura (Aftermath) funcionen mientras este Pokémon esté en combate."
+    "effectEs": "Evita el uso de Autodestrucción, Explosión, Cabeza Sorpresa y anula el efecto de la habilidad Resquicio (Aftermath)."
   },
   {
     "name": "limber",
@@ -153,7 +153,7 @@
     "name": "levitate",
     "nameEs": "Levitación",
     "effect": "Evades Ground moves.",
-    "effectEs": "Otorga inmunidad total a movimientos de tipo Tierra, Púas, Trampa Venenosa y al daño de arena no, pero sí a Spikes."
+    "effectEs": "Otorga inmunidad a los movimientos de tipo Tierra y a las Púas/Púas Tóxicas, pero no afecta a Trampa Rocas."
   },
   {
     "name": "effect-spore",
@@ -231,7 +231,7 @@
     "name": "inner-focus",
     "nameEs": "Fuerza Mental",
     "effect": "Prevents flinching.",
-    "effectEs": "Inmune a retroceso (flinch)."
+    "effectEs": "Inmune al retroceso (flinch) y bloquea la bajada de Ataque provocada por Intimidación."
   },
   {
     "name": "magma-armor",
@@ -663,7 +663,7 @@
     "name": "filter",
     "nameEs": "Filtro",
     "effect": "Decreases damage taken from super-effective moves by 1/4.",
-    "effectEs": "Reduce el daño super efectivo en un 25% (x0.75)."
+    "effectEs": "Reduce el daño de los ataques súper efectivos en un 25% (modificador x0.75)."
   },
   {
     "name": "slow-start",
@@ -2198,6 +2198,48 @@
   {
     "name": "climber",
     "nameEs": "climber",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "flame-boost",
+    "nameEs": "flame-boost",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "aqua-boost",
+    "nameEs": "aqua-boost",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "run-up",
+    "nameEs": "run-up",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "conqueror",
+    "nameEs": "conqueror",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "shackle",
+    "nameEs": "shackle",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "decoy",
+    "nameEs": "decoy",
+    "effect": "",
+    "effectEs": ""
+  },
+  {
+    "name": "shield",
+    "nameEs": "shield",
     "effect": "",
     "effectEs": ""
   }
