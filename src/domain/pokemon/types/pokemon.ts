@@ -16,6 +16,13 @@ export interface PokemonMoveRef {
   levelLearnedAt: number; // 0 si es por máquina (MT/MO)
 }
 
+// Define la relación de una habilidad con la especie
+export interface PokemonAbilityRef {
+  name: string;
+  isHidden: boolean;
+  slot: number;
+}
+
 export interface Pokemon {
   id: PokemonId;
   name: PokemonName;
@@ -23,6 +30,6 @@ export interface Pokemon {
   baseStats: Record<StatName, number>;
   height: number;
   weight: number;
-  abilities: string[];
+  abilities: PokemonAbilityRef[];
   moves: PokemonMoveRef[];
 }

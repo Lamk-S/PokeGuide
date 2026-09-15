@@ -24,6 +24,7 @@ export const pokeApiTypeSchema = z.object({
 const pokeApiAbilitySchema = z.object({
   ability: z.object({ name: z.string() }),
   is_hidden: z.boolean(),
+  slot: z.number(),
 });
 
 const pokeApiMoveSchema = z.object({

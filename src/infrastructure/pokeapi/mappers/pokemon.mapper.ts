@@ -1,6 +1,7 @@
 import type {
   Pokemon,
   PokemonMoveRef,
+  PokemonAbilityRef,
   StatName,
 } from "@/domain/pokemon/types/pokemon";
 import type { PokeApiPokemonDto } from "../schemas/pokemon.schema";
@@ -14,7 +15,13 @@ export function mapPokeApiToPokemon(dto: PokeApiPokemonDto): Pokemon {
     {} as Record<StatName, number>,
   );
 
-  const abilities = dto.abilities.map((a) => a.ability.name);
+  const abilities: PokemonAbilityRef[] = dto.abilities
+    .sort((a, b) => a.slot - b.slot)
+    .map((a) => ({
+      name: a.ability.name,
+      isHidden: a.is_hidden,
+      slot: a.slot,
+    }));
 
   const moves: PokemonMoveRef[] = dto.moves
     .map((m) => {
@@ -26,7 +33,6 @@ export function mapPokeApiToPokemon(dto: PokeApiPokemonDto): Pokemon {
         (d) => d.move_learn_method.name === "level-up",
       );
 
-      // Obtenemos el nivel mínimo al que lo aprende por nivel
       const minLevel =
         levelUpDetails.length > 0
           ? Math.min(...levelUpDetails.map((d) => d.level_learned_at))
