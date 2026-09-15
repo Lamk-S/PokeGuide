@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/ui/combobox";
 import { useId, useMemo } from "react";
 import { NATURES } from "@/domain/stats/constants/natures";
+import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
 
 const SERIOUS = NATURES.find((n) => n.name === "Serious") || NATURES[0];
 
@@ -27,6 +28,9 @@ export function BattleParticipantSelect({
   const levelId = useId();
   const natureId = useId();
 
+  // Extraemos el listado global de habilidades para resolver los nombres en español
+  const { abilityList } = useAbilityStore();
+
   const pokemonOptions = useMemo(
     () => pokemonList.map((p) => ({ value: p.id.toString(), label: p.name })),
     [pokemonList],
@@ -37,16 +41,29 @@ export function BattleParticipantSelect({
     [pokemonList, currentInput?.pokemonId],
   );
 
-  const abilityOptions = useMemo(
-    () => currentPokemon?.abilities.map((a) => ({ value: a, label: a })) || [],
-    [currentPokemon],
-  );
+  // Mapeamos las habilidades legales cruzándolas con la metadata en español
+  const abilityOptions = useMemo(() => {
+    if (!currentPokemon) return [];
+
+    return currentPokemon.abilities.map((abilityRef) => {
+      const metadata = abilityList.find((a) => a.name === abilityRef.name);
+      const nameDisplay = metadata ? metadata.nameEs : abilityRef.name;
+      const hiddenTag = abilityRef.isHidden ? " (Oculta)" : "";
+
+      return {
+        value: abilityRef.name,
+        label: `${nameDisplay}${hiddenTag}`,
+        description: metadata?.effectEs,
+      };
+    });
+  }, [currentPokemon, abilityList]);
 
   const itemOptions = useMemo(
     () =>
       itemList.map((i) => ({
         value: i.name,
-        label: `${i.nameEs} - ${i.effectEs || i.effect}`,
+        label: i.nameEs,
+        description: i.effectEs || i.effect,
       })),
     [itemList],
   );
@@ -66,8 +83,8 @@ export function BattleParticipantSelect({
             }
             const newPokemon = pokemonList.find((p) => p.id === pid);
 
-            const validAbility = newPokemon?.abilities.includes(
-              currentInput?.ability || "",
+            const validAbility = newPokemon?.abilities.some(
+              (a) => a.name === currentInput?.ability,
             )
               ? currentInput?.ability
               : undefined;

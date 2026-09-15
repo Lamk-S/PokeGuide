@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 import { useMoveStore } from "@/features/moves/store/useMoveStore";
 import { useItemStore } from "@/features/items/store/useItemStore";
+import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
 import { useBattleStore } from "@/features/battle/store/useBattleStore";
 import { BattleParticipantSelect } from "./BattleParticipantSelect";
 import { BattleResultCard } from "./BattleResultCard";
@@ -14,6 +15,8 @@ export function BattleLabView() {
   const { pokemonList, loadPokemon } = usePokedexStore();
   const { moveList, loadMoves } = useMoveStore();
   const { itemList, loadItems } = useItemStore();
+  const { loadAbilities } = useAbilityStore();
+
   const {
     attackerInput,
     setAttacker,
@@ -31,7 +34,8 @@ export function BattleLabView() {
     loadPokemon();
     loadMoves();
     loadItems();
-  }, [loadPokemon, loadMoves, loadItems]);
+    loadAbilities();
+  }, [loadPokemon, loadMoves, loadItems, loadAbilities]);
 
   const availableMoves = useMemo(() => {
     if (!attackerInput) return [];
@@ -51,10 +55,15 @@ export function BattleLabView() {
         if (!fullMove) return null;
         return {
           value: m.name,
-          label: `${fullMove.nameEs || fullMove.name} [${fullMove.type} - ${fullMove.power || 0}]`,
+          label: fullMove.nameEs || fullMove.name,
+          description: `${fullMove.type.toUpperCase()} • Potencia: ${fullMove.power || 0}`,
         };
       })
-      .filter(Boolean) as { value: string; label: string }[];
+      .filter(Boolean) as {
+      value: string;
+      label: string;
+      description?: string;
+    }[];
   }, [attackerInput, pokemonList, moveList]);
 
   useEffect(() => {
