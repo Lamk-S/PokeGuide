@@ -4,7 +4,6 @@ import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCa
 import type { PokemonRepository } from "@/domain/pokemon/repositories/pokemon-repository";
 import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 
-// Se implementa la interfaz como una clase respetando estrictamente los tipos (null en vez de undefined)
 class MockPokemonRepository implements PokemonRepository {
   async getById(id: number): Promise<Pokemon | null> {
     if (id === 445) { // Garchomp mockeado
@@ -15,7 +14,7 @@ class MockPokemonRepository implements PokemonRepository {
         baseStats: { hp: 108, attack: 130, defense: 95, "special-attack": 80, "special-defense": 85, speed: 102 },
         height: 19,
         weight: 950,
-        abilities: ["Sand Veil"],
+        abilities: [{ name: "Sand Veil", isHidden: false, slot: 1 }],
         moves: [], 
       };
     }
@@ -27,11 +26,11 @@ class MockPokemonRepository implements PokemonRepository {
         baseStats: { hp: 35, attack: 55, defense: 40, "special-attack": 50, "special-defense": 50, speed: 90 },
         height: 4,
         weight: 60,
-        abilities: ["Static"],
+        abilities: [{ name: "Static", isHidden: false, slot: 1 }],
         moves: [],
       };
     }
-    return null; // El dominio espera null, no undefined
+    return null; 
   }
   
   async getByName(_name: string): Promise<Pokemon | null> { 
