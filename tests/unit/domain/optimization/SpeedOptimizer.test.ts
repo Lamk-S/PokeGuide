@@ -14,7 +14,7 @@ describe("SpeedOptimizer (Binary Search)", () => {
         baseStats: { hp: 108, attack: 130, defense: 95, "special-attack": 80, "special-defense": 85, speed: 102 },
         ivs: { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 },
         level: 50,
-        nature: { name: "Jolly", increasedStat: "speed", decreasedStat: "special-attack" },
+        nature: { name: "Jolly", nameEs: "Alegre", increasedStat: "speed", decreasedStat: "special-attack" },
         generation: 9
       }
     );

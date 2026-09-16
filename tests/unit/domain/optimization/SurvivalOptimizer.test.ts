@@ -11,7 +11,7 @@ describe("SurvivalOptimizer (Branch & Bound + Binary Search)", () => {
         baseStats: { hp: 100, attack: 100, defense: 100, "special-attack": 100, "special-defense": 100, speed: 100 },
         ivs: { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 },
         level: 50,
-        nature: { name: "Serious", increasedStat: null, decreasedStat: null },
+        nature: { name: "Serious", nameEs: "Seria", increasedStat: null, decreasedStat: null },
         generation: 9
       }
     );

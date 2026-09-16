@@ -11,7 +11,7 @@ export class Gen3PlusStatRules implements GenerationRules {
     if (base === 1) return 1;
 
     // Fórmula: Math.floor(0.01 * (2 * Base + IV + Math.floor(EV / 4)) * Level) + Level + 10
-    const core = 2 * base + iv.value + Math.floor(ev.value / 4);
+    const core = 2 * base + iv + Math.floor(ev / 4);
     return Math.floor(0.01 * core * level.value) + level.value + 10;
   }
 
@@ -24,7 +24,7 @@ export class Gen3PlusStatRules implements GenerationRules {
     nature: Nature,
   ): number {
     // Fórmula base: Math.floor(0.01 * (2 * Base + IV + Math.floor(EV / 4)) * Level) + 5
-    const core = 2 * base + iv.value + Math.floor(ev.value / 4);
+    const core = 2 * base + iv + Math.floor(ev / 4);
     const preNatureStat = Math.floor(0.01 * core * level.value) + 5;
 
     return Math.floor(preNatureStat * this.getNatureModifier(statName, nature));
