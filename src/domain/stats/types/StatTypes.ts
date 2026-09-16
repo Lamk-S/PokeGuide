@@ -3,7 +3,8 @@ export type { StatName };
 
 export interface Nature {
   name: string;
-  increasedStat: StatName | null; // null significa naturaleza neutra
+  nameEs: string;
+  increasedStat: StatName | null;
   decreasedStat: StatName | null;
 }
 
