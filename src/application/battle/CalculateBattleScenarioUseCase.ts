@@ -32,7 +32,7 @@ export class CalculateBattleScenarioUseCase {
     defenderInput: BattleParticipantInput,
     moveName: string,
   ): Promise<BattleResult> {
-    // 1. Obtener base stats desde repositorio
+    // 1. Obtener Base Stats y Learnsets desde el repositorio
     const attackerData = await this.pokemonRepository.getById(
       attackerInput.pokemonId,
     );
@@ -40,9 +40,21 @@ export class CalculateBattleScenarioUseCase {
       defenderInput.pokemonId,
     );
 
-    if (!attackerData || !defenderData)
+    if (!attackerData || !defenderData) {
       throw new Error("Pokémon no encontrado en el repositorio.");
+    }
 
+    // 2. Pre-Flight Validation: Legalidad del Movimiento (Fail-Fast)
+    const isMoveLegal = attackerData.moves.some(
+      (m) => m.name === moveName && m.levelLearnedAt <= attackerInput.level,
+    );
+    if (!isMoveLegal) {
+      throw new Error(
+        `DomainError: El movimiento '${moveName}' no es legal para ${attackerData.name} a nivel ${attackerInput.level}.`,
+      );
+    }
+
+    // 3. Pre-Flight Validation: Legalidad de Habilidades
     if (
       attackerInput.ability &&
       !AbilityLegalityService.isLegal(
@@ -68,7 +80,7 @@ export class CalculateBattleScenarioUseCase {
       );
     }
 
-    // 2. Ejecutar Stat Engine llamando a la función calculateStats
+    // 4. Ejecutar Stat Engine para calcular atributos reales en combate
     const attackerStats = calculateStats({
       baseStats: attackerData.baseStats,
       ivs: attackerInput.ivs,
@@ -87,7 +99,7 @@ export class CalculateBattleScenarioUseCase {
       generation,
     });
 
-    // 3. Ensamblar BattlePokemon
+    // 5. Ensamblar las Entidades del Dominio
     const attacker: BattlePokemon = {
       ...attackerInput,
       name: attackerData.name,
@@ -99,14 +111,15 @@ export class CalculateBattleScenarioUseCase {
       calculatedStats: defenderStats,
     };
 
-    // 4. Crear Escenario y Calcular
     const scenario = new BattleScenario(
       generation,
       attacker,
       defender,
       moveName,
+      {}, // Aquí se podría inyectar { weather: "Rain", terrain: "Grassy" } en el futuro
     );
 
+    // 6. Delegar el cálculo numérico final a la Infraestructura (Adapter)
     return this.battleCalculator.calculate(scenario);
   }
 }

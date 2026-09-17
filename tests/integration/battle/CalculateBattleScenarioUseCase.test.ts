@@ -12,7 +12,7 @@ class MockPokemonRepository implements PokemonRepository {
         baseStats: { hp: 108, attack: 130, defense: 95, "special-attack": 80, "special-defense": 85, speed: 102 },
         height: 19, weight: 950,
         abilities: [{ name: "Sand Veil", isHidden: false, slot: 1 }],
-        moves: [], 
+        moves: [{ name: "Earthquake", learnMethod: "machine", levelLearnedAt: 0 } as any], 
       };
     }
     if (id === 25) { // Pikachu
