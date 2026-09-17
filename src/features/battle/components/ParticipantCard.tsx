@@ -27,7 +27,6 @@ interface ParticipantCardProps {
 
 const SERIOUS = NATURES.find((n) => n.name === "Serious") || NATURES[0];
 
-// ORDEN REAL - ESTO ARREGLA EL HP ATT DEF SPE SPE SPE
 const STAT_ORDER: StatName[] = [
   "hp",
   "attack",
@@ -113,17 +112,15 @@ export const ParticipantCard = React.memo(function ParticipantCard({
     const newPokemon = pokemonList.find((p) => p.id === pid);
     if (!newPokemon) return;
 
-    // Valida habilidad actual
+    // Habilidad por defecto
     let validAbility = newPokemon.abilities.some(
       (a) => a.name === input?.ability,
     )
       ? input?.ability
       : undefined;
-
-    // Si no es válida, agarra la primera NO oculta
-    if (!validAbility) {
+    if (!validAbility && newPokemon.abilities.length > 0) {
       const nonHidden = newPokemon.abilities.find((a) => !a.isHidden);
-      validAbility = nonHidden ? nonHidden.name : newPokemon.abilities[0]?.name;
+      validAbility = nonHidden ? nonHidden.name : newPokemon.abilities[0].name;
     }
 
     const newInput: BattleParticipantInput = {

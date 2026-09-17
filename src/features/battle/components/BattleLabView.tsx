@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 import { useMoveStore } from "@/features/moves/store/useMoveStore";
 import { useItemStore } from "@/features/items/store/useItemStore";
@@ -10,19 +10,14 @@ import { BattleResultCard } from "./BattleResultCard";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/ui/combobox";
-import type { PokemonMoveRef } from "@/domain/pokemon/types/pokemon";
-
-type AvailableMoveOption = {
-  value: string;
-  label: string;
-  description: string;
-};
+import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
 
 export function BattleLabView() {
   const { pokemonList, loadPokemon } = usePokedexStore();
   const { moveList, loadMoves } = useMoveStore();
   const { loadItems } = useItemStore();
   const { loadAbilities } = useAbilityStore();
+
   const {
     attackerInput,
     setAttacker,
@@ -33,8 +28,10 @@ export function BattleLabView() {
     calculateResult,
     result,
     isCalculating,
-    error,
   } = useBattleStore();
+
+  const [localError, setLocalError] = useState<string | null>(null);
+  const CURRENT_GENERATION = 7;
 
   useEffect(() => {
     loadPokemon();
@@ -43,18 +40,18 @@ export function BattleLabView() {
     loadAbilities();
   }, [loadPokemon, loadMoves, loadItems, loadAbilities]);
 
-  const availableMoves = useMemo((): AvailableMoveOption[] => {
+  const availableMoves = useMemo(() => {
     if (!attackerInput) return [];
     const p = pokemonList.find((x) => x.id === attackerInput.pokemonId);
     if (!p?.moves) return [];
 
     return p.moves
       .filter(
-        (m: PokemonMoveRef) =>
+        (m) =>
           m.learnMethod === "machine" ||
           m.levelLearnedAt <= attackerInput.level,
       )
-      .map((m: PokemonMoveRef) => {
+      .map((m) => {
         const fm = moveList[m.name];
         if (!fm) return null;
         return {
@@ -63,24 +60,44 @@ export function BattleLabView() {
           description: `${fm.type.toUpperCase()} • ${fm.power || 0}`,
         };
       })
-      .filter((x): x is AvailableMoveOption => x !== null);
+      .filter(Boolean) as {
+      value: string;
+      label: string;
+      description: string;
+    }[];
   }, [attackerInput, pokemonList, moveList]);
 
-  const attackerData = useMemo(
-    () => pokemonList.find((p) => p.id === attackerInput?.pokemonId),
-    [attackerInput, pokemonList],
+  const handleAttackerChange = (newInput: BattleParticipantInput | null) => {
+    if (newInput?.pokemonId !== attackerInput?.pokemonId) {
+      setMoveName("");
+    }
+    setAttacker(newInput);
+    setLocalError(null);
+  };
+
+  const handleCalculate = async () => {
+    setLocalError(null);
+    try {
+      await calculateResult();
+    } catch (e) {
+      setLocalError(
+        e instanceof Error
+          ? e.message
+          : "Error desconocido al calcular el daño.",
+      );
+    }
+  };
+
+  const canCalculate = Boolean(
+    attackerInput && defenderInput && moveName && !isCalculating,
   );
-  const defenderData = useMemo(
-    () => pokemonList.find((p) => p.id === defenderInput?.pokemonId),
-    [defenderInput, pokemonList],
+  const resolvedMoveName =
+    moveList[moveName]?.nameEs || moveList[moveName]?.name || "Movimiento";
+  const attackerData = pokemonList.find(
+    (p) => p.id === attackerInput?.pokemonId,
   );
-  const resolvedMoveName = useMemo(
-    () =>
-      moveList[moveName]?.nameEs ||
-      moveList[moveName]?.name ||
-      moveName ||
-      "Movimiento",
-    [moveName, moveList],
+  const defenderData = pokemonList.find(
+    (p) => p.id === defenderInput?.pokemonId,
   );
 
   return (
@@ -90,9 +107,9 @@ export function BattleLabView() {
           label="Atacante"
           pokemonList={pokemonList}
           input={attackerInput}
-          onChange={setAttacker}
+          onChange={handleAttackerChange}
           facing="left"
-          generation={7}
+          generation={CURRENT_GENERATION}
         />
         <ParticipantCard
           label="Defensor"
@@ -100,7 +117,7 @@ export function BattleLabView() {
           input={defenderInput}
           onChange={setDefender}
           facing="right"
-          generation={7}
+          generation={CURRENT_GENERATION}
         />
       </div>
       <div className="flex flex-col gap-2 md:w-1/2">
@@ -115,17 +132,18 @@ export function BattleLabView() {
         />
       </div>
       <Button
-        onClick={calculateResult}
-        disabled={
-          isCalculating || !attackerInput || !defenderInput || !moveName
-        }
+        onClick={handleCalculate}
+        disabled={!canCalculate}
         className="w-full md:w-auto"
       >
         {isCalculating ? "Calculando..." : "Calcular Daño"}
       </Button>
-      {error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      {localError && (
+        <p className="text-sm font-semibold text-red-600 dark:text-red-400 p-3 bg-red-50 dark:bg-red-950/30 rounded-md border border-red-200 dark:border-red-900">
+          {localError}
+        </p>
       )}
+
       {result && (
         <BattleResultCard
           result={result}

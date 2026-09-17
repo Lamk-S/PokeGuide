@@ -34,8 +34,6 @@ export interface KOAnalysis {
 
 export interface BattleExplanationFactor {
   label: string;
-  description: string;
-  multiplier: number;
 }
 
 export interface BattleExplanation {

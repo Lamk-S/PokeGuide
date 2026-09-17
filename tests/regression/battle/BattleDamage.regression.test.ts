@@ -10,10 +10,26 @@ type Stats = Record<StatName, number>;
 
 const mockPokemonRepo = {
   getById: vi.fn(async (id: number) => {
-    if (id === 445) return { name: "Garchomp", baseStats: { hp: 108, attack: 130, defense: 95, "special-attack": 80, "special-defense": 85, speed: 102 } as any };
-    if (id === 700) return { name: "Sylveon", baseStats: { hp: 95, attack: 65, defense: 65, "special-attack": 110, "special-defense": 130, speed: 60 } as any };
-    if (id === 94) return { name: "Gengar", baseStats: { hp: 60, attack: 65, defense: 60, "special-attack": 130, "special-defense": 75, speed: 110 } as any };
-    if (id === 65) return { name: "Alakazam", baseStats: { hp: 55, attack: 50, defense: 45, "special-attack": 135, "special-defense": 95, speed: 120 } as any };
+    if (id === 445) return { 
+      name: "Garchomp", 
+      baseStats: { hp: 108, attack: 130, defense: 95, "special-attack": 80, "special-defense": 85, speed: 102 } as any,
+      moves: [{ name: "Earthquake", levelLearnedAt: 1 }]
+    };
+    if (id === 700) return { 
+      name: "Sylveon", 
+      baseStats: { hp: 95, attack: 65, defense: 65, "special-attack": 110, "special-defense": 130, speed: 60 } as any,
+      moves: []
+    };
+    if (id === 94) return { 
+      name: "Gengar", 
+      baseStats: { hp: 60, attack: 65, defense: 60, "special-attack": 130, "special-defense": 75, speed: 110 } as any,
+      moves: [{ name: "Shadow Ball", levelLearnedAt: 1 }]
+    };
+    if (id === 65) return { 
+      name: "Alakazam", 
+      baseStats: { hp: 55, attack: 50, defense: 45, "special-attack": 135, "special-defense": 95, speed: 120 } as any,
+      moves: []
+    };
     return null;
   }),
 } as unknown as PokemonRepository;

@@ -7,11 +7,9 @@ import {
 } from "@smogon/calc";
 import type { BattleCalculator } from "@/domain/battle/repositories/BattleCalculator";
 import type { BattleScenario } from "@/domain/battle/entities/BattleScenario";
-import type {
-  BattleExplanationFactor,
-  BattleResult,
-} from "@/domain/battle/types/BattleTypes";
+import type { BattleResult } from "@/domain/battle/types/BattleTypes";
 import type { StatName } from "@/domain/pokemon/types/pokemon";
+import { SmogonSpeciesMapper } from "./SmogonSpeciesMapper";
 
 type SmogonWeather = "Sand" | "Sun" | "Rain" | "Hail" | "Snow";
 type SmogonTerrain = "Electric" | "Grassy" | "Psychic" | "Misty";
@@ -39,9 +37,14 @@ function toSmogonStats(input?: Record<StatName, number>) {
 
 export class SmogonCalculatorAdapter implements BattleCalculator {
   calculate(scenario: BattleScenario): BattleResult {
+    // 1. Traducción estricta de especies
+    const atkName = SmogonSpeciesMapper.map(scenario.attacker.name);
+    const defName = SmogonSpeciesMapper.map(scenario.defender.name);
+
+    // 2. Construcción segura
     const attacker = new Pokemon(
       scenario.generation as GenerationNum,
-      scenario.attacker.name,
+      atkName,
       {
         level: scenario.attacker.level,
         nature: scenario.attacker.nature.name,
@@ -56,7 +59,7 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
 
     const defender = new Pokemon(
       scenario.generation as GenerationNum,
-      scenario.defender.name,
+      defName,
       {
         level: scenario.defender.level,
         nature: scenario.defender.nature.name,
@@ -96,13 +99,20 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       field,
     );
     const range = result.range();
-    const defenderHp = defender.stats.hp || 1;
+
+    // 3. Validación post-cálculo para prevenir crashes
+    const defenderHp = defender.stats.hp;
+    if (!defenderHp || defenderHp <= 0) {
+      throw new Error(
+        `IntegrityError: El cálculo no produjo HP válido para ${defName}.`,
+      );
+    }
+
     const damageRolls = Array.isArray(result.damage)
       ? (result.damage as number[])
       : typeof result.damage === "number"
         ? [result.damage]
         : [0];
-
     const minDamage = range[0] ?? 0;
     const maxDamage = range[1] ?? 0;
     const minPercent = Number(((minDamage / defenderHp) * 100).toFixed(1));
@@ -112,37 +122,21 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       ? Math.round((koRolls / damageRolls.length) * 100)
       : 0;
 
-    const factors: BattleExplanationFactor[] = [];
-    if (scenario.attacker.item)
-      factors.push({
-        label: "Objeto Atacante",
-        description: scenario.attacker.item,
-        multiplier: 1.3,
-      });
-    if (scenario.defender.item)
-      factors.push({
-        label: "Objeto Defensor",
-        description: scenario.defender.item,
-        multiplier: 1,
-      });
-    if (scenario.conditions.weather)
-      factors.push({
-        label: "Clima",
-        description: scenario.conditions.weather,
-        multiplier: 1.5,
-      });
-    if (scenario.conditions.terrain)
-      factors.push({
-        label: "Terreno",
-        description: scenario.conditions.terrain,
-        multiplier: 1.3,
-      });
+    // 4. Extracción genuina de factores (Explainability real, sin inventar multiplicadores)
+    const factors: { label: string }[] = [];
+    if (result.desc().includes("STAB")) factors.push({ label: "STAB" });
     if (scenario.conditions.isCriticalHit)
-      factors.push({
-        label: "Crítico",
-        description: "Golpe crítico",
-        multiplier: 1.5,
-      });
+      factors.push({ label: "Golpe Crítico" });
+    if (scenario.conditions.weather)
+      factors.push({ label: `Clima: ${scenario.conditions.weather}` });
+    if (scenario.conditions.terrain)
+      factors.push({ label: `Terreno: ${scenario.conditions.terrain}` });
+    if (scenario.attacker.item)
+      factors.push({ label: `Objeto (Atacante): ${scenario.attacker.item}` });
+    if (scenario.defender.item)
+      factors.push({ label: `Objeto (Defensor): ${scenario.defender.item}` });
+    if (scenario.attacker.ability)
+      factors.push({ label: `Habilidad: ${scenario.attacker.ability}` });
 
     return {
       defenderMaxHp: defenderHp,
