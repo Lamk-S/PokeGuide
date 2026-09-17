@@ -7,13 +7,21 @@ import type {
 import type { PokeApiPokemonDto } from "../schemas/pokemon.schema";
 
 export function mapPokeApiToPokemon(dto: PokeApiPokemonDto): Pokemon {
-  const baseStats = dto.stats.reduce(
-    (acc, current) => {
-      acc[current.stat.name as StatName] = current.base_stat;
-      return acc;
-    },
-    {} as Record<StatName, number>,
-  );
+  const baseStats: Record<StatName, number> = {
+    hp: 0,
+    attack: 0,
+    defense: 0,
+    "special-attack": 0,
+    "special-defense": 0,
+    speed: 0,
+  };
+
+  for (const current of dto.stats) {
+    const statName = current.stat.name as StatName;
+    if (baseStats[statName] !== undefined) {
+      baseStats[statName] = current.base_stat;
+    }
+  }
 
   const abilities: PokemonAbilityRef[] = dto.abilities
     .sort((a, b) => a.slot - b.slot)
@@ -23,32 +31,34 @@ export function mapPokeApiToPokemon(dto: PokeApiPokemonDto): Pokemon {
       slot: a.slot,
     }));
 
-  const moves: PokemonMoveRef[] = dto.moves
-    .map((m) => {
-      const details = m.version_group_details;
-      const isMachine = details.some(
-        (d) => d.move_learn_method.name === "machine",
-      );
-      const levelUpDetails = details.filter(
-        (d) => d.move_learn_method.name === "level-up",
-      );
+  const moves: PokemonMoveRef[] = dto.moves.flatMap((m): PokemonMoveRef[] => {
+    const details = m.version_group_details;
+    const isMachine = details.some(
+      (d) => d.move_learn_method.name === "machine",
+    );
 
-      const minLevel =
-        levelUpDetails.length > 0
-          ? Math.min(...levelUpDetails.map((d) => d.level_learned_at))
-          : 0;
+    if (isMachine) {
+      return [{ name: m.move.name, learnMethod: "machine", levelLearnedAt: 0 }];
+    }
 
-      return {
-        name: m.move.name,
-        learnMethod: isMachine
-          ? "machine"
-          : levelUpDetails.length > 0
-            ? "level-up"
-            : "other",
-        levelLearnedAt: isMachine ? 0 : minLevel,
-      };
-    })
-    .filter((m) => m.learnMethod !== "other") as PokemonMoveRef[];
+    const levelUpDetails = details.filter(
+      (d) => d.move_learn_method.name === "level-up",
+    );
+    if (levelUpDetails.length > 0) {
+      const minLevel = Math.min(
+        ...levelUpDetails.map((d) => d.level_learned_at),
+      );
+      return [
+        {
+          name: m.move.name,
+          learnMethod: "level-up",
+          levelLearnedAt: minLevel,
+        },
+      ];
+    }
+
+    return [];
+  });
 
   return {
     id: dto.id,
