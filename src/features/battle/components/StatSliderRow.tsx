@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
@@ -24,12 +25,24 @@ export function StatSliderRow({
   onSetMin,
   onSetMax,
 }: Props) {
+  const [localValue, setLocalValue] = useState<string>(value.toString());
+
+  useEffect(() => {
+    setLocalValue(value.toString());
+  }, [value]);
+
   const clamp = (v: number) => Math.max(min, Math.min(max, Math.floor(v)));
+
+  const handleBlur = () => {
+    const parsed = clamp(Number(localValue) || 0);
+    setLocalValue(parsed.toString());
+    onChange(parsed);
+  };
 
   return (
     <div className="flex items-center gap-2 w-full py-1">
-      <Label className="w- text-xs">{label}</Label>
-      <span className="w-7 text- font-mono text-zinc-500">{abbr}</span>
+      <Label className="w-20 text-xs truncate">{label}</Label>
+      <span className="w-7 text-xs font-mono text-zinc-500">{abbr}</span>
 
       <input
         type="range"
@@ -44,26 +57,28 @@ export function StatSliderRow({
         type="number"
         min={min}
         max={max}
-        value={value}
-        onChange={(e) => onChange(clamp(Number(e.target.value) || 0))}
-        className="w-14 h-7 text-xs px-1"
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onBlur={handleBlur}
+        className="w-14 h-7 text-xs px-1 text-center appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none m-0"
       />
 
-      <div className="flex gap-1">
+      <div className="flex w-14 gap-1 shrink-0">
         {onSetMin && (
           <button
             type="button"
             onClick={onSetMin}
-            className="h-7 px-1.5 text- rounded bg-zinc-100 dark:bg-zinc-800"
+            className="flex h-7 w-7 items-center justify-center rounded bg-zinc-100 text-[10px] font-bold text-zinc-600 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
           >
             0
           </button>
         )}
+
         {onSetMax && (
           <button
             type="button"
             onClick={onSetMax}
-            className="h-7 px-1.5 text- rounded bg-zinc-900 text-white dark:bg-white dark:text-black"
+            className="flex h-7 w-7 items-center justify-center rounded bg-zinc-900 text-[10px] font-bold text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
           >
             {max}
           </button>
