@@ -9,7 +9,7 @@ export interface BattlePokemon {
   item?: string;
   evs: Record<StatName, number>;
   ivs: Record<StatName, number>;
-  calculatedStats: CalculatedStats; // Calculado previamente por el Stat Engine
+  calculatedStats: CalculatedStats;
 }
 
 export interface BattleConditions {
@@ -35,6 +35,7 @@ export interface KOAnalysis {
 export interface BattleExplanationFactor {
   label: string;
   description: string;
+  multiplier: number;
 }
 
 export interface BattleExplanation {
@@ -43,6 +44,7 @@ export interface BattleExplanation {
 }
 
 export interface BattleResult {
+  defenderMaxHp?: number;
   damage: DamageResult;
   koAnalysis: KOAnalysis;
   explanation: BattleExplanation;
