@@ -25,29 +25,16 @@ const STAT_TO_SMOGON: Record<StatName, string> = {
   speed: "spe",
 };
 
-function toSmogonStats(input: Record<StatName, number>) {
+function toSmogonStats(input?: Record<StatName, number>) {
+  if (!input) return { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   return Object.entries(input).reduce(
     (acc, [k, v]) => {
       const key = STAT_TO_SMOGON[k as StatName];
-      if (key) acc[key] = v;
+      if (key) acc[key] = Math.max(0, v ?? 0);
       return acc;
     },
     {} as Record<string, number>,
   );
-}
-
-function translateSmogonSummary(desc: string): string {
-  return desc
-    .replace(/guaranteed/g, "garantizado")
-    .replace(/chance to/g, "probabilidad de")
-    .replace(/OHKO/g, "KO de 1 golpe")
-    .replace(/(\d)HKO/g, "KO en $1 golpes")
-    .replace(/Atk/g, "Ataque")
-    .replace(/Def/g, "Defensa")
-    .replace(/SpA/g, "Atq. Esp.")
-    .replace(/SpD/g, "Def. Esp.")
-    .replace(/Spe/g, "Vel")
-    .replace(/vs./g, "contra");
 }
 
 export class SmogonCalculatorAdapter implements BattleCalculator {
@@ -58,8 +45,8 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       {
         level: scenario.attacker.level,
         nature: scenario.attacker.nature.name,
-        evs: toSmogonStats(scenario.attacker.evs as Record<StatName, number>),
-        ivs: toSmogonStats(scenario.attacker.ivs as Record<StatName, number>),
+        evs: toSmogonStats(scenario.attacker.evs),
+        ivs: toSmogonStats(scenario.attacker.ivs),
         ...(scenario.attacker.ability
           ? { ability: scenario.attacker.ability }
           : {}),
@@ -73,8 +60,8 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       {
         level: scenario.defender.level,
         nature: scenario.defender.nature.name,
-        evs: toSmogonStats(scenario.defender.evs as Record<StatName, number>),
-        ivs: toSmogonStats(scenario.defender.ivs as Record<StatName, number>),
+        evs: toSmogonStats(scenario.defender.evs),
+        ivs: toSmogonStats(scenario.defender.ivs),
         ...(scenario.defender.ability
           ? { ability: scenario.defender.ability }
           : {}),
@@ -108,7 +95,6 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       move,
       field,
     );
-
     const range = result.range();
     const defenderHp = defender.stats.hp || 1;
     const damageRolls = Array.isArray(result.damage)
@@ -121,48 +107,55 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
     const maxDamage = range[1] ?? 0;
     const minPercent = Number(((minDamage / defenderHp) * 100).toFixed(1));
     const maxPercent = Number(((maxDamage / defenderHp) * 100).toFixed(1));
-
     const koRolls = damageRolls.filter((d) => d >= defenderHp).length;
     const probability = damageRolls.length
       ? Math.round((koRolls / damageRolls.length) * 100)
       : 0;
-    const guaranteed = minDamage >= defenderHp;
-    const hitsToKO =
-      maxDamage === 0
-        ? 0
-        : maxDamage >= defenderHp
-          ? 1
-          : Math.ceil(defenderHp / maxDamage);
 
     const factors: BattleExplanationFactor[] = [];
     if (scenario.attacker.item)
       factors.push({
         label: "Objeto Atacante",
-        description: `Equipado con ${scenario.attacker.item}`,
+        description: scenario.attacker.item,
+        multiplier: 1.3,
       });
     if (scenario.defender.item)
       factors.push({
         label: "Objeto Defensor",
-        description: `Equipado con ${scenario.defender.item}`,
+        description: scenario.defender.item,
+        multiplier: 1,
       });
     if (scenario.conditions.weather)
       factors.push({
         label: "Clima",
-        description: `Clima: ${scenario.conditions.weather}`,
+        description: scenario.conditions.weather,
+        multiplier: 1.5,
       });
     if (scenario.conditions.terrain)
       factors.push({
         label: "Terreno",
-        description: `Terreno: ${scenario.conditions.terrain}`,
+        description: scenario.conditions.terrain,
+        multiplier: 1.3,
       });
     if (scenario.conditions.isCriticalHit)
-      factors.push({ label: "Crítico", description: "Golpe crítico aplicado" });
+      factors.push({
+        label: "Crítico",
+        description: "Golpe crítico",
+        multiplier: 1.5,
+      });
 
     return {
+      defenderMaxHp: defenderHp,
       damage: { minDamage, maxDamage, minPercent, maxPercent, damageRolls },
-      koAnalysis: { hitsToKO, guaranteed, probability },
-      // Se aplica la traducción aquí antes de enviarlo al dominio
-      explanation: { summary: translateSmogonSummary(result.desc()), factors },
+      koAnalysis: {
+        hitsToKO:
+          maxDamage >= defenderHp
+            ? 1
+            : Math.ceil(defenderHp / (maxDamage || 1)),
+        guaranteed: minDamage >= defenderHp,
+        probability,
+      },
+      explanation: { summary: result.desc(), factors },
     };
   }
 }
