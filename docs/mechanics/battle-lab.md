@@ -1,34 +1,32 @@
 # Mecánicas del Laboratorio de Batalla (Battle Lab)
 
-Este documento detalla el flujo de datos y las reglas mecánicas subyacentes al motor de simulación de combate de PokeGuide.
-
 ## 1. El Escenario de Batalla (`BattleScenario`)
-A diferencia de una simple "Calculadora de Daño", el Battle Lab orquesta una simulación integral. Un `BattleScenario` agrupa cuatro conceptos fundamentales:
-
-1. **Atacante (`BattlePokemon`):** Una instancia temporal que contiene los IVs, EVs, Naturaleza, Objeto y **Estadísticas Pre-calculadas** (provenientes del `Stat Engine`).
-2. **Defensor (`BattlePokemon`):** Contraparte que recibe el impacto.
-3. **Movimiento:** El ataque ejecutado, que posee su propio poder base, tipo y categoría (Físico/Especial).
-4. **Condiciones (`BattleConditions`):** Factores externos que alteran la matemática del daño (Clima, Terreno, Pantallas, Golpes Críticos).
+Agrupación de 4 conceptos:
+1.  **Atacante (`BattlePokemon`):** IVs, EVs, Naturaleza, Objeto y Estadísticas Pre-calculadas del Stat Engine.
+2.  **Defensor:** Contraparte.
+3.  **Movimiento:** Poder base, tipo, categoría.
+4.  **Condiciones (`BattleConditions`):** Clima, Terreno, Pantallas, Crítico.
 
 ## 2. Reutilización del Stat Engine
-El Battle Lab **no** calcula las estadísticas de los Pokémon. En su lugar, el caso de uso `CalculateBattleScenarioUseCase` inyecta las estadísticas reales generadas previamente por el `Stat Engine`. Esto garantiza que una modificación en la fórmula de HP (por ejemplo) se propague automáticamente al Battle Lab sin duplicar código.
+El Battle Lab **no** calcula stats. Inyecta las del `Stat Engine`.
 
-## 3. Análisis de Daño (`DamageResult` y `KOAnalysis`)
-El resultado del simulador produce métricas deterministas:
-* **Rango de Daño:** El daño mínimo y máximo posible (ej. 142 - 168).
-* **Porcentajes:** El daño traducido al HP máximo del defensor (ej. 67.2% - 79.4%).
-* **Análisis de KO:** Cálculo exacto de cuántos golpes se necesitan para debilitar al rival (ej. 2HKO) y su probabilidad porcentual.
+## 3. Resolución de Sprites (Nuevo v1.1.2)
+El `ParticipantCard` no renderiza directo el id de PokeAPI. Llama a `SpriteResolver.getSpriteChain()`:
 
-## 4. Capa de Explicabilidad (Explainability)
-El principal diferenciador funcional de PokeGuide es no solo mostrar *cuánto* daño se hace, sino *por qué*.
-El motor extrae los factores que alteraron el resultado estándar (Modificadores) y los devuelve en un array estructurado (`BattleExplanationFactor`):
-* Efectividad de Tipos (x2, x0.5, etc.)
-* STAB (Same Type Attack Bonus)
-* Potenciadores de Clima (ej. Sol incrementando ataques tipo Fuego)
-* Objetos Equipados (ej. *Life Orb* x1.3)
+- Soporte para `-z` -> `-mega` (absol-z, garchomp-z, lucario-z).
+- Cadena: `ani/*.gif` -> `dex/*.png` (HD) -> `gen8` -> `gen5` -> `official-artwork` -> placeholder.
+- `MEGA_ARTWORK_ID` mapea megas a su id real de PokeAPI (ej. `absol-mega: 10062`) para artwork HD.
 
-## 5. UI Guardrails y Restricciones Estrictas
-La capa de Presentación (React) implementa validaciones dependientes para evitar estados imposibles en el juego real:
-* **Filtro de Learnset:** El `<Combobox>` de movimientos solo muestra ataques que el Pokémon puede aprender (por nivel actual o MT). Si el nivel decrece, los movimientos inválidos se purgan.
-* **Filtro de Habilidades:** La habilidad seleccionada se restringe al array de habilidades legales de la especie. Al cambiar de Pokémon, se evalúa si la habilidad sigue siendo válida.
-* **Inyección Limpia:** El store consolida los opcionales en objetos sin valores `undefined` explícitos, garantizando compatibilidad con `exactOptionalPropertyTypes`.
+## 4. Análisis de Daño (`DamageResult` y `KOAnalysis`)
+- **Rango:** min/max (ej. 142-168).
+- **Porcentajes:** vs HP max defensor.
+- **KO:** `hitsToKO` evaluando 16 rolls. `guaranteed` si `minDamage * hitsToKO >= HP`. Probabilidad cruzando combinaciones.
+
+## 5. Capa de Explicabilidad (Explainability) e i18n
+Factores traducidos a LatAm: STAB, Clima, Terreno, Crítico, Habilidades y Objetos con formato `[Pokemon] usa [Mov] contra [Def] - [min]-[max] ([%]) - [X]HKO [%]`.
+
+## 6. UI Guardrails y Restricciones Estrictas
+- **Filtro de Learnset:** Purga si nivel decrece o especie muta.
+- **Filtro de Habilidades:** Solo legales.
+- **Inyección Limpia:** Objetos consolidados para `exactOptionalPropertyTypes`.
+- **Guardrail de Sprites (v1.1.2):** `key={`${id}-${name}`}` en `PokemonSprite`, contenedor `96x96`, `fill` + `object-contain`, reset de índice con `useEffect([chain])`.

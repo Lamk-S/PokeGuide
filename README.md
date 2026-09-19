@@ -15,6 +15,7 @@ Este proyecto es una demostración de **Arquitectura de Software y Domain-Driven
 - **Generation-aware rules:** Un motor central inyecta reglas históricas (ej. *Physical/Special split*) para evitar sentencias `if` anidadas y dispersas.
 - **Deterministic optimization:** Uso de Búsqueda en Anchura (BFS) deduplicada mediante *State Hashing* para el planificador de crianza (Breeding Planner).
 - **Quality Hardening:** Pruebas unitarias, de integración, invariantes de regresión y E2E (Vitest + Playwright) integrados en un CI Pipeline riguroso.
+- **Sprite System HD:** Resolución unificada con `SpriteResolver` (ani + dex HD), soporte para formas custom Mega Z, renderizado pixel-perfect con `fill` y `image-rendering: pixelated`, 0 warnings de Next.js y Biome compliant.
 
 ## Arquitectura
 
@@ -36,7 +37,7 @@ Infrastructure (Repositories / Data Adapters)
 
 ## Getting Started
 
-El entorno de desarrollo requiere [Node.js](https://nodejs.org/) v20+ y [pnpm](https://pnpm.io/).
+El entorno de desarrollo requiere [Node.js](https://nodejs.org/?utm_source=gemini) v20+ y [pnpm](https://pnpm.io/?utm_source=gemini).
 
 ```bash
 # Instalar dependencias
@@ -49,11 +50,13 @@ pnpm test
 
 # Iniciar servidor local
 pnpm dev
+
 ```
 
 ## Limitaciones Conocidas
-- **Soporte Generacional:** Gen VI y Gen IX están soportadas como prueba de concepto. Generaciones antiguas requieren el volcado del dataset correspondiente.
-(Se removió: "UI Work-in-Progress")
+
+* **Soporte Generacional:** Gen VI y Gen IX están soportadas como prueba de concepto. Generaciones antiguas requieren el volcado del dataset correspondiente.
 
 ## Licencia
+
 MIT. Pokémon es propiedad de Nintendo/Game Freak. Proyecto de fans no oficial.

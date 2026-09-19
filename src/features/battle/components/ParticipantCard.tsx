@@ -1,13 +1,11 @@
 "use client";
 import * as React from "react";
-import Image from "next/image";
 import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
 import type { StatName } from "@/domain/pokemon/types/pokemon";
 import { ParticipantStatsEditor } from "./ParticipantStatsEditor";
 import { calculateStats } from "@/domain/stats/services/StatCalculator";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Combobox } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import { NATURES } from "@/domain/stats/constants/natures";
@@ -15,6 +13,7 @@ import { IV } from "@/domain/stats/value-objects/IV";
 import { EV } from "@/domain/stats/value-objects/EV";
 import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
 import { useItemStore } from "@/features/items/store/useItemStore";
+import { PokemonSprite } from "@/components/ui/PokemonSprite";
 
 interface ParticipantCardProps {
   label: string;
@@ -26,7 +25,6 @@ interface ParticipantCardProps {
 }
 
 const SERIOUS = NATURES.find((n) => n.name === "Serious") || NATURES[0];
-
 const STAT_ORDER: StatName[] = [
   "hp",
   "attack",
@@ -43,6 +41,14 @@ const STAT_ABBR: Record<StatName, string> = {
   "special-defense": "SpD",
   speed: "Spe",
 };
+const EMPTY_EVS = {
+  hp: 0,
+  attack: 0,
+  defense: 0,
+  "special-attack": 0,
+  "special-defense": 0,
+  speed: 0,
+};
 
 export const ParticipantCard = React.memo(function ParticipantCard({
   label,
@@ -53,7 +59,7 @@ export const ParticipantCard = React.memo(function ParticipantCard({
   generation,
 }: ParticipantCardProps) {
   const levelId = React.useId();
-  const [isExpanded, setIsExpanded] = React.useState(!input);
+  const [isExpanded, setIsExpanded] = React.useState(true);
   const { abilityList } = useAbilityStore();
   const { itemList } = useItemStore();
 
@@ -72,13 +78,12 @@ export const ParticipantCard = React.memo(function ParticipantCard({
     return currentPokemon.abilities
       .slice()
       .sort((a, b) => a.slot - b.slot)
-      .map((abilityRef) => {
-        const metadata = abilityList.find((a) => a.name === abilityRef.name);
-        const nameDisplay = metadata ? metadata.nameEs : abilityRef.name;
+      .map((ref) => {
+        const meta = abilityList.find((a) => a.name === ref.name);
         return {
-          value: abilityRef.name,
-          label: `${nameDisplay}${abilityRef.isHidden ? " (Oculta)" : ""}`,
-          description: metadata?.effectEs,
+          value: ref.name,
+          label: `${meta ? meta.nameEs : ref.name}${ref.isHidden ? " (Oculta)" : ""}`,
+          description: meta?.effectEs,
         };
       });
   }, [currentPokemon, abilityList]);
@@ -108,16 +113,15 @@ export const ParticipantCard = React.memo(function ParticipantCard({
   const handlePokemonSelect = (val: string) => {
     const pid = parseInt(val, 10);
     if (Number.isNaN(pid)) return onChange(null);
-
     const newPokemon = pokemonList.find((p) => p.id === pid);
     if (!newPokemon) return;
 
-    // Habilidad por defecto
     let validAbility = newPokemon.abilities.some(
       (a) => a.name === input?.ability,
     )
       ? input?.ability
       : undefined;
+
     if (!validAbility && newPokemon.abilities.length > 0) {
       const nonHidden = newPokemon.abilities.find((a) => !a.isHidden);
       validAbility = nonHidden ? nonHidden.name : newPokemon.abilities[0].name;
@@ -128,12 +132,10 @@ export const ParticipantCard = React.memo(function ParticipantCard({
       level: input?.level ?? 50,
       nature: input?.nature ?? SERIOUS,
       ivs: input?.ivs ?? IV.createPerfectSet(),
-      evs: input?.evs ?? EV.createEmptySet(),
+      evs: input?.evs ?? EV.createSet(EMPTY_EVS),
     };
-
     if (validAbility) newInput.ability = validAbility;
     if (input?.item) newInput.item = input.item;
-
     onChange(newInput);
     setIsExpanded(true);
   };
@@ -155,23 +157,18 @@ export const ParticipantCard = React.memo(function ParticipantCard({
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      {/* HEADER */}
       <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50">
         <div className="flex items-center gap-4">
-          <Image
-            src={`https://play.pokemonshowdown.com/sprites/gen5/${currentPokemon.name.toLowerCase()}.png`}
-            alt={currentPokemon.name}
-            width={64}
-            height={64}
-            unoptimized
-            className={cn(
-              "h-16 w-16 object-contain drop-shadow-md",
-              facing === "left" && "scale-x-[-1]",
-            )}
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).src =
-                "/placeholder-sprite.png";
-            }}
-          />
+          <div className="w- h- flex items-center justify-center bg-white dark:bg-zinc-900 rounded-lg border border-zinc-100 dark:border-zinc-800 shrink-0">
+            <PokemonSprite
+              key={`${currentPokemon.id}-${currentPokemon.name}`}
+              pokemon={{ id: currentPokemon.id, name: currentPokemon.name }}
+              facing={facing}
+              size={88}
+              hd={false}
+            />
+          </div>
           <div>
             <h3 className="text-lg font-bold capitalize">
               {currentPokemon.name}{" "}
@@ -192,10 +189,10 @@ export const ParticipantCard = React.memo(function ParticipantCard({
         </div>
 
         {liveStats && (
-          <div className="hidden lg:flex gap-3 text- text-center border-l border-zinc-200 dark:border-zinc-700 pl-4">
+          <div className="hidden xl:flex gap-3 text-xs text-center border-l border-zinc-200 dark:border-zinc-700 pl-4">
             {STAT_ORDER.map((stat) => (
               <div key={stat} className="flex flex-col min-w-">
-                <span className="uppercase text-zinc-400 font-bold">
+                <span className="uppercase text-zinc-400 font-bold text-">
                   {STAT_ABBR[stat]}
                 </span>
                 <span className="font-bold text-zinc-800 dark:text-zinc-200">
@@ -205,7 +202,6 @@ export const ParticipantCard = React.memo(function ParticipantCard({
             ))}
           </div>
         )}
-
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
@@ -216,6 +212,7 @@ export const ParticipantCard = React.memo(function ParticipantCard({
         </button>
       </div>
 
+      {/* BODY */}
       {isExpanded && (
         <div className="p-5 border-t border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-top-2">
           <div className="mb-6 flex flex-col gap-2">
@@ -246,10 +243,9 @@ export const ParticipantCard = React.memo(function ParticipantCard({
                   if (val > 100) val = 100;
                   onChange({ ...input, level: val });
                 }}
-                className="h-10 w-full rounded-md border border-zinc-300 bg-zinc-50 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-800 dark:border-zinc-700 dark:bg-zinc-900"
+                className="h-10 w-full rounded-md border border-zinc-300 bg-zinc-50 px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900"
               />
             </div>
-
             <div className="flex flex-col gap-2">
               <Label className="text-sm font-semibold">Habilidad</Label>
               <Combobox
@@ -265,7 +261,6 @@ export const ParticipantCard = React.memo(function ParticipantCard({
                 emptyMessage="Sin habilidades legales."
               />
             </div>
-
             <div className="flex flex-col gap-2">
               <Label className="text-sm font-semibold">Objeto</Label>
               <Combobox

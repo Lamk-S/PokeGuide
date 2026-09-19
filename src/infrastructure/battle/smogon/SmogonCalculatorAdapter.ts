@@ -37,50 +37,50 @@ function toSmogonStats(input?: Record<StatName, number>) {
 
 export class SmogonCalculatorAdapter implements BattleCalculator {
   calculate(scenario: BattleScenario): BattleResult {
-    // 1. Traducción estricta de especies
-    const atkName = SmogonSpeciesMapper.map(scenario.attacker.name);
-    const defName = SmogonSpeciesMapper.map(scenario.defender.name);
-
-    // 2. Construcción segura
-    const attacker = new Pokemon(
-      scenario.generation as GenerationNum,
-      atkName,
-      {
-        level: scenario.attacker.level,
-        nature: scenario.attacker.nature.name,
-        evs: toSmogonStats(scenario.attacker.evs),
-        ivs: toSmogonStats(scenario.attacker.ivs),
-        ...(scenario.attacker.ability
-          ? { ability: scenario.attacker.ability }
-          : {}),
-        ...(scenario.attacker.item ? { item: scenario.attacker.item } : {}),
-      },
+    const atkName = SmogonSpeciesMapper.map(
+      scenario.attacker.name,
+      scenario.generation,
+    );
+    const defName = SmogonSpeciesMapper.map(
+      scenario.defender.name,
+      scenario.generation,
     );
 
-    const defender = new Pokemon(
-      scenario.generation as GenerationNum,
-      defName,
-      {
-        level: scenario.defender.level,
-        nature: scenario.defender.nature.name,
-        evs: toSmogonStats(scenario.defender.evs),
-        ivs: toSmogonStats(scenario.defender.ivs),
-        ...(scenario.defender.ability
-          ? { ability: scenario.defender.ability }
-          : {}),
-        ...(scenario.defender.item ? { item: scenario.defender.item } : {}),
-      },
-    );
+    if (!atkName || !defName) {
+      throw new Error(
+        `IntegrityError: ${scenario.attacker.name} / ${scenario.defender.name} no mapeable -> ${atkName} / ${defName}`,
+      );
+    }
 
-    const move = new Move(
-      scenario.generation as GenerationNum,
-      scenario.moveName,
-      {
-        ...(scenario.conditions.isCriticalHit !== undefined
-          ? { isCrit: scenario.conditions.isCriticalHit }
-          : {}),
-      },
-    );
+    const gen = scenario.generation as GenerationNum;
+
+    const attacker = new Pokemon(gen, atkName, {
+      level: scenario.attacker.level,
+      nature: scenario.attacker.nature.name,
+      evs: toSmogonStats(scenario.attacker.evs),
+      ivs: toSmogonStats(scenario.attacker.ivs),
+      ...(scenario.attacker.ability
+        ? { ability: scenario.attacker.ability }
+        : {}),
+      ...(scenario.attacker.item ? { item: scenario.attacker.item } : {}),
+    });
+
+    const defender = new Pokemon(gen, defName, {
+      level: scenario.defender.level,
+      nature: scenario.defender.nature.name,
+      evs: toSmogonStats(scenario.defender.evs),
+      ivs: toSmogonStats(scenario.defender.ivs),
+      ...(scenario.defender.ability
+        ? { ability: scenario.defender.ability }
+        : {}),
+      ...(scenario.defender.item ? { item: scenario.defender.item } : {}),
+    });
+
+    const move = new Move(gen, scenario.moveName, {
+      ...(scenario.conditions.isCriticalHit !== undefined
+        ? { isCrit: scenario.conditions.isCriticalHit }
+        : {}),
+    });
 
     const field = new Field({
       ...(scenario.conditions.weather
@@ -91,65 +91,87 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
         : {}),
     });
 
-    const result = calculate(
-      scenario.generation as GenerationNum,
-      attacker,
-      defender,
-      move,
-      field,
-    );
+    const result = calculate(gen, attacker, defender, move, field);
     const range = result.range();
-
-    // 3. Validación post-cálculo para prevenir crashes
     const defenderHp = defender.stats.hp;
-    if (!defenderHp || defenderHp <= 0) {
+
+    if (!defenderHp) {
       throw new Error(
-        `IntegrityError: El cálculo no produjo HP válido para ${defName}.`,
+        `IntegrityError: HP inválido para ${defName} (${scenario.defender.name}) mapeado como ${defName}. El Pokémon no existe en Gen ${gen}`,
       );
     }
 
-    const damageRolls = Array.isArray(result.damage)
-      ? (result.damage as number[])
-      : typeof result.damage === "number"
-        ? [result.damage]
-        : [0];
     const minDamage = range[0] ?? 0;
     const maxDamage = range[1] ?? 0;
     const minPercent = Number(((minDamage / defenderHp) * 100).toFixed(1));
     const maxPercent = Number(((maxDamage / defenderHp) * 100).toFixed(1));
-    const koRolls = damageRolls.filter((d) => d >= defenderHp).length;
-    const probability = damageRolls.length
-      ? Math.round((koRolls / damageRolls.length) * 100)
-      : 0;
 
-    // 4. Extracción genuina de factores (Explainability real, sin inventar multiplicadores)
-    const factors: { label: string }[] = [];
-    if (result.desc().includes("STAB")) factors.push({ label: "STAB" });
+    const ko = result.kochance();
+    let probability = 100;
+    let guaranteed = true;
+    const hitsToKO = ko.n;
+
+    if (ko.chance !== undefined) {
+      probability = Math.round(ko.chance * 1000) / 10;
+      guaranteed = ko.chance === 1;
+    } else if (ko.n === 0) {
+      probability = 0;
+      guaranteed = false;
+    }
+
+    const raw = result.rawDesc;
+    const activeModifiers: string[] = [];
+    const context: Array<{ label: string; value: string }> = [];
+
+    if (result.desc().includes("STAB")) activeModifiers.push("STAB x1.5");
     if (scenario.conditions.isCriticalHit)
-      factors.push({ label: "Golpe Crítico" });
-    if (scenario.conditions.weather)
-      factors.push({ label: `Clima: ${scenario.conditions.weather}` });
-    if (scenario.conditions.terrain)
-      factors.push({ label: `Terreno: ${scenario.conditions.terrain}` });
-    if (scenario.attacker.item)
-      factors.push({ label: `Objeto (Atacante): ${scenario.attacker.item}` });
-    if (scenario.defender.item)
-      factors.push({ label: `Objeto (Defensor): ${scenario.defender.item}` });
-    if (scenario.attacker.ability)
-      factors.push({ label: `Habilidad: ${scenario.attacker.ability}` });
+      activeModifiers.push("Golpe Crítico x1.5");
+    if (raw.weather) activeModifiers.push(`Clima: ${raw.weather}`);
+    if (raw.terrain) activeModifiers.push(`Campo: ${raw.terrain}`);
+    if (raw.isBurned) activeModifiers.push("Quemadura Atacante x0.5");
+
+    interface ExtendedRawDesc {
+      isReflect?: boolean;
+      isLightScreen?: boolean;
+      isProtected?: boolean;
+    }
+    const rawExt = raw as typeof raw & ExtendedRawDesc;
+
+    if (rawExt.isReflect) activeModifiers.push("Reflejo x0.5 Físico");
+    if (rawExt.isLightScreen)
+      activeModifiers.push("Pantalla Luz x0.5 Especial");
+    if (rawExt.isProtected) activeModifiers.push("Protección");
+
+    if (raw.attackerAbility) {
+      context.push({
+        label: `Habilidad de ${scenario.attacker.name}`,
+        value: raw.attackerAbility,
+      });
+    }
+    if (raw.defenderAbility) {
+      context.push({
+        label: `Habilidad de ${scenario.defender.name}`,
+        value: raw.defenderAbility,
+      });
+    }
+    if (raw.attackerItem) {
+      context.push({
+        label: `Objeto de ${scenario.attacker.name}`,
+        value: raw.attackerItem,
+      });
+    }
+    if (raw.defenderItem) {
+      context.push({
+        label: `Objeto de ${scenario.defender.name}`,
+        value: raw.defenderItem,
+      });
+    }
 
     return {
       defenderMaxHp: defenderHp,
-      damage: { minDamage, maxDamage, minPercent, maxPercent, damageRolls },
-      koAnalysis: {
-        hitsToKO:
-          maxDamage >= defenderHp
-            ? 1
-            : Math.ceil(defenderHp / (maxDamage || 1)),
-        guaranteed: minDamage >= defenderHp,
-        probability,
-      },
-      explanation: { summary: result.desc(), factors },
+      damage: { minDamage, maxDamage, minPercent, maxPercent },
+      koAnalysis: { hitsToKO, guaranteed, probability },
+      explanation: { summary: result.desc(), activeModifiers, context },
     };
   }
 }
