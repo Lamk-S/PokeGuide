@@ -11,38 +11,33 @@ export interface BattlePokemon {
   ivs: Record<StatName, number>;
   calculatedStats: CalculatedStats;
 }
-
 export interface BattleConditions {
   weather?: "Sun" | "Rain" | "Sand" | "Hail" | "Snow";
   terrain?: "Electric" | "Grassy" | "Psychic" | "Misty";
   isCriticalHit?: boolean;
 }
-
 export interface DamageResult {
   minDamage: number;
   maxDamage: number;
   minPercent: number;
   maxPercent: number;
-  damageRolls: number[];
 }
-
 export interface KOAnalysis {
   hitsToKO: number;
   guaranteed: boolean;
   probability: number;
 }
-
-export interface BattleExplanationFactor {
+export interface BattleContextFactor {
   label: string;
+  value: string;
 }
-
 export interface BattleExplanation {
   summary: string;
-  factors: BattleExplanationFactor[];
+  activeModifiers: string[];
+  context: BattleContextFactor[];
 }
-
 export interface BattleResult {
-  defenderMaxHp?: number;
+  defenderMaxHp: number;
   damage: DamageResult;
   koAnalysis: KOAnalysis;
   explanation: BattleExplanation;
