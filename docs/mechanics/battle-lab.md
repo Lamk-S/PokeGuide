@@ -10,12 +10,13 @@ Agrupación de 4 conceptos:
 ## 2. Reutilización del Stat Engine
 El Battle Lab **no** calcula stats. Inyecta las del `Stat Engine`.
 
-## 3. Resolución de Sprites (Nuevo v1.1.2)
-El `ParticipantCard` no renderiza directo el id de PokeAPI. Llama a `SpriteResolver.getSpriteChain()`:
+## 3. Resolución de Sprites (v1.2.0 Id-first)
+`ParticipantCard` ya no resuelve por slug Showdown. Llama a `SpriteResolver.getSpriteChain({id, name})` que es 100% ID:
+- `home/{id}.png` -> estático, sin movimiento.
+- Corrige bug `absol-mega` -> `latias-mega`.
+- Soporta custom `10307 absol-mega-z`, `10080 pikachu-rock-star`, `10085 pikachu-original-cap`.
 
-- Soporte para `-z` -> `-mega` (absol-z, garchomp-z, lucario-z).
-- Cadena: `ani/*.gif` -> `dex/*.png` (HD) -> `gen8` -> `gen5` -> `official-artwork` -> placeholder.
-- `MEGA_ARTWORK_ID` mapea megas a su id real de PokeAPI (ej. `absol-mega: 10062`) para artwork HD.
+Display name separado en `PokemonDisplayName.ts`.
 
 ## 4. Análisis de Daño (`DamageResult` y `KOAnalysis`)
 - **Rango:** min/max (ej. 142-168).
@@ -25,8 +26,7 @@ El `ParticipantCard` no renderiza directo el id de PokeAPI. Llama a `SpriteResol
 ## 5. Capa de Explicabilidad (Explainability) e i18n
 Factores traducidos a LatAm: STAB, Clima, Terreno, Crítico, Habilidades y Objetos con formato `[Pokemon] usa [Mov] contra [Def] - [min]-[max] ([%]) - [X]HKO [%]`.
 
-## 6. UI Guardrails y Restricciones Estrictas
-- **Filtro de Learnset:** Purga si nivel decrece o especie muta.
-- **Filtro de Habilidades:** Solo legales.
-- **Inyección Limpia:** Objetos consolidados para `exactOptionalPropertyTypes`.
-- **Guardrail de Sprites (v1.1.2):** `key={`${id}-${name}`}` en `PokemonSprite`, contenedor `96x96`, `fill` + `object-contain`, reset de índice con `useEffect([chain])`.
+## 6. UI Guardrails y Restricciones v1.2.0
+- Filtro Learnset / Habilidades igual.
+- Guardrail Sprites: `home/{id}.png` + `key={`${id}-${name}`}`.
+- Guardrail Layout: `items-start` + `self-start`, header 72px, stats `grid-cols-6 divide-x`, botón `h-9 bg-zinc-900 text-white`.
