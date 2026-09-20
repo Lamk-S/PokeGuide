@@ -3,6 +3,7 @@ import type {
   PokemonMoveRef,
   PokemonAbilityRef,
   StatName,
+  PokemonType,
 } from "@/domain/pokemon/types/pokemon";
 import type { PokeApiPokemonDto } from "../schemas/pokemon.schema";
 
@@ -60,10 +61,12 @@ export function mapPokeApiToPokemon(dto: PokeApiPokemonDto): Pokemon {
     return [];
   });
 
+  const types = dto.types.map((t) => t.type.name.toLowerCase() as PokemonType);
+
   return {
     id: dto.id,
     name: dto.name,
-    types: dto.types.map((t) => t.type.name),
+    types,
     baseStats,
     height: dto.height,
     weight: dto.weight,
