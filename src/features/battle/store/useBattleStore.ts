@@ -1,10 +1,16 @@
+"use client";
+
 import { create } from "zustand";
-import { calculateBattleScenarioUseCase } from "@/infrastructure/composition/battle.composition";
-import type { BattleResult } from "@/domain/battle/types/BattleTypes";
-import type { Nature, StatName } from "@/domain/stats/types/StatTypes";
+import type { PokemonId, StatName } from "@/domain/pokemon/types/pokemon";
+import type { Nature } from "@/domain/stats/types/StatTypes";
+import type {
+  BattleResult,
+  BattleConditions,
+} from "@/domain/battle/types/BattleTypes";
+import { container } from "@/infrastructure/composition/container";
 
 export interface BattleParticipantInput {
-  pokemonId: number;
+  pokemonId: PokemonId;
   level: number;
   nature: Nature;
   ability?: string;
@@ -14,78 +20,55 @@ export interface BattleParticipantInput {
 }
 
 interface BattleStore {
-  generation: number;
   attackerInput: BattleParticipantInput | null;
   defenderInput: BattleParticipantInput | null;
   moveName: string;
+  generation: number;
+  conditions: BattleConditions;
   result: BattleResult | null;
   isCalculating: boolean;
-  error: string | null;
-  setGeneration: (gen: number) => void;
   setAttacker: (input: BattleParticipantInput | null) => void;
   setDefender: (input: BattleParticipantInput | null) => void;
-  setMoveName: (move: string) => void;
+  setMoveName: (name: string) => void;
+  setGeneration: (gen: number) => void;
+  setConditions: (c: BattleConditions) => void;
   calculateResult: () => Promise<void>;
-  reset: () => void;
 }
 
 export const useBattleStore = create<BattleStore>((set, get) => ({
-  generation: 9,
   attackerInput: null,
   defenderInput: null,
   moveName: "",
+  generation: 7,
+  conditions: {},
   result: null,
   isCalculating: false,
-  error: null,
 
-  setGeneration: (generation) => set({ generation, result: null, error: null }),
-  setAttacker: (attackerInput) =>
-    set({ attackerInput, result: null, error: null }),
-  setDefender: (defenderInput) =>
-    set({ defenderInput, result: null, error: null }),
-  setMoveName: (moveName) => set({ moveName, result: null, error: null }),
-
-  reset: () =>
-    set({
-      attackerInput: null,
-      defenderInput: null,
-      moveName: "",
-      result: null,
-      error: null,
-      isCalculating: false,
-    }),
+  setAttacker: (input) => set({ attackerInput: input, result: null }),
+  setDefender: (input) => set({ defenderInput: input, result: null }),
+  setMoveName: (name) => set({ moveName: name, result: null }),
+  setGeneration: (gen) => set({ generation: gen, result: null }),
+  setConditions: (c) => set({ conditions: c, result: null }),
 
   calculateResult: async () => {
-    const {
-      generation,
-      attackerInput,
-      defenderInput,
-      moveName,
-      isCalculating,
-    } = get();
+    const { attackerInput, defenderInput, moveName, generation, conditions } =
+      get();
+    if (!attackerInput || !defenderInput || !moveName) return;
 
-    if (isCalculating) return;
-    if (!attackerInput || !defenderInput || !moveName) {
-      set({ error: "Faltan parámetros para simular", result: null });
-      return;
-    }
-
-    set({ isCalculating: true, error: null });
-
+    set({ isCalculating: true });
     try {
-      const result = await calculateBattleScenarioUseCase.execute(
+      const useCase = container.getCalculateBattleScenarioUseCase();
+      const res = await useCase.execute(
         generation,
         attackerInput,
         defenderInput,
         moveName,
+        conditions,
       );
-      set({ result, isCalculating: false, error: null });
+      set({ result: res, isCalculating: false });
     } catch (e) {
-      set({
-        error: e instanceof Error ? e.message : "Fallo en la simulación",
-        result: null,
-        isCalculating: false,
-      });
+      set({ isCalculating: false });
+      throw e;
     }
   },
 }));

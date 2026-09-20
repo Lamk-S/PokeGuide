@@ -15,13 +15,13 @@ import type { PokemonMoveRef } from "@/domain/pokemon/types/pokemon";
 type MoveOption = { value: string; label: string; description: string };
 
 const GEN_OPTIONS = [
-  { value: "3", label: "Gen 3 - Rubí/Zafiro (Hidden Power OK)" },
+  { value: "3", label: "Gen 3 - Rubí/Zafiro" },
   { value: "4", label: "Gen 4 - Diamante/Perla" },
   { value: "5", label: "Gen 5 - Negro/Blanco" },
-  { value: "6", label: "Gen 6 - X/Y (Megas)" },
-  { value: "7", label: "Gen 7 - Sol/Luna (Z-Moves, HP OK)" },
-  { value: "8", label: "Gen 8 - Espada/Escudo (GMAX, No HP)" },
-  { value: "9", label: "Gen 9 - Escarlata/Violeta (Actual)" },
+  { value: "6", label: "Gen 6 - X/Y" },
+  { value: "7", label: "Gen 7 - Sol/Luna" },
+  { value: "8", label: "Gen 8 - Espada/Escudo" },
+  { value: "9", label: "Gen 9 - Escarlata/Violeta" },
 ];
 
 export function BattleLabView() {
@@ -41,7 +41,6 @@ export function BattleLabView() {
     result,
     isCalculating,
   } = store;
-
   const setGeneration = (
     store as unknown as { setGeneration?: (gen: number) => void }
   ).setGeneration;
@@ -98,48 +97,51 @@ export function BattleLabView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2 md:w-1/3">
-        <Label>Generación (afecta a Hidden Power, Megas y GMAX)</Label>
+      <div className="flex flex-col gap-2 md:w-">
+        <Label className="text- font-medium uppercase tracking-[0.12em] text-zinc-500">
+          Generación
+        </Label>
         <Combobox
           options={GEN_OPTIONS}
           value={generation.toString()}
           onValueChange={(v) => setLocalGeneration(parseInt(v, 10))}
           placeholder="Elige generación"
         />
-        {generation >= 8 && (
-          <p className="text-xs text-amber-600">
-            En Gen 8+ Hidden Power no existe y no se calculará.
-          </p>
-        )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <ParticipantCard
-          label="Atacante"
-          pokemonList={pokemonList}
-          input={attackerInput}
-          onChange={setAttacker}
-          facing="left"
-          generation={generation}
-        />
-        <ParticipantCard
-          label="Defensor"
-          pokemonList={pokemonList}
-          input={defenderInput}
-          onChange={setDefender}
-          facing="right"
-          generation={generation}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="self-start">
+          <ParticipantCard
+            label="Atacante"
+            pokemonList={pokemonList}
+            input={attackerInput}
+            onChange={setAttacker}
+            facing="left"
+            generation={generation}
+          />
+        </div>
+        <div className="self-start">
+          <ParticipantCard
+            label="Defensor"
+            pokemonList={pokemonList}
+            input={defenderInput}
+            onChange={setDefender}
+            facing="right"
+            generation={generation}
+          />
+        </div>
       </div>
 
-      <div className="flex flex-col gap-2 md:w-1/2">
-        <Label>Movimiento</Label>
+      <div className="flex flex-col gap-2 md:w-">
+        <Label className="text- font-medium uppercase tracking-[0.12em] text-zinc-500">
+          Movimiento
+        </Label>
         <Combobox
           options={availableMoves}
           value={moveName}
           onValueChange={setMoveName}
           placeholder="Selecciona movimiento..."
-          emptyMessage="Sin movimientos disponibles"
+          emptyMessage="Sin movimientos"
           disabled={availableMoves.length === 0}
         />
       </div>
@@ -147,15 +149,17 @@ export function BattleLabView() {
       <Button
         onClick={handleCalculate}
         disabled={!canCalculate}
-        className="w-full md:w-auto"
+        className="h-9 px-5 rounded-lg bg-zinc-900 text-white text-[13px] font-medium tracking-tight hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
       >
         {isCalculating ? "Calculando..." : "Calcular Daño"}
       </Button>
+
       {localError && (
-        <p className="text-sm text-red-600 p-3 bg-red-50 rounded-md border border-red-200">
+        <p className="text- text-zinc-600 p-3 bg-zinc-50 rounded-lg border border-zinc-200/70">
           {localError}
         </p>
       )}
+
       {result && (
         <BattleResultCard
           result={result}

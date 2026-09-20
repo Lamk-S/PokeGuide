@@ -14,8 +14,9 @@ import { EV } from "@/domain/stats/value-objects/EV";
 import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
 import { useItemStore } from "@/features/items/store/useItemStore";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
+import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
 
-interface ParticipantCardProps {
+interface Props {
   label: string;
   pokemonList: Pokemon[];
   input: BattleParticipantInput | null;
@@ -57,7 +58,7 @@ export const ParticipantCard = React.memo(function ParticipantCard({
   onChange,
   facing,
   generation,
-}: ParticipantCardProps) {
+}: Props) {
   const levelId = React.useId();
   const [isExpanded, setIsExpanded] = React.useState(true);
   const { abilityList } = useAbilityStore();
@@ -67,9 +68,12 @@ export const ParticipantCard = React.memo(function ParticipantCard({
     () => pokemonList.find((p) => p.id === input?.pokemonId),
     [pokemonList, input?.pokemonId],
   );
-
   const pokemonOptions = React.useMemo(
-    () => pokemonList.map((p) => ({ value: p.id.toString(), label: p.name })),
+    () =>
+      pokemonList.map((p) => ({
+        value: p.id.toString(),
+        label: formatPokemonDisplayName(p.name),
+      })),
     [pokemonList],
   );
 
@@ -113,122 +117,154 @@ export const ParticipantCard = React.memo(function ParticipantCard({
   const handlePokemonSelect = (val: string) => {
     const pid = parseInt(val, 10);
     if (Number.isNaN(pid)) return onChange(null);
-    const newPokemon = pokemonList.find((p) => p.id === pid);
-    if (!newPokemon) return;
-
-    let validAbility = newPokemon.abilities.some(
-      (a) => a.name === input?.ability,
-    )
+    const p = pokemonList.find((x) => x.id === pid);
+    if (!p) return;
+    let validAbility = p.abilities.some((a) => a.name === input?.ability)
       ? input?.ability
       : undefined;
-
-    if (!validAbility && newPokemon.abilities.length > 0) {
-      const nonHidden = newPokemon.abilities.find((a) => !a.isHidden);
-      validAbility = nonHidden ? nonHidden.name : newPokemon.abilities[0].name;
+    if (!validAbility && p.abilities.length > 0) {
+      const nonHidden = p.abilities.find((a) => !a.isHidden);
+      validAbility = nonHidden?.name ?? p.abilities[0]?.name;
     }
-
-    const newInput: BattleParticipantInput = {
+    const next: BattleParticipantInput = {
       pokemonId: pid,
       level: input?.level ?? 50,
       nature: input?.nature ?? SERIOUS,
       ivs: input?.ivs ?? IV.createPerfectSet(),
       evs: input?.evs ?? EV.createSet(EMPTY_EVS),
     };
-    if (validAbility) newInput.ability = validAbility;
-    if (input?.item) newInput.item = input.item;
-    onChange(newInput);
+    if (validAbility) next.ability = validAbility;
+    if (input?.item) next.item = input.item;
+    onChange(next);
     setIsExpanded(true);
   };
 
   if (!input || !currentPokemon) {
     return (
-      <div className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/40">
-        <Label className="text-lg font-bold">{label}</Label>
+      <div className="flex flex-col gap-3 rounded-xl border border-zinc-200/70 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] self-start w-full">
+        <span className="text- uppercase tracking-[0.15em] text-zinc-400 font-medium">
+          {label}
+        </span>
         <Combobox
           options={pokemonOptions}
           value=""
           onValueChange={handlePokemonSelect}
           placeholder="Busca un Pokémon..."
-          emptyMessage="Pokémon no encontrado."
+          emptyMessage="No encontrado."
         />
       </div>
     );
   }
 
+  const displayName = formatPokemonDisplayName(currentPokemon.name);
+
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-zinc-200/70 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] self-start w-full">
       {/* HEADER */}
-      <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/50">
-        <div className="flex items-center gap-4">
-          <div className="w- h- flex items-center justify-center bg-white dark:bg-zinc-900 rounded-lg border border-zinc-100 dark:border-zinc-800 shrink-0">
-            <PokemonSprite
-              key={`${currentPokemon.id}-${currentPokemon.name}`}
-              pokemon={{ id: currentPokemon.id, name: currentPokemon.name }}
-              facing={facing}
-              size={88}
-              hd={false}
-            />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold capitalize">
-              {currentPokemon.name}{" "}
-              <span className="text-sm font-normal text-zinc-500">
-                Lv. {input.level}
-              </span>
+      <div className="grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 min-h- max-h-">
+        <div className="w-11 h-11 flex items-center justify-center bg-white border border-zinc-100 rounded-lg shrink-0">
+          <PokemonSprite
+            key={`${currentPokemon.id}-${currentPokemon.name}`}
+            pokemon={{ id: currentPokemon.id, name: currentPokemon.name }}
+            facing={facing}
+            size={44}
+            hd={false}
+          />
+        </div>
+
+        {/* info central */}
+        <div className="min-w-0 flex flex-col gap-0.5">
+          <span className="text- uppercase tracking-[0.15em] text-zinc-400 font-medium leading-none">
+            {label}
+          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <h3
+              className="text-[13.5px] font-medium tracking-tight truncate leading-tight text-zinc-900"
+              title={displayName}
+            >
+              {displayName}
             </h3>
-            <div className="flex flex-wrap gap-2 text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-              <span className="font-medium px-2 py-0.5 bg-zinc-200 dark:bg-zinc-800 rounded">
-                {input.nature.nameEs} ({input.nature.name})
-              </span>
-              {input.ability && (
-                <span className="capitalize">• {input.ability}</span>
-              )}
-              {input.item && <span>• {input.item}</span>}
-            </div>
+            <span className="shrink-0 bg-zinc-900 text-white text- leading-none px-1.5 py-0.5 rounded tabular-nums">
+              Lv.{input.level}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text- text-zinc-500 min-w-0 truncate">
+            <span className="truncate">{input.nature.nameEs}</span>
+            <span className="text-zinc-300">·</span>
+            {input.ability && (
+              <span className="truncate capitalize">{input.ability}</span>
+            )}
+            {input.item && (
+              <>
+                <span className="text-zinc-300">·</span>
+                <span className="truncate">{input.item}</span>
+              </>
+            )}
           </div>
         </div>
 
-        {liveStats && (
-          <div className="hidden xl:flex gap-3 text-xs text-center border-l border-zinc-200 dark:border-zinc-700 pl-4">
-            {STAT_ORDER.map((stat) => (
-              <div key={stat} className="flex flex-col min-w-">
-                <span className="uppercase text-zinc-400 font-bold text-">
-                  {STAT_ABBR[stat]}
-                </span>
-                <span className="font-bold text-zinc-800 dark:text-zinc-200">
-                  {liveStats[stat]}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="p-2 ml-2 rounded-full text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors"
-          aria-expanded={isExpanded}
-        >
-          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-        </button>
+        {/* stats */}
+        <div className="flex items-center gap-1 self-center">
+          {liveStats && (
+            <div className="hidden md:grid grid-cols-6 gap-0 divide-x divide-zinc-100 border-l border-zinc-100 pl-3">
+              {STAT_ORDER.map((s) => (
+                <div key={s} className="min-w- text-center px-1">
+                  <div className="text- font-semibold uppercase tracking-widest text-zinc-400 leading-none mb-1">
+                    {STAT_ABBR[s]}
+                  </div>
+                  <div className="text-[11.5px] font-medium tabular-nums text-zinc-700 leading-none">
+                    {liveStats[s]}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-1 rounded-md text-zinc-400 hover:text-zinc-700 hover:bg-zinc-50 transition-colors shrink-0"
+          >
+            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        </div>
       </div>
 
-      {/* BODY */}
+      {/* stats mobile */}
+      {liveStats && (
+        <div className="md:hidden grid grid-cols-3 divide-x divide-y divide-zinc-100 border-t border-zinc-100 bg-zinc-50/40">
+          {STAT_ORDER.map((s) => (
+            <div key={s} className="text-center py-2">
+              <div className="text- font-semibold uppercase tracking-widest text-zinc-400">
+                {STAT_ABBR[s]}
+              </div>
+              <div className="text- font-medium tabular-nums text-zinc-700 mt-0.5">
+                {liveStats[s]}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {isExpanded && (
-        <div className="p-5 border-t border-zinc-200 dark:border-zinc-800 animate-in slide-in-from-top-2">
-          <div className="mb-6 flex flex-col gap-2">
-            <Label className="text-sm font-semibold">Cambiar Pokémon</Label>
+        <div className="border-t border-zinc-100 p-4 flex flex-col gap-5 bg-white">
+          <div className="flex flex-col gap-2">
+            <Label className="text- font-medium uppercase tracking-[0.12em] text-zinc-500">
+              Cambiar Pokémon
+            </Label>
             <Combobox
               options={pokemonOptions}
               value={input.pokemonId.toString()}
               onValueChange={handlePokemonSelect}
-              placeholder="Busca un Pokémon..."
-              emptyMessage="Pokémon no encontrado."
+              placeholder="Busca..."
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mb-6 pb-6 border-b border-zinc-100 dark:border-zinc-800/60">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={levelId} className="text-sm font-semibold">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-5 border-b border-zinc-100">
+            <div className="flex flex-col gap-1.5">
+              <Label
+                htmlFor={levelId}
+                className="text- font-medium uppercase tracking-[0.12em] text-zinc-500"
+              >
                 Nivel
               </Label>
               <input
@@ -238,42 +274,44 @@ export const ParticipantCard = React.memo(function ParticipantCard({
                 max={100}
                 value={input.level}
                 onChange={(e) => {
-                  let val = parseInt(e.target.value, 10);
-                  if (Number.isNaN(val) || val < 1) val = 1;
-                  if (val > 100) val = 100;
-                  onChange({ ...input, level: val });
+                  let v = parseInt(e.target.value, 10);
+                  if (Number.isNaN(v) || v < 1) v = 1;
+                  if (v > 100) v = 100;
+                  onChange({ ...input, level: v });
                 }}
-                className="h-10 w-full rounded-md border border-zinc-300 bg-zinc-50 px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                className="h-8 w-full rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 text- focus:outline-none focus:ring-1 focus:ring-zinc-300"
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label className="text-sm font-semibold">Habilidad</Label>
+            <div className="flex flex-col gap-1.5">
+              <Label className="text- font-medium uppercase tracking-[0.12em] text-zinc-500">
+                Habilidad
+              </Label>
               <Combobox
                 options={abilityOptions}
                 value={input.ability || ""}
                 onValueChange={(val) => {
-                  const next = { ...input };
-                  if (val) next.ability = val;
-                  else delete next.ability;
-                  onChange(next);
+                  const n = { ...input };
+                  if (val) n.ability = val;
+                  else delete n.ability;
+                  onChange(n);
                 }}
                 placeholder="Opcional..."
-                emptyMessage="Sin habilidades legales."
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label className="text-sm font-semibold">Objeto</Label>
+            <div className="flex flex-col gap-1.5">
+              <Label className="text- font-medium uppercase tracking-[0.12em] text-zinc-500">
+                Objeto
+              </Label>
               <Combobox
                 options={itemOptions}
                 value={input.item || ""}
                 onValueChange={(val) => {
-                  const next = { ...input };
-                  if (val) next.item = val;
-                  else delete next.item;
-                  onChange(next);
+                  const n = { ...input };
+                  if (val) n.item = val;
+                  else delete n.item;
+                  onChange(n);
                 }}
                 placeholder="Opcional..."
-                emptyMessage="Objeto no encontrado."
               />
             </div>
           </div>

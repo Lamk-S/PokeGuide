@@ -1,13 +1,18 @@
+import type { PokemonId } from "@/domain/pokemon/types/pokemon";
 import { SpriteResolver } from "@/infrastructure/pokemon/SpriteResolver";
 
+type PokemonRef = { id: PokemonId; name: string };
+
 export const ShowdownSpriteResolver = {
-  normalize: (n: string) => SpriteResolver.normalize(n),
-  getUrl: (name: string, gen = 9) => {
-    const base = SpriteResolver.normalize(name);
-    if (gen <= 5)
-      return `https://play.pokemonshowdown.com/sprites/gen${gen}/${base}.png`;
-    return `https://play.pokemonshowdown.com/sprites/ani/${base}.gif`;
+  normalize(n: string): string {
+    return SpriteResolver.normalize(n);
   },
-  getFallbackChain: (name: string, id?: number) =>
-    SpriteResolver.getSpriteChain({ id: id ?? 0, name }),
+
+  getUrl(ref: PokemonRef): string {
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${ref.id}.png`;
+  },
+
+  getFallbackChain(ref: PokemonRef): string[] {
+    return SpriteResolver.getSpriteChain(ref);
+  },
 } as const;
