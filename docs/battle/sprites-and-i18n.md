@@ -1,57 +1,49 @@
 # Sprites e Internacionalización (Battle Lab)
 
-## 1. Mapeo de Especies (SpriteResolver + SmogonSpeciesMapper)
+## 1. Mapeo de Especies - Id-first Estático
 
-Debido a discrepancias entre `PokeAPI`, identificadores custom (`-z`) y `Pokémon Showdown`, se unificó la resolución de sprites en `SpriteResolver`. `ShowdownSpriteResolver` ahora es solo un wrapper.
+**Problema anterior:** `SpriteResolver` usaba Showdown `ani/` + `dex/` + `MEGA_ARTWORK_ID` + `Z_TO_MEGA` (`absol-z` -> `absol-mega`). Causaba bug `absol-mega` -> `latias-mega`.
 
-Toda consulta pasa por `SpriteResolver.normalize()` y `getSpriteChain()`.
+**Solución v1.2.0:** 100% Id-first, sin Showdown animado.
 
-### 1.1 Formas Cosméticas Ignoradas (Mapeadas a Base)
+`SpriteResolver.getSpriteChain(pokemon, _hd?)` ahora es:
 
-| Identificador PokeAPI | Sprite Fallback (Showdown/Base) | Razón |
-| :--- | :--- | :--- |
-| `pikachu-original-cap` | `pikachu` | Forma cosmética (gorra). |
-| `zygarde-50-power-construct`| `zygarde` | Cambio in-battle; Showdown usa base. |
-| `mimikyu-totem-busted` | `mimikyu-busted` | Totems sin sprite dedicado. |
-| `castform-normal` | `castform` | Sufijo redundante de PokeAPI. |
+1. `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/{id}.png` (estático 512px)
+2. `.../other/official-artwork/{id}.png`
+3. `.../pokemon/{id}.png`
+4. `/placeholder-sprite.png`
 
-### 1.2 Formas Custom Mega Z -> Mega Real
+`ShowdownSpriteResolver` es ahora wrapper que también retorna `home/{id}.png`. No hay `MEGA_ARTWORK_ID`, no hay `Z_TO_MEGA`. El ID manda: `10062` = Absol-Mega, `10080` = Pikachu Rock Star, `10307` = Absol-Mega-Z.
 
-El proyecto usa sufijo `-z` para variantes Mega custom. Showdown no tiene `absol-z`, sino `absol-mega`. Se mapea explícitamente:
+### 1.1 Display Name - Separación de responsabilidades
 
-| Identificador Custom | Mapeo Showdown | 
+El cálculo sigue usando `SmogonSpeciesMapper` sin tocar. La presentación usa nuevo servicio:
+
+`src/domain/pokemon/services/PokemonDisplayName.ts` -> `formatPokemonDisplayName(slug)`
+
+| Slug | Display |
 | :--- | :--- |
-| `absol-z`, `absol-mega-z` | `absol-mega` |
-| `garchomp-z` | `garchomp-mega` |
-| `lucario-z` | `lucario-mega` |
-| `gengar-z` | `gengar-mega` |
-| `charizard-z` | `charizard-megay` |
+| `eternatus-eternamax` | `Eternatus Eternamax` |
+| `absol-mega` | `Mega Absol` |
+| `absol-mega-z` | `Mega Absol Z` |
+| `charizard-mega-x` | `Mega Charizard X` |
+| `pikachu-alola-cap` | `Pikachu con Gorra de Alola` |
+| `pikachu-original-cap` | `Pikachu con Gorra de Original` |
+| `raichu-alola` | `Raichu de Alola` |
+| `zygarde-50` | `Zygarde 50%` |
 
-Lógica genérica: si `name.endsWith("-z")` y la base está en `MEGA_POKEMON`, se convierte a `${base}-mega`. También se normaliza `-mega-x` -> `-megax` y `-mega-y` -> `-megay`.
+Reglas: Mega regex `^(.*)-mega-([xyz])$`, caps `*-cap` -> `con Gorra de {region}`, regionales `-(alola|galar|hisui|paldea)` -> `de {region}`, fallback genérico capitalizado.
 
-## 2. Calidad, Tamaño y Optimización (v1.1.2)
+Se aplica en `pokemonOptions`, título de `ParticipantCard` y `BattleResultCard`.
 
-### Cadena de Fallback
-El nuevo `getSpriteChain()` genera cadena HD primero:
+## 2. Calidad y Renderizado v1.2.0
 
-1. `https://play.pokemonshowdown.com/sprites/ani/{specific}.gif` (animado pixelado)
-2. `https://play.pokemonshowdown.com/sprites/dex/{specific}.png` (PNG HD de Showdown, 2x mejor que gen5)
-3. `gen8/{specific}.png` / `gen5/{specific}.png`
-4. `PokeAPI/sprites/.../official-artwork/{megaId}.png` (con `MEGA_ARTWORK_ID` para megas)
-5. `/placeholder-sprite.png`
+- No `image-rendering: pixelated` necesario, son PNG estáticos HD.
+- `next/image` con `fill + unoptimized + loader={({src:s})=>s}` y contenedor `relative 44x44`.
+- `object-fit: contain`, 0 warnings.
+- Bug de selección resuelto por Id-first: `key={`${id}-${name}`}` + remount, no `useEffect([chain])` con `chain.length`.
 
-### Renderizado sin warnings
-Se migró de `<img>` a `next/image` con patrón `fill`:
+## 3. UI Guardrails
 
-- Contenedor `relative` de `96x96` con hijo `88px`.
-- `fill + unoptimized + loader={({src:s})=>s}` evita optimización de gifs.
-- `style={{ objectFit: 'contain', imageRendering: isPixelArt ? 'pixelated' : 'auto' }}` -> sprites ani se ven nítidos, no borrosos.
-- Elimina warnings de terminal: `Image with src ... has either width or height modified`.
-
-### Fix de Bug de Selección
-Bug: al seleccionar un Pokémon, a veces se veía la forma base y al refrescar aparecía la mega.
-Causa: `useState(index)` del fallback no se reseteaba cuando cambiaba `chain`.
-Fix:
-```ts
-const chain = useMemo(() => getSpriteChain(pokemon, hd), [pokemon, hd])
-useEffect(() => { if(chain.length) setIndex(0) }, [chain])
+- `BattleLabView`: `grid-cols-1 lg:grid-cols-2 gap-8 items-start`, hijos `self-start`.
+- `ParticipantCard`: header compacto `min-h- max-h-` grid `[48px_1fr_auto]`.

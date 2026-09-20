@@ -15,7 +15,8 @@ Este proyecto es una demostración de **Arquitectura de Software y Domain-Driven
 - **Generation-aware rules:** Un motor central inyecta reglas históricas (ej. *Physical/Special split*) para evitar sentencias `if` anidadas y dispersas.
 - **Deterministic optimization:** Uso de Búsqueda en Anchura (BFS) deduplicada mediante *State Hashing* para el planificador de crianza (Breeding Planner).
 - **Quality Hardening:** Pruebas unitarias, de integración, invariantes de regresión y E2E (Vitest + Playwright) integrados en un CI Pipeline riguroso.
-- **Sprite System HD:** Resolución unificada con `SpriteResolver` (ani + dex HD), soporte para formas custom Mega Z, renderizado pixel-perfect con `fill` y `image-rendering: pixelated`, 0 warnings de Next.js y Biome compliant.
+- **Sprite System HD:** Resolución Id-first 100% estática `PokeAPI/sprites/.../other/home/{id}.png`, sin animaciones ni `MEGA_ARTWORK_ID`, corrige mapping cruzado de megas, soporta formas custom `-z` y caps. Display i18n via `PokemonDisplayName`.
+- **Editorial UI:** Battle Lab con layout `items-start` + `self-start`, header compacto 72px, stats distribuidos uniforme, estética zinc clásica.
 
 ## Arquitectura
 

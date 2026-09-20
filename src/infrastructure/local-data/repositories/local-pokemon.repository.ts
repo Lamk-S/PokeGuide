@@ -1,24 +1,28 @@
-import type {
-  Pokemon,
-  PokemonId,
-  PokemonName,
-} from "@/domain/pokemon/types/pokemon";
 import type { PokemonRepository } from "@/domain/pokemon/repositories/pokemon-repository";
-import pokemonDataset from "../../../../data/pokemon/dataset.json";
+import type { Pokemon, PokemonId } from "@/domain/pokemon/types/pokemon";
+import dataset from "@/../data/pokemon/dataset.json";
 
-// Repositorio que cumple el contrato del dominio leyendo el JSON local
 export class LocalPokemonRepository implements PokemonRepository {
-  private dataset: Pokemon[] = pokemonDataset as Pokemon[];
+  private readonly byId: Map<PokemonId, Pokemon>;
+  private readonly byName: Map<string, Pokemon>;
+  private readonly all: Pokemon[];
 
-  async getById(id: PokemonId): Promise<Pokemon | null> {
-    return this.dataset.find((p) => p.id === id) ?? null;
+  constructor() {
+    const list = dataset as Pokemon[];
+    this.all = list;
+    this.byId = new Map(list.map((p) => [p.id, p]));
+    this.byName = new Map(list.map((p) => [p.name.toLowerCase(), p]));
   }
 
-  async getByName(name: PokemonName): Promise<Pokemon | null> {
-    return this.dataset.find((p) => p.name === name) ?? null;
+  async getById(id: number): Promise<Pokemon | null> {
+    return this.byId.get(id) ?? null;
+  }
+
+  async getByName(name: string): Promise<Pokemon | null> {
+    return this.byName.get(name.toLowerCase()) ?? null;
   }
 
   async getAll(): Promise<Pokemon[]> {
-    return this.dataset;
+    return this.all;
   }
 }

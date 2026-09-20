@@ -1,11 +1,9 @@
 import type { BattlePokemon, BattleConditions } from "../types/BattleTypes";
 
-export class BattleScenario {
-  constructor(
-    public readonly generation: number,
-    public readonly attacker: BattlePokemon,
-    public readonly defender: BattlePokemon,
-    public readonly moveName: string,
-    public readonly conditions: BattleConditions = {},
-  ) {}
+export interface BattleScenario {
+  generation: number;
+  attacker: BattlePokemon;
+  defender: BattlePokemon;
+  moveName: string;
+  conditions: BattleConditions;
 }

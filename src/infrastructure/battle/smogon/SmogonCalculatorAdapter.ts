@@ -23,7 +23,9 @@ const STAT_TO_SMOGON: Record<StatName, string> = {
   speed: "spe",
 };
 
-function toSmogonStats(input?: Record<StatName, number>) {
+function toSmogonStats(
+  input: Record<StatName, number> | undefined,
+): Record<string, number> {
   if (!input) return { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
   return Object.entries(input).reduce(
     (acc, [k, v]) => {
@@ -37,20 +39,28 @@ function toSmogonStats(input?: Record<StatName, number>) {
 
 export class SmogonCalculatorAdapter implements BattleCalculator {
   calculate(scenario: BattleScenario): BattleResult {
-    const atkName = SmogonSpeciesMapper.map(
-      scenario.attacker.name,
+    const attackerResolution = SmogonSpeciesMapper.resolve(
+      { id: scenario.attacker.id, name: scenario.attacker.name },
       scenario.generation,
     );
-    const defName = SmogonSpeciesMapper.map(
-      scenario.defender.name,
+    const defenderResolution = SmogonSpeciesMapper.resolve(
+      { id: scenario.defender.id, name: scenario.defender.name },
       scenario.generation,
     );
 
-    if (!atkName || !defName) {
+    if (!attackerResolution.supported) {
       throw new Error(
-        `IntegrityError: ${scenario.attacker.name} / ${scenario.defender.name} no mapeable -> ${atkName} / ${defName}`,
+        `La forma "${scenario.attacker.name}" (ID ${scenario.attacker.id}) no está disponible en el motor de cálculo para Gen ${scenario.generation}. ${attackerResolution.reason ?? ""}`.trim(),
       );
     }
+    if (!defenderResolution.supported) {
+      throw new Error(
+        `La forma "${scenario.defender.name}" (ID ${scenario.defender.id}) no está disponible en el motor de cálculo para Gen ${scenario.generation}. ${defenderResolution.reason ?? ""}`.trim(),
+      );
+    }
+
+    const atkName = attackerResolution.smogonName;
+    const defName = defenderResolution.smogonName;
 
     const gen = scenario.generation as GenerationNum;
 
@@ -76,6 +86,20 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       ...(scenario.defender.item ? { item: scenario.defender.item } : {}),
     });
 
+    const defenderHp = defender.stats.hp;
+    if (typeof defenderHp !== "number" || defenderHp <= 0) {
+      throw new Error(
+        `No se pudo resolver el defensor ${scenario.defender.id} (${scenario.defender.name}) mapeado como ${defName} en Gen ${gen}. HP inválido.`,
+      );
+    }
+    const attackerStatsValid =
+      attacker.stats.hp && attacker.stats.atk !== undefined;
+    if (!attackerStatsValid) {
+      throw new Error(
+        `No se pudo resolver el atacante ${scenario.attacker.id} (${scenario.attacker.name}) mapeado como ${atkName} en Gen ${gen}.`,
+      );
+    }
+
     const move = new Move(gen, scenario.moveName, {
       ...(scenario.conditions.isCriticalHit !== undefined
         ? { isCrit: scenario.conditions.isCriticalHit }
@@ -93,13 +117,6 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
 
     const result = calculate(gen, attacker, defender, move, field);
     const range = result.range();
-    const defenderHp = defender.stats.hp;
-
-    if (!defenderHp) {
-      throw new Error(
-        `IntegrityError: HP inválido para ${defName} (${scenario.defender.name}) mapeado como ${defName}. El Pokémon no existe en Gen ${gen}`,
-      );
-    }
 
     const minDamage = range[0] ?? 0;
     const maxDamage = range[1] ?? 0;
@@ -136,7 +153,6 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       isProtected?: boolean;
     }
     const rawExt = raw as typeof raw & ExtendedRawDesc;
-
     if (rawExt.isReflect) activeModifiers.push("Reflejo x0.5 Físico");
     if (rawExt.isLightScreen)
       activeModifiers.push("Pantalla Luz x0.5 Especial");

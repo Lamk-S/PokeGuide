@@ -4,45 +4,54 @@ import { pokeApiPokemonSchema } from "../src/infrastructure/pokeapi/schemas/poke
 import { mapPokeApiToPokemon } from "../src/infrastructure/pokeapi/mappers/pokemon.mapper";
 
 const POKEAPI_BASE_URL = "https://pokeapi.co/api/v2";
-const BATCH_SIZE = 20; // peticiones en paralelo, PokeAPI se queja si le pegas con 1000 a la vez
-const DELAY_BETWEEN_BATCHES = 500; // ms
+const BATCH_SIZE = 20;
+const DELAY_BETWEEN_BATCHES = 400;
+const PAGE_LIMIT = 100;
 
-// Si solo quieres los 1025 canonicos, cambia a 1025
-// Si quieres TODO con formas, usa 2000
-const TOTAL_POKEMON = 2000; 
-
-async function getAllPokemonNames(): Promise<string[]> {
-  console.log(`Pidiendo lista de ${TOTAL_POKEMON} pokemons...`);
-  const res = await fetch(`${POKEAPI_BASE_URL}/pokemon?limit=${TOTAL_POKEMON}&offset=0`);
-  if (!res.ok) throw new Error(`No se pudo obtener la lista: ${res.status}`);
-  const data = await res.json();
-  return data.results.map((p: { name: string }) => p.name);
+interface PokemonListItem {
+  name: string;
+  url: string;
 }
 
-async function fetchAndNormalizePokemon() {
-  console.log("Iniciando pipeline (Ingestion -> Validation -> Normalization)...");
-  
-  const allNames = await getAllPokemonNames();
-  console.log(`Encontrados ${allNames.length} pokemons. Iniciando descarga...`);
+async function fetchAllPokemonNames(): Promise<string[]> {
+  const first = await fetch(`${POKEAPI_BASE_URL}/pokemon?limit=1&offset=0`);
+  if (!first.ok) throw new Error(`No se pudo obtener count: ${first.status}`);
+  const firstData = await first.json() as { count: number };
+  console.log(`Total reportado por API: ${firstData.count}. Iniciando paginación...`);
 
-  const dataset = [];
+  const names: string[] = [];
+  let nextUrl: string | null = `${POKEAPI_BASE_URL}/pokemon?limit=${PAGE_LIMIT}&offset=0`;
+
+  while (nextUrl) {
+    const res = await fetch(nextUrl);
+    if (!res.ok) throw new Error(`Fallo paginación: ${res.status} en ${nextUrl}`);
+    const data = await res.json() as { results: PokemonListItem[]; next: string | null };
+    for (const item of data.results) names.push(item.name);
+    console.log(`Página: ${names.length} nombres acumulados`);
+    nextUrl = data.next;
+  }
+
+  return names;
+}
+
+async function fetchAndNormalizePokemon(): Promise<void> {
+  console.log("Iniciando pipeline Id-first (Ingestion -> Validation -> Normalization)...");
+  const allNames = await fetchAllPokemonNames();
+  console.log(`Encontrados ${allNames.length} recursos Pokémon.`);
+
+  const dataset: unknown[] = [];
+  const seenIds = new Set<number>();
+  const seenNames = new Set<string>();
   let processed = 0;
 
-  // Procesamos en lotes para no banearse
   for (let i = 0; i < allNames.length; i += BATCH_SIZE) {
     const batch = allNames.slice(i, i + BATCH_SIZE);
-
     const promises = batch.map(async (name) => {
       try {
-        // 1. Ingestion
         const response = await fetch(`${POKEAPI_BASE_URL}/pokemon/${name}`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const rawData = await response.json();
-
-        // 2. Validation
         const validDto = pokeApiPokemonSchema.parse(rawData);
-
-        // 3. Normalization
         return mapPokeApiToPokemon(validDto);
       } catch (error) {
         console.error(`❌ Error procesando ${name}:`, error);
@@ -51,25 +60,37 @@ async function fetchAndNormalizePokemon() {
     });
 
     const results = await Promise.all(promises);
-    
     for (const poke of results) {
-      if (poke) {
-        dataset.push(poke);
-        processed++;
-        console.log(`✅ [${processed}/${allNames.length}] ${poke.name} normalizado`);
+      if (!poke) continue;
+      if (typeof poke.id!== "number" || poke.id <= 0) {
+        console.error(`❌ ID inválido para ${poke.name}`);
+        continue;
       }
+      if (seenIds.has(poke.id)) {
+        console.error(`❌ ID duplicado detectado: ${poke.id} (${poke.name})`);
+        continue;
+      }
+      if (seenNames.has(poke.name)) {
+        console.error(`❌ Nombre duplicado detectado: ${poke.name} (ID ${poke.id})`);
+        continue;
+      }
+      seenIds.add(poke.id);
+      seenNames.add(poke.name);
+      dataset.push(poke);
+      processed++;
+      console.log(`✅ [${processed}/${allNames.length}] ${poke.id} - ${poke.name}`);
     }
-
-    // Pausa entre lotes
-    await new Promise(r => setTimeout(r, DELAY_BETWEEN_BATCHES));
+    await new Promise((r) => setTimeout(r, DELAY_BETWEEN_BATCHES));
   }
 
-  // 4. Escribir JSON local versionado
+  console.log(`Validación: ${dataset.length} registros únicos, ${seenIds.size} IDs únicos`);
   const outPath = path.resolve(__dirname, "../data/pokemon/dataset.json");
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(dataset, null, 2));
-
-  console.log(`\nDataset completo guardado: ${dataset.length} pokemons en ${outPath}`);
+  console.log(`Dataset guardado en ${outPath}`);
 }
 
-fetchAndNormalizePokemon();
+fetchAndNormalizePokemon().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

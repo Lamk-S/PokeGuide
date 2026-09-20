@@ -1,11 +1,12 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { SpriteResolver } from "@/infrastructure/pokemon/SpriteResolver";
+import type { PokemonId } from "@/domain/pokemon/types/pokemon";
 
 interface Props {
-  pokemon: { id: number; name: string };
+  pokemon: { id: PokemonId; name: string };
   className?: string;
   facing?: "left" | "right";
   size?: number;
@@ -20,21 +21,13 @@ export function PokemonSprite({
   hd = false,
 }: Props) {
   const chain = useMemo(
-    () => SpriteResolver.getSpriteChain(pokemon, hd),
-    [pokemon, hd],
+    () =>
+      SpriteResolver.getSpriteChain({ id: pokemon.id, name: pokemon.name }, hd),
+    [pokemon.id, pokemon.name, hd],
   );
-
   const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    if (chain.length > 0) {
-      setIndex(0);
-    }
-  }, [chain]);
-
   const src = chain[index] ?? "/placeholder-sprite.png";
   const isPixelArt = src.includes("/ani/") || src.includes("/gen5/");
-
   return (
     <div
       style={{ width: size, height: size }}
@@ -56,9 +49,7 @@ export function PokemonSprite({
         }}
         className={cn("drop-shadow-md", facing === "left" && "-scale-x-100")}
         onError={() => {
-          if (index < chain.length - 1) {
-            setIndex((i) => i + 1);
-          }
+          if (index < chain.length - 1) setIndex((i) => i + 1);
         }}
       />
     </div>
