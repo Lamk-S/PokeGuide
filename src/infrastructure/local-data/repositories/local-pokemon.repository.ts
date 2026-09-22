@@ -8,10 +8,30 @@ export class LocalPokemonRepository implements PokemonRepository {
   private readonly all: Pokemon[];
 
   constructor() {
-    const list = dataset as Pokemon[];
-    this.all = list;
-    this.byId = new Map(list.map((p) => [p.id, p]));
-    this.byName = new Map(list.map((p) => [p.name.toLowerCase(), p]));
+    try {
+      const list = dataset as Pokemon[];
+      console.log(
+        "[LocalPokemonRepository] dataset loaded:",
+        list.length,
+        "pokemons",
+      );
+      if (!Array.isArray(list) || list.length === 0) {
+        console.warn(
+          "[LocalPokemonRepository] dataset.json está vacío o no es un array",
+        );
+      }
+      this.all = list;
+      this.byId = new Map(list.map((p) => [p.id, p]));
+      this.byName = new Map(list.map((p) => [p.name.toLowerCase(), p]));
+    } catch (e) {
+      console.error("[LocalPokemonRepository] Error cargando dataset.json:", e);
+      console.error(
+        "Verifica que el archivo existe en /data/pokemon/dataset.json y que el alias @/../data resuelve bien con Turbopack",
+      );
+      this.all = [];
+      this.byId = new Map();
+      this.byName = new Map();
+    }
   }
 
   async getById(id: number): Promise<Pokemon | null> {

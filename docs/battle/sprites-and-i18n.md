@@ -36,6 +36,20 @@ Reglas: Mega regex `^(.*)-mega-([xyz])$`, caps `*-cap` -> `con Gorra de {region}
 
 Se aplica en `pokemonOptions`, título de `ParticipantCard` y `BattleResultCard`.
 
+### 1.2 Naturalezas - i18n Español (v1.2.1)
+
+`src/domain/stats/constants/natures.ts` ahora incluye `nameEs`:
+
+| name | nameEs | Efecto |
+| :--- | :--- | :--- |
+| Adamant | Firme | +Atk -SpA |
+| Jolly | Alegre | +Spe -SpA |
+| Modest | Modesta | +SpA -Atk |
+| Timid | Miedosa | +Spe -Atk |
+| Hardy | Fuerte | Neutra |
+
+UI: `ParticipantCard` muestra `nameEs` como label (`Firme` en lugar de `Adamant`), con descripción `+attack -special-attack • Adamant`. El `Combobox` usa `value=name` interno pero `label=nameEs` visible. Fix de bug donde `value` era objeto y no cambiaba visualmente.
+
 ## 2. Calidad y Renderizado v1.2.0
 
 - No `image-rendering: pixelated` necesario, son PNG estáticos HD.
@@ -43,7 +57,14 @@ Se aplica en `pokemonOptions`, título de `ParticipantCard` y `BattleResultCard`
 - `object-fit: contain`, 0 warnings.
 - Bug de selección resuelto por Id-first: `key={`${id}-${name}`}` + remount, no `useEffect([chain])` con `chain.length`.
 
-## 3. UI Guardrails
+## 3. UI Guardrails v1.2.1
 
-- `BattleLabView`: `grid-cols-1 lg:grid-cols-2 gap-8 items-start`, hijos `self-start`.
-- `ParticipantCard`: header compacto `min-h- max-h-` grid `[48px_1fr_auto]`.
+- `BattleLabView`: `grid-cols-1 lg:grid-cols-2 gap-8 items-start`, hijos `self-start`. Header único (fix doble título): título + descripción generacional + selector Gen + badge estado. Evita duplicado de `app/battle-lab/page.tsx` + `BattleLabView`.
+- `ParticipantCard`: header compacto `min-h- max-h-` grid `[48px_1fr_auto]`. Stats overview `grid-cols-3 md:grid-cols-6`.
+- **IVs**: `IvRow` separado, solo controles IV: input 0-31 + slider + botón 31. Sin EV mezclado (fix distorsión `image_52acf9.png`).
+- **EVs**: `EvRow` separado, solo controles EV con lógica de restante:
+  - `remaining = 510 - (total - current)`
+  - `maxForThisStat = min(252, remaining)`
+  - Botón derecho muestra `6` cuando quedan 6 EVs (ej. 252+252=504, queda 6), no siempre 252. Si `remaining=0`, botón deshabilitado gris (fix `image_6fe744.png`).
+  - Mensaje de restante solo en header de sección `510/510 · lleno`, no por fila.
+- `Header`: Rediseño editorial con logo `Flame` gradiente, nav en pills `rounded-full`, active `bg-zinc-900 text-white`, mobile con cards. Evita barra vacía de `image_f01bba.png`.

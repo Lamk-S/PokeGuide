@@ -1,11 +1,8 @@
 "use client";
-import { Target, Swords, ShieldAlert, Sparkles, Info } from "lucide-react";
-import type { BattleResult } from "@/domain/battle/types/BattleTypes";
-import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
-import { useItemStore } from "@/features/items/store/useItemStore";
 import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
+import type { BattleResult } from "@/domain/battle/types/BattleTypes";
 
-interface Props {
+interface BattleResultCardProps {
   result: BattleResult;
   attackerName: string;
   defenderName: string;
@@ -17,155 +14,160 @@ export function BattleResultCard({
   attackerName,
   defenderName,
   moveName,
-}: Props) {
-  const { abilityList } = useAbilityStore();
-  const { itemList } = useItemStore();
+}: BattleResultCardProps) {
+  const attackerDisplay = formatPokemonDisplayName(attackerName);
+  const defenderDisplay = formatPokemonDisplayName(defenderName);
 
-  const { minDamage, maxDamage, minPercent, maxPercent } = result.damage;
-  const barWidth = Math.min(100, Math.max(0, maxPercent));
-
-  const formattedAttacker = formatPokemonDisplayName(attackerName);
-  const formattedDefender = formatPokemonDisplayName(defenderName);
-
-  const getBarColor = () => {
-    if (maxPercent >= 100) return "bg-red-500";
-    if (maxPercent >= 70) return "bg-orange-500";
-    if (maxPercent >= 40) return "bg-yellow-500";
-    return "bg-green-500";
-  };
-
-  const translate = (label: string, raw: string) => {
-    if (label.includes("Habilidad")) {
-      const m = abilityList.find((a) => a.name === raw);
-      return m ? `${m.nameEs} (${raw})` : raw;
-    }
-    if (label.includes("Objeto")) {
-      const m = itemList.find((i) => i.name === raw);
-      return m ? `${m.nameEs} (${raw})` : raw;
-    }
-    return raw;
-  };
-
-  const koText = () => {
-    const { hitsToKO, guaranteed, probability } = result.koAnalysis;
-    if (hitsToKO === 0) return "No puede hacer KO";
-    if (hitsToKO === 1) {
-      return guaranteed
-        ? `OHKO Garantizado (${probability}%)`
-        : `OHKO ${probability}% de prob.`;
-    }
-    return guaranteed
-      ? `${hitsToKO}HKO Garantizado (${probability}%)`
-      : `${hitsToKO}HKO con ${probability}% de probabilidad`;
-  };
+  const { damage, koAnalysis, explanation, defenderMaxHp } = result;
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 animate-in fade-in slide-in-from-bottom-2 space-y-5">
-      <div className="flex items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-3">
-        <Target className="w-5 h-5 text-red-500" />
-        <h3 className="text-lg font-black tracking-tight">Análisis de Daño</h3>
-      </div>
-
-      <div className="text-sm flex flex-wrap items-center gap-1.5 text-zinc-600 dark:text-zinc-400">
-        <span
-          className="font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-"
-          title={formattedAttacker}
-        >
-          {formattedAttacker}
-        </span>
-        <span>usa</span>
-        <span className="bg-zinc-900 text-white dark:bg-white dark:text-black px-2.5 py-0.5 rounded-full text-xs font-bold capitalize flex items-center gap-1">
-          <Swords className="w-3 h-3" />
-          {moveName}
-        </span>
-        <span>contra</span>
-        <span
-          className="font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-"
-          title={formattedDefender}
-        >
-          {formattedDefender}
+    <div className="bg-white rounded-[10px] border border-[#D9E0E8] shadow-[0_1px_2px_rgba(0,0,0,0.06)] overflow-hidden">
+      <div className="p-4 border-b border-[#F0F3F7] flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-[#182033]">Resultado</h3>
+        <span aria-live="polite" className="text-[11px] text-[#7B8794]">
+          HP defensor: {defenderMaxHp}
         </span>
       </div>
 
-      <div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-black tabular-nums">
-            {minDamage} - {maxDamage}
+      <div className="p-4 space-y-5">
+        <div className="flex items-baseline gap-3">
+          <span className="text-[28px] font-bold tabular-nums tracking-[-0.02em] text-[#182033]">
+            {damage.minDamage}-{damage.maxDamage}
           </span>
-          <span className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            HP
-          </span>
-          <span
-            className={`text-lg font-bold ml-2 ${maxPercent >= 70 ? "text-red-600" : "text-zinc-600"}`}
-          >
-            ({minPercent}% - {maxPercent}%)
-          </span>
+          <span className="text-[13px] text-[#5F6B7A]">puntos de daño</span>
         </div>
-        <div className="mt-3 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-3 overflow-hidden">
-          <div
-            className={`h-full transition-all duration-700 ${getBarColor()}`}
-            style={{ width: `${barWidth}%` }}
-          />
-        </div>
-        <p className="text-xs text-zinc-400 mt-1.5">
-          HP del defensor: {result.defenderMaxHp} • Rango de 16 rolls de daño
-        </p>
-      </div>
 
-      <div
-        className={`flex gap-3 rounded-lg p-3 border ${result.koAnalysis.guaranteed ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900" : "bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900"}`}
-      >
-        <ShieldAlert
-          className={`w-5 h-5 shrink-0 mt-0.5 ${result.koAnalysis.guaranteed ? "text-green-600" : "text-amber-600"}`}
-        />
-        <div>
-          <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
-            {koText()}
-          </p>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
-            {result.explanation.summary}
-          </p>
-        </div>
-      </div>
-
-      {result.explanation.activeModifiers.length > 0 && (
-        <div>
-          <h4 className="text- font-bold uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-1">
-            <Sparkles className="w-3 h-3" /> Modificadores Activos
-          </h4>
-          <div className="flex flex-wrap gap-1.5">
-            {result.explanation.activeModifiers.map((mod) => (
-              <span
-                key={mod}
-                className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-full text-xs font-medium"
-              >
-                {mod}
-              </span>
-            ))}
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-[#5F6B7A]">Vida restante</span>
+            <span className="font-medium tabular-nums text-[#182033]">
+              {damage.minPercent.toFixed(1)}% - {damage.maxPercent.toFixed(1)}%
+            </span>
+          </div>
+          <div className="h-2 rounded-full bg-[#E6EBF1] overflow-hidden">
+            <div
+              className="h-full bg-[#182033] rounded-full transition-all"
+              style={{ width: `${Math.min(100, damage.maxPercent)}%` }}
+            />
           </div>
         </div>
-      )}
 
-      {result.explanation.context.length > 0 && (
-        <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
-          <h4 className="text- font-bold uppercase tracking-widest text-zinc-400 mb-2 flex items-center gap-1">
-            <Info className="w-3 h-3" /> Contexto del Combate
-          </h4>
-          <ul className="space-y-1.5">
-            {result.explanation.context.map((ctx) => (
-              <li
-                key={`${ctx.label}-${ctx.value}`}
-                className="text-xs flex gap-2"
-              >
-                <span className="font-semibold text-zinc-700 dark:text-zinc-300 min-w- truncate">
-                  {ctx.label}:
+        <div className="rounded-lg bg-[#ECFDF5] border border-[#B7E4CE] p-3">
+          <div className="text-xs font-semibold text-[#065F46]">
+            {koAnalysis.hitsToKO}HKO{" "}
+            {koAnalysis.guaranteed
+              ? "garantizado"
+              : `(${(koAnalysis.probability * 100).toFixed(1)}%)`}
+          </div>
+          <div className="text-[11px] text-[#047857] mt-1">
+            Con {moveName} · {explanation.summary}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 text-[11px]">
+          {explanation.context.slice(0, 3).map((ctx) => (
+            <div
+              key={ctx.label}
+              className="rounded-md bg-[#F5F7FA] border border-[#E6EBF1] p-2"
+            >
+              <div className="text-[#7B8794]">{ctx.label}</div>
+              <div className="font-medium text-[13px] mt-0.5 text-[#182033] truncate">
+                {ctx.value}
+              </div>
+            </div>
+          ))}
+          {explanation.context.length === 0 && (
+            <>
+              <div className="rounded-md bg-[#F5F7FA] border border-[#E6EBF1] p-2">
+                <div className="text-[#7B8794]">Efectividad</div>
+                <div className="font-medium text-[13px] mt-0.5 text-[#182033]">
+                  —
+                </div>
+              </div>
+              <div className="rounded-md bg-[#F5F7FA] border border-[#E6EBF1] p-2">
+                <div className="text-[#7B8794]">Clima</div>
+                <div className="font-medium text-[13px] mt-0.5 text-[#182033]">
+                  —
+                </div>
+              </div>
+              <div className="rounded-md bg-[#F5F7FA] border border-[#E6EBF1] p-2">
+                <div className="text-[#7B8794]">Crítico</div>
+                <div className="font-medium text-[13px] mt-0.5 text-[#182033]">
+                  6.25%
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {explanation.activeModifiers.length > 0 && (
+          <div className="space-y-1">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-[#7B8794]">
+              Modificadores aplicados
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {explanation.activeModifiers.map((mod) => (
+                <span
+                  key={mod}
+                  className="text-[11px] px-2 py-1 rounded-full bg-[#F0F3F7] border border-[#E6EBF1] text-[#5F6B7A]"
+                >
+                  {mod}
                 </span>
-                <span className="text-zinc-600 dark:text-zinc-400 capitalize truncate">
-                  {translate(ctx.label, ctx.value)}
-                </span>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="text-[11px] text-[#7B8794] border-t border-[#F0F3F7] pt-3">
+          {attackerDisplay} usa {moveName} contra {defenderDisplay} -{" "}
+          {damage.minDamage}-{damage.maxDamage} ({damage.minPercent.toFixed(1)}
+          %-{damage.maxPercent.toFixed(1)}%)
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ResultEmptyState({ missing }: { missing: string[] }) {
+  return (
+    <div className="bg-white rounded-[10px] border border-[#D9E0E8] shadow-[0_1px_2px_rgba(0,0,0,0.06)] p-8 flex flex-col items-center text-center">
+      <div className="size-12 rounded-[10px] bg-[#F0F3F7] flex items-center justify-center mb-3">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          className="text-[#7B8794]"
+          aria-hidden="true"
+        >
+          <title>Check</title>
+          <path
+            d="M9 11l3 3L22 4"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+      <p className="text-sm font-medium text-[#182033]">
+        Completa el atacante, el defensor y el movimiento para calcular el
+        resultado.
+      </p>
+      <p className="text-xs text-[#7B8794] mt-1 max-w-80">
+        Selecciona ambos Pokémon, elige un movimiento y ejecuta el cálculo. El
+        análisis mostrará daño, porcentaje de vida y probabilidades de KO.
+      </p>
+      {missing.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5 justify-center">
+          {missing.map((m) => (
+            <span
+              key={m}
+              className="text-[11px] px-2 py-1 rounded-full bg-[#FFFBEB] border border-[#F6E6B8] text-[#A96B00]"
+            >
+              Falta: {m}
+            </span>
+          ))}
         </div>
       )}
     </div>
