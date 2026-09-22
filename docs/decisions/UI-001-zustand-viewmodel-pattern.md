@@ -21,8 +21,23 @@ Decisión:
 
 Mantiene ViewModel: store da `pokemonId`, componente deriva sprite y display name. `SmogonSpeciesMapper` intacto.
 
+## Actualización v1.2.1: Fix Naturaleza ES + IV/EV Separation + Header
+
+**Problema v1.2.1:**
+- Naturaleza no cambiaba visualmente porque `value` era objeto `Nature`, no `string`. Además mostraba inglés `Adamant` en lugar de español `Firme`.
+- IVs/EVs en misma fila causaba distorsión móvil (`image_52acf9.png`, `image_ce5e89.png`): `IV 31 [slider] 31 EV 0 [slider] 0 252` todo en una línea.
+- EVs con total 510 mostraba `0 0 0` / `6 0 6` duplicado y mensaje `Quedan 0 libres` por fila (`image_6fe744.png`).
+- Header con doble título (`image_fa559c.png`): page.tsx + BattleLabView ambos con h1.
+
+**Decisión v1.2.1:**
+- **Naturaleza:** `NATURES` con `nameEs`. `natureOptions = { value: name, label: nameEs }`. `Combobox value={input.nature.name}`. `currentNatureLabel = input.nature.nameEs`. Fix TS2367 eliminando `typeof === "string"`.
+- **IV/EV Separation:** Separar en `IvRow` y `EvRow`. IV solo: input + slider + botón 31. EV solo: input + slider + botones 0/max. `maxForThisStat = min(252, 510 - (total - current))`. Botón derecho adaptativo: si quedan 6, muestra `6`, no `252`. Si queda 0, deshabilitado gris. Mensaje restante solo en header de sección, no por fila.
+- **Header:** Nuevo `Header.tsx` con logo Flame gradiente, nav pills `rounded-full`, active `bg-zinc-900 text-white`. `BattleLabView` header único con título + descripción generacional + Gen selector + badge estado. Documentar en `layout.tsx` que `app/battle-lab/page.tsx` no debe tener h1 propio si usa `BattleLabView`.
+- **Mobile:** Stats overview `grid-cols-3 md:grid-cols-6`, `BattleSummary` solo 1 tipo en móvil, bottom bar con `pb-[env(safe-area-inset-bottom)]` y sin `N` de dev overlay.
+
 ## Consecuencias
 - **Positivo:** Excelente rendimiento (Zustand permite suscribirse selectivamente sin re-renderizar hermanos).
 - **Positivo:** Separación clara. El estado de la UI puede testearse sin montar el DOM.
 - **Positivo (v1.1.2):** Sprites HD nítidos (`image-rendering: pixelated` para ani) y 0 errores de lint / terminal.
+- **Positivo (v1.2.1):** Naturalezas en español, EVs con límite dinámico (UX competitiva real), sin distorsión móvil, header editorial único.
 - **Negativo:** Requiere disciplina para no convertir los *stores* en monolitos. El store debe llamar a Casos de Uso, no implementar la matemática.

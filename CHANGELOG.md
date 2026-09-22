@@ -1,6 +1,20 @@
 # Changelog
 Todos los cambios notables de PokeGuide.
 
+## [v1.2.1] - Fix Naturaleza ES, IV/EV Distortion, EV Remaining, Header
+
+### Fixed
+- **Naturaleza:** Ahora muestra español (`Firme` en lugar de `Adamant`). Fix bug donde select no cambiaba visualmente porque `value` era objeto `Nature` en lugar de `string`. Ahora `value={nature.name}` + `label={nature.nameEs}`. Fix TS2367 `string vs Nature no overlap`. Aplica `nameEs` de `natures.ts` con 25 naturalezas.
+- **IVs/EVs Distorsión:** Separación total `IvRow` y `EvRow`. Antes mostraba IV+EV en misma fila: `IV 31 [slider] 31 EV 0 [slider] 0 252` causando distorsión móvil (`image_52acf9.png`, `image_ce5e89.png`). Ahora cada sección solo muestra sus controles.
+- **EVs Remaining Logic:** Botón MAX adaptativo. Cuando total es 504 (252+252), el tercer stat ya no dice `252`, dice `6` (lo que queda). Si queda 0, botón deshabilitado gris, no `0 0 0` duplicado (`image_6fe744.png`). Barra progreso `0/510 · quedan 510` → `510/510 · lleno` verde, rojo si >510. Mensaje "Quedan 0 libres" solo en header, no por fila.
+- **Header Doble Título:** Fix `image_fa559c.png` con dos h1 "Laboratorio de Batalla" + "Laboratorio de batalla". `BattleLabView` ahora header único con descripción generacional completa + Gen selector + badge estado.
+- **Header Global:** Rediseño `Header.tsx` editorial con logo Flame gradiente, nav pills `rounded-full`, active `bg-zinc-900 text-white`, mobile con cards. Fix barra vacía de `image_f01bba.png`. Soporte `backdrop-blur-xl` al hacer scroll.
+- **Mobile:** `ParticipantCard` stats `grid-cols-3 md:grid-cols-6`, `BattleSummary` solo 1 tipo en móvil para evitar wrap, bottom bar `pb-[env(safe-area-inset-bottom)]` sin `N` de dev overlay.
+- **Lint:** 0 `any`, 0 `useHookAtTopLevel`. Todos los hooks antes de early return `if (!input)`.
+
+### Changed
+- Docs: `sprites-and-i18n.md` (sección 1.2 Naturalezas ES + 3. UI Guardrails v1.2.1), `UI-001-zustand-viewmodel-pattern.md` (Actualización v1.2.1), `UI-002-battle-lab-strict-validation.md` (EVs remaining + Naturaleza validación), `battle-lab.md` (sección 2 generation required + 5 i18n naturalezas + 6 guardrails v1.2.1).
+
 ## [v1.2.0] - Battle Lab Id-first y UI Editorial
 
 ### Added
@@ -40,6 +54,6 @@ Todos los cambios notables de PokeGuide.
 
 ### Added
 - Arquitectura Clean + Next.js 15 + pnpm.
-- Domain: `Stat Engine`, `Battle Lab`, `Team Intelligence`, `Breeding Planner` (BFS), `Generation Intelligence`.
+- Domain: `Stat Engine`, `Battle Lab`, `Team Intelligence`, `Build Optimization`, `Breeding Planner` (BFS), `Generation Intelligence`.
 - Quality: Vitest (80% threshold), regresión `Garchomp vs Sylveon`, Playwright, CI.
 - A11y: `SkipLink`, `global-error`, `not-found`, `ReportWebVitals`.
