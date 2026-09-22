@@ -3,6 +3,12 @@ import "./globals.css";
 import { SkipLink } from "@/components/accessibility/SkipLink";
 import { ReportWebVitals } from "@/infrastructure/performance/ReportWebVitals";
 import { Header } from "@/components/layout/Header";
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: {
@@ -17,7 +23,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning className={inter.className}>
       <body className="flex min-h-screen flex-col bg-zinc-50 text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-50">
         <SkipLink />
         <ReportWebVitals />
