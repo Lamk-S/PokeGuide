@@ -48,63 +48,116 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       scenario.generation,
     );
 
-    if (!attackerResolution.supported) {
+    const shouldAllowFallback = (r: typeof attackerResolution) =>
+      !r.supported && r.isFallbackToBase && r.baseStatsSource;
+
+    if (
+      !attackerResolution.supported &&
+      !shouldAllowFallback(attackerResolution)
+    ) {
       throw new Error(
         `La forma "${scenario.attacker.name}" (ID ${scenario.attacker.id}) no está disponible en el motor de cálculo para Gen ${scenario.generation}. ${attackerResolution.reason ?? ""}`.trim(),
       );
     }
-    if (!defenderResolution.supported) {
+    if (
+      !defenderResolution.supported &&
+      !shouldAllowFallback(defenderResolution)
+    ) {
       throw new Error(
         `La forma "${scenario.defender.name}" (ID ${scenario.defender.id}) no está disponible en el motor de cálculo para Gen ${scenario.generation}. ${defenderResolution.reason ?? ""}`.trim(),
       );
     }
 
-    const atkName = attackerResolution.smogonName;
-    const defName = defenderResolution.smogonName;
+    const atkName = shouldAllowFallback(attackerResolution)
+      ? (attackerResolution.baseStatsSource as string)
+      : attackerResolution.smogonName;
+    const defName = shouldAllowFallback(defenderResolution)
+      ? (defenderResolution.baseStatsSource as string)
+      : defenderResolution.smogonName;
 
     const gen = scenario.generation as GenerationNum;
 
-    const attacker = new Pokemon(gen, atkName, {
-      level: scenario.attacker.level,
-      nature: scenario.attacker.nature.name,
-      evs: toSmogonStats(scenario.attacker.evs),
-      ivs: toSmogonStats(scenario.attacker.ivs),
-      ...(scenario.attacker.ability
-        ? { ability: scenario.attacker.ability }
-        : {}),
-      ...(scenario.attacker.item ? { item: scenario.attacker.item } : {}),
-    });
+    let attacker: InstanceType<typeof Pokemon>;
+    let defender: InstanceType<typeof Pokemon>;
+    try {
+      const tryCreatePokemon = (
+        name: string,
+        input: typeof scenario.attacker,
+        genNum: GenerationNum,
+      ) => {
+        try {
+          return new Pokemon(genNum, name, {
+            level: input.level,
+            nature: input.nature.name,
+            evs: toSmogonStats(input.evs),
+            ivs: toSmogonStats(input.ivs),
+            ...(input.ability ? { ability: input.ability } : {}),
+            ...(input.item ? { item: input.item } : {}),
+          });
+        } catch (e) {
+          if (genNum === 9) {
+            const { SmogonSpeciesMapper } = require("./SmogonSpeciesMapper");
+            const fallback = SmogonSpeciesMapper.getFallbackForGen9(name);
+            if (fallback) {
+              try {
+                return new Pokemon(genNum, fallback, {
+                  level: input.level,
+                  nature: input.nature.name,
+                  evs: toSmogonStats(input.evs),
+                  ivs: toSmogonStats(input.ivs),
+                  ...(input.ability ? { ability: input.ability } : {}),
+                  ...(input.item ? { item: input.item } : {}),
+                });
+              } catch (_e2) {
+                throw e;
+              }
+            }
+          }
+          throw e;
+        }
+      };
 
-    const defender = new Pokemon(gen, defName, {
-      level: scenario.defender.level,
-      nature: scenario.defender.nature.name,
-      evs: toSmogonStats(scenario.defender.evs),
-      ivs: toSmogonStats(scenario.defender.ivs),
-      ...(scenario.defender.ability
-        ? { ability: scenario.defender.ability }
-        : {}),
-      ...(scenario.defender.item ? { item: scenario.defender.item } : {}),
-    });
+      attacker = tryCreatePokemon(atkName, scenario.attacker, gen);
+      defender = tryCreatePokemon(defName, scenario.defender, gen);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      throw new Error(
+        `Error creando Pokémon en Smogon: ${message}. Atacante=${atkName} Defensor=${defName} Gen=${gen}`,
+      );
+    }
+
+    if (!defender?.stats) {
+      throw new Error(
+        `No se pudo resolver el defensor ${scenario.defender.id} (${scenario.defender.name}) mapeado como ${defName} en Gen ${gen}. El motor no devolvió stats.`,
+      );
+    }
 
     const defenderHp = defender.stats.hp;
     if (typeof defenderHp !== "number" || defenderHp <= 0) {
       throw new Error(
-        `No se pudo resolver el defensor ${scenario.defender.id} (${scenario.defender.name}) mapeado como ${defName} en Gen ${gen}. HP inválido.`,
+        `No se pudo resolver el HP del defensor ${scenario.defender.id} (${scenario.defender.name}) mapeado como ${defName} en Gen ${gen}. HP inválido (${defenderHp}). Esto suele pasar con formas Mega Z / Gmax no soportadas. Prueba con la forma base.`,
       );
     }
-    const attackerStatsValid =
-      attacker.stats.hp && attacker.stats.atk !== undefined;
-    if (!attackerStatsValid) {
+
+    if (!attacker?.stats?.hp) {
       throw new Error(
         `No se pudo resolver el atacante ${scenario.attacker.id} (${scenario.attacker.name}) mapeado como ${atkName} en Gen ${gen}.`,
       );
     }
 
-    const move = new Move(gen, scenario.moveName, {
-      ...(scenario.conditions.isCriticalHit !== undefined
-        ? { isCrit: scenario.conditions.isCriticalHit }
-        : {}),
-    });
+    let move: InstanceType<typeof Move>;
+    try {
+      move = new Move(gen, scenario.moveName, {
+        ...(scenario.conditions.isCriticalHit !== undefined
+          ? { isCrit: scenario.conditions.isCriticalHit }
+          : {}),
+      });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      throw new Error(
+        `Movimiento "${scenario.moveName}" no reconocido en Gen ${gen}: ${message}`,
+      );
+    }
 
     const field = new Field({
       ...(scenario.conditions.weather
@@ -115,8 +168,27 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
         : {}),
     });
 
-    const result = calculate(gen, attacker, defender, move, field);
+    let result: ReturnType<typeof calculate>;
+    try {
+      result = calculate(gen, attacker, defender, move, field);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      throw new Error(`Error en el cálculo de Smogon: ${message}`);
+    }
+
+    if (!result || typeof result.range !== "function") {
+      throw new Error(
+        "El motor de Smogon no devolvió un resultado válido. Posible incompatibilidad de forma o movimiento.",
+      );
+    }
+
     const range = result.range();
+
+    if (!range || range.length < 2) {
+      throw new Error(
+        `Rango de daño inválido: ${JSON.stringify(range)}. Verifica movimiento y generación.`,
+      );
+    }
 
     const minDamage = range[0] ?? 0;
     const maxDamage = range[1] ?? 0;
