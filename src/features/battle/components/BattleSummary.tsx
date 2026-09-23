@@ -6,8 +6,16 @@ import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
 
 interface BattleSummaryProps {
-  attackerPokemon: Pokemon | undefined;
-  defenderPokemon: Pokemon | undefined;
+  attackerPokemon?:
+    | Pokemon
+    | { id: number; name: string; types?: unknown[] }
+    | null
+    | undefined;
+  defenderPokemon?:
+    | Pokemon
+    | { id: number; name: string; types?: unknown[] }
+    | null
+    | undefined;
   attackerInput: BattleParticipantInput | null;
   defenderInput: BattleParticipantInput | null;
 }

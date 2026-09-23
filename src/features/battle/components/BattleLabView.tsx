@@ -12,11 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/ui/combobox";
 import type {
-  PokemonMoveRef,
   PokemonType,
   PokemonTypeName,
 } from "@/domain/pokemon/types/pokemon";
 import { TypeEffectiveness } from "@/domain/types/TypeChart";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
+import { resolvePokemonForm } from "@/domain/pokemon/services/PokemonFormResolver";
+import { resolvePokemonMovesSync } from "@/domain/pokemon/services/PokemonMoveResolver";
+import {
+  validateBattleState,
+  type BattleValidationError,
+} from "@/domain/battle/services/BattleValidation";
+import { resolveBattleContext } from "@/domain/battle/types/BattleContext";
 
 type MoveOptionRich = {
   value: string;
@@ -41,6 +48,7 @@ type MoveDetail = {
   type?: string;
   power?: number | null;
   accuracy?: number | null;
+  category?: string;
 };
 
 function getStatNumber(v: StatValue | undefined): number {
@@ -69,6 +77,28 @@ const GEN_OPTIONS = [
   { value: "9", label: "Gen 9 - Escarlata/Violeta" },
 ];
 
+const VALIDATION_MESSAGES: Record<BattleValidationError, string> = {
+  MISSING_ATTACKER: "Elige tu Pokémon atacante",
+  MISSING_DEFENDER: "Elige tu Pokémon defensor",
+  INVALID_FORM: "Forma no válida",
+  MISSING_MOVE: "Elige un movimiento",
+  INVALID_MOVE_DATA: "Movimiento sin datos",
+  MISSING_STATS: "Sin estadísticas base",
+  INVALID_BATTLE_CONTEXT: "Generación no válida",
+  UNSUPPORTED_FORM_FOR_GENERATION: "No disponible en esta generación",
+};
+
+const BADGE_LABELS: Record<BattleValidationError, string> = {
+  MISSING_ATTACKER: "Falta atacante",
+  MISSING_DEFENDER: "Falta defensor",
+  INVALID_FORM: "Forma no válida",
+  MISSING_MOVE: "Falta movimiento",
+  INVALID_MOVE_DATA: "Movimiento inválido",
+  MISSING_STATS: "Sin stats",
+  INVALID_BATTLE_CONTEXT: "Gen no válida",
+  UNSUPPORTED_FORM_FOR_GENERATION: "No disponible en esta gen",
+};
+
 export function BattleLabView() {
   const pokemonList = usePokedexStore((s) => s.pokemonList);
   const loadPokemon = usePokedexStore((s) => s.loadPokemon);
@@ -90,8 +120,11 @@ export function BattleLabView() {
   const generationFromStore = useBattleStore((s) => s.generation);
 
   const [localError, setLocalError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<
+    BattleValidationError[]
+  >([]);
   const [generation, setLocalGeneration] = useState<number>(
-    generationFromStore ?? 7,
+    generationFromStore ?? 9,
   );
   const [activeTab, setActiveTab] = useState<TabId>("attacker");
 
@@ -111,14 +144,73 @@ export function BattleLabView() {
     }
   }, [generation, generationFromStore, setGeneration]);
 
-  const attackerPokemon = useMemo(
-    () => pokemonList.find((p) => p.id === attackerInput?.pokemonId),
-    [pokemonList, attackerInput],
-  );
-  const defenderPokemon = useMemo(
-    () => pokemonList.find((p) => p.id === defenderInput?.pokemonId),
-    [pokemonList, defenderInput],
-  );
+  // --- ETAPA 1: Normalización - Identidad canónica ---
+  const attackerIdentity = useMemo(() => {
+    if (!attackerInput?.pokemonId) return null;
+    const raw = pokemonList.find((p) => p.id === attackerInput.pokemonId);
+    if (!raw) return null;
+    return parsePokemonIdentity({ id: raw.id, name: raw.name });
+  }, [attackerInput?.pokemonId, pokemonList]);
+
+  const defenderIdentity = useMemo(() => {
+    if (!defenderInput?.pokemonId) return null;
+    const raw = pokemonList.find((p) => p.id === defenderInput.pokemonId);
+    if (!raw) return null;
+    return parsePokemonIdentity({ id: raw.id, name: raw.name });
+  }, [defenderInput?.pokemonId, pokemonList]);
+
+  // --- ETAPA 2: Resolución de Pokémon y Forma ---
+  const attackerResolvedForm = useMemo(() => {
+    if (!attackerIdentity) return null;
+    return resolvePokemonForm(
+      attackerIdentity,
+      pokemonList as unknown as Array<{
+        id: number;
+        name: string;
+        baseStats?: Record<string, number>;
+        stats?: Record<string, number>;
+      }>,
+    );
+  }, [attackerIdentity, pokemonList]);
+
+  const defenderResolvedForm = useMemo(() => {
+    if (!defenderIdentity) return null;
+    return resolvePokemonForm(
+      defenderIdentity,
+      pokemonList as unknown as Array<{
+        id: number;
+        name: string;
+        baseStats?: Record<string, number>;
+        stats?: Record<string, number>;
+      }>,
+    );
+  }, [defenderIdentity, pokemonList]);
+
+  const attackerPokemon = useMemo(() => {
+    if (!attackerIdentity) return undefined;
+    const original = pokemonList.find(
+      (p) => p.id === attackerIdentity.numericId,
+    );
+    if (original) return original;
+    return (attackerResolvedForm?.formPokemon ||
+      attackerResolvedForm?.basePokemon ||
+      null) as unknown as
+      | import("@/domain/pokemon/types/pokemon").Pokemon
+      | null;
+  }, [attackerIdentity, attackerResolvedForm, pokemonList]);
+
+  const defenderPokemon = useMemo(() => {
+    if (!defenderIdentity) return undefined;
+    const original = pokemonList.find(
+      (p) => p.id === defenderIdentity.numericId,
+    );
+    if (original) return original;
+    return (defenderResolvedForm?.formPokemon ||
+      defenderResolvedForm?.basePokemon ||
+      null) as unknown as
+      | import("@/domain/pokemon/types/pokemon").Pokemon
+      | null;
+  }, [defenderIdentity, defenderResolvedForm, pokemonList]);
 
   const defenderTypes = useMemo(() => {
     if (!defenderPokemon?.types) return [] as string[];
@@ -127,22 +219,44 @@ export function BattleLabView() {
       .filter((n): n is string => Boolean(n));
   }, [defenderPokemon]);
 
+  // --- ETAPA 3: Resolución de movimientos con herencia + overrides ---
+  const resolvedAttackerMoves = useMemo(() => {
+    if (!attackerIdentity)
+      return {
+        moves: [],
+        source: "fallback" as const,
+        warnings: [] as string[],
+      };
+    return resolvePokemonMovesSync(
+      attackerIdentity,
+      pokemonList as unknown as Array<{
+        name: string;
+        moves?: Array<{ name: string }>;
+      }>,
+    );
+  }, [attackerIdentity, pokemonList]);
+
   const availableMovesRich = useMemo((): MoveOptionRich[] => {
     if (!attackerInput) return [];
-    const p = pokemonList.find((x) => x.id === attackerInput.pokemonId);
-    if (!p?.moves) return [];
-    const list = p.moves
-      .filter(
-        (m: PokemonMoveRef) =>
-          m.learnMethod === "machine" ||
-          m.levelLearnedAt <= attackerInput.level,
-      )
-      .map((m: PokemonMoveRef) => {
-        const fm = (moveList as Record<string, MoveDetail>)[m.name];
-        if (!fm) return null as MoveOptionRich | null;
+    if (resolvedAttackerMoves.moves.length === 0) {
+      return [];
+    }
+    const list = resolvedAttackerMoves.moves
+      .map((moveNameStr: string) => {
+        const fm = (moveList as Record<string, MoveDetail>)[moveNameStr];
+        if (!fm) {
+          return {
+            value: moveNameStr,
+            label: moveNameStr,
+            type: "normal",
+            power: null,
+            accuracy: null,
+            description: "Datos incompletos",
+          } as MoveOptionRich;
+        }
         const opt: MoveOptionRich = {
-          value: m.name,
-          label: fm.nameEs || fm.name || m.name,
+          value: moveNameStr,
+          label: fm.nameEs || fm.name || moveNameStr,
           type: fm.type || "normal",
           power: fm.power ?? null,
           accuracy: fm.accuracy ?? null,
@@ -152,7 +266,106 @@ export function BattleLabView() {
       })
       .filter((x): x is MoveOptionRich => x !== null);
     return list;
-  }, [attackerInput, pokemonList, moveList]);
+  }, [attackerInput, resolvedAttackerMoves, moveList]);
+
+  // --- ETAPA 4: Validación explícita antes del cálculo ---
+  const battleContext = useMemo(
+    () => resolveBattleContext(generation),
+    [generation],
+  );
+  void battleContext;
+
+  const validationState = useMemo(() => {
+    const attackerData = attackerPokemon
+      ? {
+          id: attackerPokemon.id,
+          name: attackerPokemon.name,
+          stats: (
+            attackerPokemon as unknown as { stats?: Record<string, number> }
+          ).stats,
+          baseStats: (
+            attackerPokemon as unknown as { baseStats?: Record<string, number> }
+          ).baseStats,
+          level: attackerInput?.level,
+        }
+      : null;
+    const defenderData = defenderPokemon
+      ? {
+          id: defenderPokemon.id,
+          name: defenderPokemon.name,
+          stats: (
+            defenderPokemon as unknown as { stats?: Record<string, number> }
+          ).stats,
+          baseStats: (
+            defenderPokemon as unknown as { baseStats?: Record<string, number> }
+          ).baseStats,
+          level: defenderInput?.level,
+        }
+      : null;
+    const moveDetail = moveName
+      ? (moveList as unknown as Record<string, MoveDetail>)[moveName]
+      : null;
+    const moveData = moveName
+      ? {
+          name: moveName,
+          power: moveDetail?.power ?? null,
+          type: moveDetail?.type,
+          category: moveDetail?.category,
+        }
+      : null;
+
+    const baseValidation = validateBattleState({
+      attacker:
+        attackerData as unknown as import("@/domain/battle/services/BattleValidation").BattlePokemonForValidation,
+      defender:
+        defenderData as unknown as import("@/domain/battle/services/BattleValidation").BattlePokemonForValidation,
+      move: moveData as unknown as import("@/domain/battle/services/BattleValidation").BattleMoveForValidation,
+      generation,
+    });
+
+    const filteredErrors = baseValidation.errors.filter((err) => {
+      if (err === "INVALID_BATTLE_CONTEXT" && generation === 9) {
+        return false;
+      }
+      return true;
+    });
+
+    let moveLegalityError: string | null = null;
+    if (
+      moveName &&
+      attackerIdentity &&
+      resolvedAttackerMoves.moves.length > 0
+    ) {
+      const isLegal = resolvedAttackerMoves.moves.some(
+        (m) => m.toLowerCase() === moveName.toLowerCase(),
+      );
+      if (!isLegal) {
+        const hasOverride =
+          resolvedAttackerMoves.source === "override" ||
+          resolvedAttackerMoves.source === "inherited";
+        if (!hasOverride) {
+          moveLegalityError = `El movimiento ${moveName} no es legal para ${attackerIdentity.originalName} (ID ${attackerIdentity.numericId}) - movepool vacío, necesita override`;
+        }
+      }
+    }
+
+    return {
+      ...baseValidation,
+      errors: filteredErrors,
+      valid: filteredErrors.length === 0,
+      moveLegalityError,
+    };
+  }, [
+    attackerPokemon,
+    defenderPokemon,
+    attackerInput,
+    defenderInput,
+    moveName,
+    moveList,
+    generation,
+    attackerIdentity,
+    resolvedAttackerMoves,
+  ]);
 
   useEffect(() => {
     if (!attackerInput || availableMovesRich.length === 0) return;
@@ -203,40 +416,80 @@ export function BattleLabView() {
     }
   }, [
     attackerInput,
-    availableMovesRich,
-    defenderTypes,
     defenderInput,
+    defenderTypes,
+    availableMovesRich,
     moveName,
     setMoveName,
   ]);
 
-  const handleMoveChange = (name: string) => {
+  const handleMoveChange = (val: string) => {
     userHasManuallySelectedMove.current = true;
-    setMoveName(name);
+    setMoveName(val);
   };
 
   const handleCalculate = async () => {
     setLocalError(null);
+    setValidationErrors([]);
+
+    if (!validationState.valid) {
+      setValidationErrors(validationState.errors);
+      const firstError = validationState.errors[0];
+      setLocalError(
+        `${VALIDATION_MESSAGES[firstError]}. ${validationState.messages[firstError]}`,
+      );
+      return;
+    }
+
+    if (attackerResolvedForm && !attackerResolvedForm.isValid) {
+      setLocalError(
+        `Atacante inválido: ${attackerResolvedForm.reason}. Usa forma base.`,
+      );
+      setValidationErrors(["INVALID_FORM"]);
+      return;
+    }
+    if (defenderResolvedForm && !defenderResolvedForm.isValid) {
+      setLocalError(
+        `Defensor inválido: ${defenderResolvedForm.reason}. Usa forma base.`,
+      );
+      setValidationErrors(["INVALID_FORM"]);
+      return;
+    }
+
     try {
       await calculateResult();
       setActiveTab("result");
-    } catch (e) {
-      setLocalError(e instanceof Error ? e.message : "Error al calcular");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.toLowerCase().includes("hp")) {
+        setLocalError(
+          `No se pudo calcular el HP del defensor. Forma ${defenderIdentity?.originalName} (ID ${defenderIdentity?.numericId}) no soportada en Gen ${generation}. Heredando stats de base pero Smogon no la reconoce. Prueba con forma base o cambia generación. Detalle: ${msg}`,
+        );
+        setValidationErrors(["UNSUPPORTED_FORM_FOR_GENERATION"]);
+      } else {
+        setLocalError(msg);
+        setValidationErrors(["INVALID_BATTLE_CONTEXT"]);
+      }
+      console.error("[BattleLab] calculate error", e, {
+        attackerIdentity,
+        defenderIdentity,
+        battleContext,
+      });
     }
   };
 
-  const canCalculate = Boolean(
-    attackerInput && defenderInput && moveName && !isCalculating,
-  );
+  const canCalculate = validationState.valid && !isCalculating;
   const missing: string[] = [];
   if (!attackerInput) missing.push("atacante");
   if (!defenderInput) missing.push("defensor");
   if (!moveName) missing.push("movimiento");
 
-  const resolvedMoveData = (moveList as Record<string, MoveDetail>)[moveName];
+  const moveRecord = moveList as unknown as Record<
+    string,
+    { nameEs?: string; name?: string }
+  >;
   const resolvedMoveName =
-    resolvedMoveData?.nameEs || resolvedMoveData?.name || moveName;
-
+    moveRecord[moveName]?.nameEs || moveRecord[moveName]?.name || moveName;
   const evTotalAtk = useMemo(() => {
     if (!attackerInput) return 0;
     const evsRecord = attackerInput.evs as unknown as Record<string, StatValue>;
@@ -253,22 +506,21 @@ export function BattleLabView() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-[#182033] selection:bg-[#D93B32]/10">
-      {/* Header único - evita duplicado de image_fa559c */}
+    <div className="min-h-screen bg-[#F5F7FA] text-[#182033]">
       <div className="max-w-7xl mx-auto px-4 lg:px-6 pt-6 pb-4">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-[28px] md:text-[32px] leading-[1.1] font-bold tracking-[-0.02em] text-[#182033]">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[30px] leading-[1.1] font-bold tracking-[-0.02em] text-[#182033]">
               Laboratorio de Batalla
             </h1>
             <p className="mt-2 text-[13px] md:text-[14px] text-[#5F6B7A] leading-normal max-w-160">
-              Simula escenarios de combate con precisión matemática utilizando
-              reglas generacionales y el motor adaptado de Smogon. Configura
-              ambos Pokémon y analiza el resultado.
+              Calcula daño, efectividad de tipos y prueba tu equipo. Elige
+              generación, Pokémon y movimiento para ver el resultado al
+              instante.
             </p>
           </div>
           <div className="flex flex-row items-end gap-3 shrink-0">
-            <div className="flex flex-col gap-1.5 min-w-40">
+            <div className="flex flex-col gap-1.5 min-w-45">
               <Label className="text-[11px] font-medium uppercase tracking-[0.12em] text-[#5F6B7A]">
                 Generación
               </Label>
@@ -281,26 +533,54 @@ export function BattleLabView() {
                 placeholder="Elige generación"
               />
             </div>
-            <span
-              className={`inline-flex items-center gap-2 h-8 px-3 rounded-full border text-xs font-medium ${result ? "bg-[#EFF6FF] border-[#BFDBFE] text-[#2868B2]" : canCalculate ? "bg-[#ECFDF5] border-[#B7E4CE] text-[#16845B]" : "bg-[#FFFBEB] border-[#F6E6B8] text-[#A96B00]"}`}
-            >
-              <span
-                className={`size-1.5 rounded-full ${result ? "bg-[#2868B2]" : canCalculate ? "bg-[#16845B]" : "bg-[#D9A900]"} ${result ? "" : "animate-pulse"}`}
-              />
-              {result ? "Resultado" : canCalculate ? "Listo" : "Incompleto"}
-            </span>
+            {(() => {
+              const firstError = validationState.errors[0] as
+                | BattleValidationError
+                | undefined;
+              const badgeText = firstError
+                ? BADGE_LABELS[firstError] || VALIDATION_MESSAGES[firstError]
+                : "datos";
+              const detailText = firstError
+                ? validationState.messages[firstError]
+                : "";
+              return (
+                <div className="flex flex-col items-end gap-1">
+                  <span
+                    title={detailText}
+                    className={`inline-flex items-center gap-2 h-8 px-3 rounded-full border text-xs font-medium ${result ? "bg-[#EFF6FF] border-[#BFDBFE] text-[#2868B2]" : canCalculate ? "bg-[#ECFDF5] border-[#B7E4CE] text-[#16845B]" : "bg-[#FFFBEB] border-[#F6E6B8] text-[#A96B00]"}`}
+                  >
+                    <span
+                      className={`size-1.5 rounded-full ${result ? "bg-[#2868B2]" : canCalculate ? "bg-[#16845B]" : "bg-[#D9A900]"} ${result ? "" : "animate-pulse"}`}
+                    />
+                    {result
+                      ? "✓ Resultado listo"
+                      : canCalculate
+                        ? "✓ Listo para calcular"
+                        : badgeText}
+                  </span>
+                  {firstError &&
+                    detailText &&
+                    firstError !== "MISSING_ATTACKER" &&
+                    firstError !== "MISSING_DEFENDER" &&
+                    firstError !== "MISSING_MOVE" && (
+                      <span className="text-[11px] text-[#A96B00] max-w-50 text-right leading-tight">
+                        {detailText}
+                      </span>
+                    )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
 
       <BattleSummary
-        attackerPokemon={attackerPokemon}
-        defenderPokemon={defenderPokemon}
+        attackerPokemon={attackerPokemon ?? undefined}
+        defenderPokemon={defenderPokemon ?? undefined}
         attackerInput={attackerInput}
         defenderInput={defenderInput}
       />
 
-      {/* Tabs móvil */}
       <div className="lg:hidden sticky top-14 z-20 bg-[#F5F7FA] px-4 pt-3">
         <div className="flex p-1 rounded-[10px] bg-[#E8ECF1] gap-1">
           {tabs.map((t) => (
@@ -341,6 +621,11 @@ export function BattleLabView() {
               availableMoves={availableMovesRich}
               defenderTypes={defenderTypes}
             />
+            {attackerResolvedForm && !attackerResolvedForm.isValid && (
+              <p className="mt-2 text-[12px] text-[#C7373F] bg-[#FFF5F5] p-2 rounded-lg border border-[#FEE2E2]">
+                {attackerResolvedForm.reason}
+              </p>
+            )}
           </section>
 
           <section
@@ -371,8 +656,41 @@ export function BattleLabView() {
               ) : (
                 <ResultEmptyState missing={missing} />
               )}
+              {validationErrors.length > 0 && (
+                <div className="mt-3 p-3 bg-[#FFFBEB] rounded-lg border border-[#F6E6B8] space-y-1">
+                  {validationErrors.map((err) => (
+                    <p key={err} className="text-[12px] text-[#A96B00]">
+                      • {VALIDATION_MESSAGES[err]}:{" "}
+                      {
+                        validateBattleState({
+                          attacker:
+                            attackerPokemon as unknown as import("@/domain/battle/services/BattleValidation").BattlePokemonForValidation,
+                          defender:
+                            defenderPokemon as unknown as import("@/domain/battle/services/BattleValidation").BattlePokemonForValidation,
+                          move: {
+                            name: moveName,
+                          } as unknown as import("@/domain/battle/services/BattleValidation").BattleMoveForValidation,
+                          generation,
+                        }).messages[err]
+                      }
+                    </p>
+                  ))}
+                </div>
+              )}
+              {validationState.moveLegalityError && (
+                <div className="mt-3 p-3 bg-[#FFF5F5] rounded-lg border border-[#FEE2E2]">
+                  <p className="text-[12px] text-[#C7373F]">
+                    • {validationState.moveLegalityError}
+                  </p>
+                  <p className="text-[11px] text-[#7B8794] mt-1">
+                    Usando herencia: {resolvedAttackerMoves.inheritedFrom} (
+                    {resolvedAttackerMoves.source}) -{" "}
+                    {resolvedAttackerMoves.moves.length} movimientos
+                  </p>
+                </div>
+              )}
               {localError && (
-                <p className="mt-3 text-[13px] text-[#C7373F] p-3 bg-[#FFF5F5] rounded-lg border border-[#FEE2E2]">
+                <p className="mt-3 text-[13px] text-[#C7373F] p-3 bg-[#FFF5F5] rounded-lg border border-[#FEE2E2] whitespace-pre-wrap">
                   {localError}
                 </p>
               )}
@@ -396,7 +714,6 @@ export function BattleLabView() {
         </div>
       </main>
 
-      {/* Barra inferior - fix móvil sin distorsión */}
       <div className="fixed lg:sticky bottom-0 left-0 right-0 z-30 bg-white border-t border-[#D9E0E8] shadow-[0_-1px_12px_rgba(0,0,0,0.04)] pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-7xl mx-auto px-4 lg:px-6 h-16 lg:h-18 flex items-center justify-between gap-3">
           <div className="hidden md:flex items-center gap-4 text-xs">
@@ -410,8 +727,8 @@ export function BattleLabView() {
             </span>
             <span className="w-px h-4 bg-[#D9E0E8]" />
             <span className="text-[#5F6B7A] truncate max-w-75">
-              {attackerPokemon?.name ? `${attackerPokemon.name}` : "—"} →{" "}
-              {defenderPokemon?.name || "—"} ·{" "}
+              {attackerIdentity ? `${attackerIdentity.debugKey}` : "—"} →{" "}
+              {defenderIdentity?.debugKey || "—"} ·{" "}
               {resolvedMoveName || "Sin movimiento"}
             </span>
           </div>
@@ -434,11 +751,11 @@ export function BattleLabView() {
               onClick={handleCalculate}
               disabled={!canCalculate}
               title={
-                !defenderInput
-                  ? "Falta seleccionar defensor"
-                  : !moveName
-                    ? "Falta seleccionar movimiento"
-                    : undefined
+                !validationState.valid
+                  ? validationState.errors
+                      .map((e) => VALIDATION_MESSAGES[e])
+                      .join(", ")
+                  : undefined
               }
               className={`flex-1 md:flex-none h-11 px-5 rounded-xl text-[13px] md:text-sm font-semibold flex items-center justify-center gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-[#D93B32]/30 ${!canCalculate ? "bg-[#F0F3F7] text-[#7B8794] border border-[#D9E0E8] cursor-not-allowed" : "bg-[#D93B32] text-white hover:bg-[#B92C2A] shadow-[0_2px_8px_rgba(217,59,50,0.25)]"}`}
             >
@@ -448,24 +765,7 @@ export function BattleLabView() {
                   Calculando...
                 </>
               ) : (
-                <>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    className="opacity-90"
-                    aria-hidden="true"
-                  >
-                    <title>Calcular</title>
-                    <path
-                      d="M8 2v2M8 12v2M2 8h2M12 8h2M3.5 3.5l1.5 1.5M11 11l1.5 1.5M11 3.5l1.5-1.5M3.5 12.5l1.5-1.5"
-                      stroke="currentColor"
-                      strokeWidth="1.2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  Calcular daño
-                </>
+                <>Calcular daño</>
               )}
             </Button>
           </div>
