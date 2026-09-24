@@ -1,0 +1,113 @@
+[
+  {
+    "id": 10307,
+    "name": "absol-mega-z",
+    "types": [
+      "dark",
+      "ghost"
+    ],
+    "baseStats": {
+      "hp": 65,
+      "attack": 154,
+      "defense": 60,
+      "special-attack": 75,
+      "special-defense": 60,
+      "speed": 151
+    },
+    "height": 12,
+    "weight": 490,
+    "abilities": [
+      {
+        "name": "sharpness",
+        "isHidden": false,
+        "slot": 1
+      }
+    ],
+    "moves": [],
+    "isCustom": true,
+    "inheritFrom": "absol"
+  },
+  {
+    "id": 10308,
+    "name": "staraptor-mega",
+    "types": [
+      "fighting",
+      "flying"
+    ],
+    "baseStats": {
+      "hp": 85,
+      "attack": 140,
+      "defense": 100,
+      "special-attack": 60,
+      "special-defense": 90,
+      "speed": 110
+    },
+    "height": 19,
+    "weight": 500,
+    "abilities": [
+      {
+        "name": "contrary",
+        "isHidden": false,
+        "slot": 1
+      }
+    ],
+    "moves": [],
+    "isCustom": true,
+    "inheritFrom": "staraptor"
+  },
+  {
+    "id": 10309,
+    "name": "garchomp-mega-z",
+    "types": [
+      "dragon"
+    ],
+    "baseStats": {
+      "hp": 108,
+      "attack": 130,
+      "defense": 85,
+      "special-attack": 141,
+      "special-defense": 85,
+      "speed": 151
+    },
+    "height": 19,
+    "weight": 990,
+    "abilities": [
+      {
+        "name": "levitate",
+        "isHidden": false,
+        "slot": 1
+      }
+    ],
+    "moves": [],
+    "isCustom": true,
+    "inheritFrom": "garchomp"
+  },
+  {
+    "id": 10310,
+    "name": "lucario-mega-z",
+    "types": [
+      "fighting",
+      "steel"
+    ],
+    "baseStats": {
+      "hp": 70,
+      "attack": 100,
+      "defense": 70,
+      "special-attack": 164,
+      "special-defense": 70,
+      "speed": 151
+    },
+    "height": 13,
+    "weight": 494,
+    "abilities": [
+      {
+        "name": "aura-guard",
+        "isHidden": false,
+        "slot": 1
+      }
+    ],
+    "moves": [],
+    "isCustom": true,
+    "inheritFrom": "lucario"
+  }
+]

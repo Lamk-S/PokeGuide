@@ -1,6 +1,5 @@
 "use client";
 import { memo, useId, useMemo, useState } from "react";
-import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { Combobox } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
@@ -21,6 +20,8 @@ import { EV } from "@/domain/stats/value-objects/EV";
 import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
 import { useItemStore } from "@/features/items/store/useItemStore";
 import { PokemonSelect } from "./PokemonSelect";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
+import { resolvePokemonForm } from "@/domain/pokemon/services/PokemonFormResolver";
 import { MoveSelect } from "./MoveSelect";
 import { ItemSelect } from "./ItemSelect";
 
@@ -138,7 +139,7 @@ function EvRow({
   onChangeEV: (v: number) => void;
 }) {
   const label = STAT_LABELS[stat];
-  const remaining = 510 - (evTotal - ev); // lo que quedaría disponible si quitamos este stat
+  const remaining = 510 - (evTotal - ev);
   const maxForThisStat = Math.min(252, remaining);
   const canAddMore = ev < maxForThisStat;
 
@@ -263,11 +264,38 @@ export const ParticipantCard = memo(function ParticipantCard({
     [pokemonList, input?.pokemonId],
   );
 
+  const identity = useMemo(() => {
+    if (!currentPokemon) return null;
+    return parsePokemonIdentity({
+      id: currentPokemon.id,
+      name: currentPokemon.name,
+    });
+  }, [currentPokemon]);
+
+  const resolvedForm = useMemo(() => {
+    if (!identity) return null;
+    return resolvePokemonForm(
+      identity,
+      pokemonList as unknown as Array<{
+        id: number;
+        name: string;
+        baseStats?: Record<string, number>;
+        stats?: Record<string, number>;
+      }>,
+    );
+  }, [identity, pokemonList]);
+
   const liveStats = useMemo(() => {
     if (!currentPokemon || !input) return null;
+    const baseStatsSource =
+      resolvedForm?.formPokemon?.baseStats ||
+      resolvedForm?.basePokemon?.baseStats ||
+      (currentPokemon.baseStats as unknown as Record<string, number>);
+    if (!baseStatsSource) return null;
     try {
       return calculateStats({
-        baseStats: currentPokemon.baseStats,
+        baseStats:
+          baseStatsSource as unknown as import("@/domain/stats/types/StatTypes").BaseStats,
         level: input.level,
         nature: input.nature,
         ivs: input.ivs as unknown as Record<StatName, number>,
@@ -277,7 +305,7 @@ export const ParticipantCard = memo(function ParticipantCard({
     } catch {
       return null;
     }
-  }, [currentPokemon, input, generation]);
+  }, [currentPokemon, resolvedForm, input, generation]);
 
   const evTotal = useMemo(() => {
     if (!input) return 0;
@@ -413,14 +441,12 @@ export const ParticipantCard = memo(function ParticipantCard({
               onClick={() => handleSelectById(qp.id)}
               className="h-17 rounded-[8px] border border-[#E6EBF1] bg-white hover:bg-[#F5F7FA] hover:border-[#D0D8E2] flex flex-col items-center justify-center gap-1 transition-colors group"
             >
-              <Image
-                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${qp.id}.png`}
-                alt={qp.name}
-                width={28}
-                height={28}
-                className="size-7 object-contain group-hover:scale-110 transition-transform"
-                unoptimized
-              />
+              <span className="size-7 group-hover:scale-110 transition-transform flex items-center justify-center">
+                <PokemonSprite
+                  pokemon={{ id: qp.id, name: qp.name.toLowerCase() }}
+                  size={28}
+                />
+              </span>
               <span className="text-[12px] font-medium text-[#182033]">
                 {qp.name}
               </span>

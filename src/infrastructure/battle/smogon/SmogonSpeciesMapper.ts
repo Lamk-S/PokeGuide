@@ -1,324 +1,214 @@
-import type { PokemonId, PokemonName } from "@/domain/pokemon/types/pokemon";
-
 export interface SmogonResolution {
   smogonName: string;
   supported: boolean;
-  reason?: string;
-  isFallbackToBase: boolean;
+  reason?: string | undefined;
+  baseStatsSource?: string | undefined;
+  useBaseForGen9?: boolean | undefined;
+  isFallbackToBase?: boolean | undefined;
+  isCustom?: boolean | undefined;
 }
 
-type PokemonRef = {
-  id: PokemonId;
-  name: PokemonName;
+const DEBUT_GENERATION: Record<string, number> = {
+  bulbasaur: 1,
+  charizard: 1,
+  pikachu: 1,
+  raichu: 1,
+  absol: 3,
+  staraptor: 4,
+  garchomp: 4,
+  lucario: 4,
+  heatran: 4,
+  darkrai: 4,
+  zygarde: 6,
+  cyclizar: 9,
+  palafin: 9,
+  garchompbase: 4,
+  urshifu: 8,
+  "urshifu-single-strike": 8,
+  "urshifu-rapid-strike": 8,
+  eternatus: 8,
+  giratina: 4,
+  "giratina-altered": 4,
+  "giratina-origin": 4,
 };
 
-const SMOGON_ID_OVERRIDES: Record<
-  PokemonId,
-  { smogonName: string; supported: boolean; reason?: string }
-> = {
-  10307: {
-    smogonName: "Absol-Mega",
-    supported: false,
-    reason: "Forma absol-mega-z no canónica, no soportada por Showdown",
-  },
-  10308: {
-    smogonName: "Staraptor-Mega",
-    supported: false,
-    reason: "Forma staraptor-mega no oficial",
-  },
-  10309: {
-    smogonName: "Garchomp-Mega",
-    supported: false,
-    reason: "Forma garchomp-mega-z no canónica",
-  },
-  10310: {
-    smogonName: "Lucario-Mega",
-    supported: false,
-    reason: "Forma lucario-mega-z no canónica",
-  },
-  10311: {
-    smogonName: "Heatran-Mega",
-    supported: false,
-    reason: "Forma heatran-mega no oficial",
-  },
-};
-
-const EXACT_NAME_OVERRIDES: Record<string, string> = {
-  "mr-mime": "Mr. Mime",
-  "mr-rime": "Mr. Rime",
-  "mime-jr": "Mime Jr.",
-  farfetchd: "Farfetch'd",
-  sirfetchd: "Sirfetch'd",
-  "type-null": "Type: Null",
-  "nidoran-f": "Nidoran-F",
-  "nidoran-m": "Nidoran-M",
-  flabebe: "Flabebe",
-  "ho-oh": "Ho-Oh",
-  "porygon-z": "Porygon-Z",
-  "giratina-altered": "Giratina",
-  "giratina-origin": "Giratina-Origin",
-  "deoxys-normal": "Deoxys",
-  "deoxys-attack": "Deoxys-Attack",
-  "deoxys-defense": "Deoxys-Defense",
-  "deoxys-speed": "Deoxys-Speed",
-  "wormadam-plant": "Wormadam",
-  "wormadam-sandy": "Wormadam-Sandy",
-  "wormadam-trash": "Wormadam-Trash",
-  rotom: "Rotom",
-  "rotom-heat": "Rotom-Heat",
-  "rotom-wash": "Rotom-Wash",
-  "rotom-frost": "Rotom-Frost",
-  "rotom-fan": "Rotom-Fan",
-  "rotom-mow": "Rotom-Mow",
-  "shaymin-land": "Shaymin",
-  "shaymin-sky": "Shaymin-Sky",
-  "basculin-red-striped": "Basculin",
-  "basculin-blue-striped": "Basculin-Blue-Striped",
-  "basculin-white-striped": "Basculin-White-Striped",
-  "basculegion-male": "Basculegion",
-  "basculegion-female": "Basculegion-F",
-  "darmanitan-standard": "Darmanitan",
-  "darmanitan-zen": "Darmanitan-Zen",
-  "darmanitan-galar-standard": "Darmanitan-Galar",
-  "darmanitan-galar-zen": "Darmanitan-Galar-Zen",
-  "tornadus-incarnate": "Tornadus",
-  "tornadus-therian": "Tornadus-Therian",
-  "thundurus-incarnate": "Thundurus",
-  "thundurus-therian": "Thundurus-Therian",
-  "landorus-incarnate": "Landorus",
-  "landorus-therian": "Landorus-Therian",
-  "enamorus-incarnate": "Enamorus",
-  "enamorus-therian": "Enamorus-Therian",
-  "keldeo-ordinary": "Keldeo",
-  "keldeo-resolute": "Keldeo-Resolute",
-  "meloetta-aria": "Meloetta",
-  "meloetta-pirouette": "Meloetta-Pirouette",
-  genesect: "Genesect",
-  "genesect-burn": "Genesect-Burn",
-  "genesect-chill": "Genesect-Chill",
-  "genesect-douse": "Genesect-Douse",
-  "genesect-shock": "Genesect-Shock",
-  "aegislash-shield": "Aegislash",
-  "aegislash-blade": "Aegislash-Blade",
-  "pumpkaboo-average": "Pumpkaboo",
-  "pumpkaboo-small": "Pumpkaboo-Small",
-  "pumpkaboo-large": "Pumpkaboo-Large",
-  "pumpkaboo-super": "Pumpkaboo-Super",
-  "gourgeist-average": "Gourgeist",
-  "gourgeist-small": "Gourgeist-Small",
-  "gourgeist-large": "Gourgeist-Large",
-  "gourgeist-super": "Gourgeist-Super",
-  "zygarde-50": "Zygarde",
-  "zygarde-10": "Zygarde-10",
-  "zygarde-complete": "Zygarde-Complete",
-  "zygarde-10-power-construct": "Zygarde-10",
-  "zygarde-50-power-construct": "Zygarde",
-  hoopa: "Hoopa",
-  "hoopa-unbound": "Hoopa-Unbound",
-  "oricorio-baile": "Oricorio",
-  "oricorio-pom-pom": "Oricorio-Pom-Pom",
-  "oricorio-pau": "Oricorio-Pa'u",
-  "oricorio-sensu": "Oricorio-Sensu",
-  "lycanroc-midday": "Lycanroc",
-  "lycanroc-midnight": "Lycanroc-Midnight",
-  "lycanroc-dusk": "Lycanroc-Dusk",
-  "wishiwashi-solo": "Wishiwashi",
-  "wishiwashi-school": "Wishiwashi-School",
-  "minior-red-meteor": "Minior",
-  "minior-red": "Minior-Meteor",
-  "mimikyu-disguised": "Mimikyu",
-  "mimikyu-busted": "Mimikyu-Busted",
-  "greninja-ash": "Greninja-Ash",
-  "greninja-battle-bond": "Greninja-Ash",
-  "toxtricity-amped": "Toxtricity",
-  "toxtricity-low-key": "Toxtricity-Low-Key",
-  "eiscue-ice": "Eiscue",
-  "eiscue-noice": "Eiscue-Noice",
-  "indeedee-male": "Indeedee",
-  "indeedee-female": "Indeedee-F",
-  "morpeko-full-belly": "Morpeko",
-  "morpeko-hangry": "Morpeko-Hangry",
-  "urshifu-single-strike": "Urshifu",
-  "urshifu-rapid-strike": "Urshifu-Rapid-Strike",
-  "calyrex-ice": "Calyrex-Ice",
-  "calyrex-shadow": "Calyrex-Shadow",
-  "zarude-dada": "Zarude-Dada",
-  "maushold-family-of-four": "Maushold",
-  "maushold-family-of-three": "Maushold-Three",
-  "squawkabilly-green-plumage": "Squawkabilly",
-  "squawkabilly-blue-plumage": "Squawkabilly-Blue",
-  "squawkabilly-yellow-plumage": "Squawkabilly-Yellow",
-  "squawkabilly-white-plumage": "Squawkabilly-White",
+const SMOGON_NAME_MAP: Record<string, string> = {
   "palafin-zero": "Palafin",
   "palafin-hero": "Palafin-Hero",
-  "tatsugiri-curly": "Tatsugiri",
-  "dudunsparce-two-segment": "Dudunsparce",
-  "dudunsparce-three-segment": "Dudunsparce-Three-Segment",
-  "gimmighoul-chest": "Gimmighoul",
-  "gimmighoul-roaming": "Gimmighoul-Roaming",
-  "ogerpon-teal-mask": "Ogerpon",
-  "ogerpon-wellspring-mask": "Ogerpon-Wellspring",
-  "ogerpon-hearthflame-mask": "Ogerpon-Hearthflame",
-  "ogerpon-cornerstone-mask": "Ogerpon-Cornerstone",
-  "terapagos-normal": "Terapagos",
-  "terapagos-terastal": "Terapagos-Terastal",
-  "terapagos-stellar": "Terapagos-Stellar",
-  "castform-normal": "Castform",
+  "palafin-zero-base": "Palafin",
+  "palafin-base": "Palafin",
+  "absol-mega-z": "Absol-Mega",
+  "absol-mega": "Absol-Mega",
+  "absol-mega-y": "Absol-Mega",
+  "garchomp-mega-z": "Garchomp-Mega",
+  "garchomp-mega": "Garchomp-Mega",
+  "lucario-mega-z": "Lucario-Mega",
+  "lucario-mega": "Lucario-Mega",
+  "zygarde-mega": "Zygarde",
+  "zygarde-10": "Zygarde-10%",
+  "zygarde-50": "Zygarde",
+  "zygarde-complete": "Zygarde-Complete",
+  "zygarde-50-power-construct": "Zygarde",
+  "charizard-gmax": "Charizard-Gmax",
+  "charizard-gigantamax": "Charizard-Gmax",
+  "pikachu-gmax": "Pikachu-Gmax",
+  "pikachu-gigantamax": "Pikachu-Gmax",
+  "urshifu-single-strike-gmax": "Urshifu-Gmax",
+  "urshifu-single-strike-gigantamax": "Urshifu-Gmax",
+  "urshifu-rapid-strike-gmax": "Urshifu-Rapid-Strike-Gmax",
+  "urshifu-rapid-strike-gigantamax": "Urshifu-Rapid-Strike-Gmax",
+  "staraptor-mega": "Staraptor",
+  "heatran-mega": "Heatran",
+  "darkrai-mega": "Darkrai",
+  cyclizar: "Cyclizar",
+  garchompbase: "Garchomp",
+  "giratina-altered": "Giratina",
+  "giratina-origin": "Giratina-Origin",
+  "pikachu-rock-star": "Pikachu",
 };
 
-const COSMETIC_SUFFIXES = [
-  "-totem",
-  "-cap",
-  "-original-cap",
-  "-hoenn-cap",
-  "-sinnoh-cap",
-  "-unova-cap",
-  "-kalos-cap",
-  "-alola-cap",
-  "-partner",
-  "-starter",
-  "-world",
-];
+const GEN9_MEGA_FALLBACK: Record<string, string> = {
+  "Absol-Mega": "Absol",
+  "Garchomp-Mega": "Garchomp",
+  "Lucario-Mega": "Lucario",
+  "Charizard-Gmax": "Charizard",
+  "Pikachu-Gmax": "Pikachu",
+  "Urshifu-Gmax": "Urshifu",
+  "Urshifu-Rapid-Strike-Gmax": "Urshifu-Rapid-Strike",
+};
 
-function isGmaxForm(lower: string): boolean {
-  return lower.endsWith("-gmax") || lower.endsWith("-gigantamax");
+function normalizeSmogonName(name: string): string {
+  const lower = name.toLowerCase();
+  if (SMOGON_NAME_MAP[lower]) return SMOGON_NAME_MAP[lower];
+  return name
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join("-");
 }
 
-function stripGmax(lower: string): string {
-  return lower.replace(/-gmax|-gigantamax/g, "");
+function getDebutGen(speciesId: string, originalName: string): number {
+  const lower = originalName.toLowerCase();
+  if (DEBUT_GENERATION[lower] !== undefined) return DEBUT_GENERATION[lower];
+  if (DEBUT_GENERATION[speciesId] !== undefined)
+    return DEBUT_GENERATION[speciesId];
+  const base = speciesId.toLowerCase();
+  if (DEBUT_GENERATION[base] !== undefined) return DEBUT_GENERATION[base];
+  return 1;
 }
 
-function isCosmetic(lower: string): string | undefined {
-  return COSMETIC_SUFFIXES.find((s) => lower.endsWith(s));
-}
-
-function capitalizeSegment(seg: string): string {
-  if (seg === "mega") return "Mega";
-  if (seg === "gmax" || seg === "gigantamax") return "Gmax";
-  if (seg === "x" || seg === "y") return seg.toUpperCase();
-  if (
-    seg === "alola" ||
-    seg === "galar" ||
-    seg === "hisui" ||
-    seg === "paldea"
-  ) {
-    return seg.charAt(0).toUpperCase() + seg.slice(1);
-  }
-  return seg.charAt(0).toUpperCase() + seg.slice(1);
-}
-
-function genericSmogonFromSlug(lower: string): string {
-  return lower.split("-").map(capitalizeSegment).join("-");
-}
-
-function checkGenerationSupport(
-  smogonName: string,
-  lower: string,
-  generation: number,
-): { supported: boolean; reason?: string } {
-  if (smogonName.includes("Gmax") && generation < 8) {
-    return { supported: false, reason: `Gmax no existe en Gen ${generation}` };
-  }
-  if (lower.includes("-paldea") && generation < 9) {
-    return { supported: false, reason: "Forma Paldea solo desde Gen 9" };
-  }
-  if (lower.includes("-hisui") && generation < 8) {
-    return { supported: false, reason: "Forma Hisui solo desde Gen 8" };
-  }
-  if (lower.includes("-galar") && generation < 8) {
-    return { supported: false, reason: "Forma Galar solo desde Gen 8" };
-  }
-  if (
-    (lower.includes("ogerpon") ||
-      lower.includes("terapagos") ||
-      lower.includes("palafin-hero")) &&
-    generation < 9
-  ) {
-    return {
-      supported: false,
-      reason: `${smogonName} solo disponible en Gen 9`,
-    };
-  }
-  return { supported: true };
-}
-
-function buildResolution(
-  smogonName: string,
-  supported: boolean,
-  isFallbackToBase: boolean,
-  reason?: string,
-): SmogonResolution {
-  if (reason) {
-    return { smogonName, supported, reason, isFallbackToBase };
-  }
-  return { smogonName, supported, isFallbackToBase };
-}
-
-export const SmogonSpeciesMapper = {
-  resolve(ref: PokemonRef, generation: number): SmogonResolution {
-    const lower = ref.name.toLowerCase().trim();
-
-    const idOverride = SMOGON_ID_OVERRIDES[ref.id];
-    if (idOverride) {
-      return buildResolution(
-        idOverride.smogonName,
-        idOverride.supported,
-        false,
-        idOverride.reason,
-      );
-    }
-
-    if (isGmaxForm(lower) && generation < 8) {
-      const baseSlug = stripGmax(lower);
-      const baseRef: PokemonRef = { id: ref.id, name: baseSlug };
-      const baseResolution = SmogonSpeciesMapper.resolve(baseRef, generation);
-      return buildResolution(
-        baseResolution.smogonName,
-        baseResolution.supported,
-        true,
-        baseResolution.reason,
-      );
-    }
-
-    const exact = EXACT_NAME_OVERRIDES[lower];
-    if (exact) {
-      const support = checkGenerationSupport(exact, lower, generation);
-      return buildResolution(exact, support.supported, false, support.reason);
-    }
-
-    const cosmetic = isCosmetic(lower);
-    if (cosmetic) {
-      const baseSlug = lower.slice(0, -cosmetic.length);
-      const baseRef: PokemonRef = { id: ref.id, name: baseSlug };
-      return SmogonSpeciesMapper.resolve(baseRef, generation);
-    }
-
-    if (lower.endsWith("-mega-z") || lower.endsWith("-z-mega")) {
-      const cleaned = lower.replace(/-z|-mega-z|-z-mega/g, "");
-      return buildResolution(
-        `${genericSmogonFromSlug(cleaned)}-Mega`,
-        false,
-        false,
-        `Forma ${ref.name} no canónica`,
-      );
-    }
-
-    const generic = genericSmogonFromSlug(lower);
-    const support = checkGenerationSupport(generic, lower, generation);
-    return buildResolution(generic, support.supported, false, support.reason);
-  },
-
-  map(pokeApiName: string, generation = 9): string {
-    const ref: PokemonRef = { id: 0, name: pokeApiName };
-    const res = SmogonSpeciesMapper.resolve(ref, generation);
-    return res.smogonName;
-  },
-
-  mapById(
-    id: PokemonId,
-    name: PokemonName,
+// biome-ignore lint/complexity/noStaticOnlyClass: wrapper for backward compat
+export class SmogonSpeciesMapper {
+  static resolve(
+    pokemon: { id: number; name: string },
     generation: number,
   ): SmogonResolution {
-    return SmogonSpeciesMapper.resolve({ id, name }, generation);
-  },
-} as const;
+    const originalName = pokemon.name.toLowerCase();
+    let baseSpecies = originalName
+      .replace(/-mega-z|-z-mega|-mega|-gmax|-gigantamax/g, "")
+      .replace(/-power-construct|-complete|-10|-50/g, "")
+      .replace(/-zero|-hero|-base/g, "")
+      .replace(/-single-strike.*|-rapid-strike.*/g, "")
+      .split("-")[0];
+
+    if (originalName.includes("palafin")) baseSpecies = "palafin";
+    if (originalName.includes("garchomp")) baseSpecies = "garchomp";
+    if (originalName.includes("urshifu"))
+      baseSpecies = originalName.includes("rapid")
+        ? "urshifu-rapid-strike"
+        : "urshifu-single-strike";
+    if (originalName.includes("absol")) baseSpecies = "absol";
+    if (originalName.includes("lucario")) baseSpecies = "lucario";
+    if (originalName.includes("zygarde")) baseSpecies = "zygarde-50";
+    if (originalName.includes("cyclizar")) baseSpecies = "cyclizar";
+    if (originalName.includes("charizard")) baseSpecies = "charizard";
+    if (originalName.includes("pikachu")) baseSpecies = "pikachu";
+
+    const debutGen = getDebutGen(baseSpecies, originalName);
+
+    if (generation < debutGen) {
+      return {
+        smogonName: normalizeSmogonName(originalName),
+        supported: false,
+        reason: `La forma ${originalName} debutó en Gen ${debutGen}, no está disponible en Gen ${generation}`,
+      };
+    }
+
+    if (originalName.includes("mega") && generation < 6) {
+      return {
+        smogonName: normalizeSmogonName(originalName),
+        supported: false,
+        reason: `Mega evolución no disponible en Gen ${generation} (disponible desde Gen 6)`,
+      };
+    }
+
+    if (
+      (originalName.includes("gmax") || originalName.includes("gigantamax")) &&
+      generation < 8
+    ) {
+      const baseFallback = originalName.replace(/-gmax|-gigantamax/g, "");
+      return {
+        smogonName: normalizeSmogonName(originalName),
+        supported: false,
+        isFallbackToBase: true,
+        baseStatsSource: normalizeSmogonName(baseFallback),
+        reason: `Gigantamax no disponible en Gen ${generation} (disponible desde Gen 8) - fallback a ${baseFallback}`,
+      };
+    }
+
+    let smogonName = normalizeSmogonName(originalName);
+
+    const isCustom = pokemon.id >= 10000;
+    if (
+      generation === 9 &&
+      isCustom &&
+      (originalName.includes("mega") ||
+        originalName.includes("gmax") ||
+        originalName.includes("gigantamax") ||
+        originalName.includes("mega-z"))
+    ) {
+      const fallback = GEN9_MEGA_FALLBACK[smogonName] || baseSpecies;
+      const resolvedFallback = normalizeSmogonName(fallback);
+      return {
+        smogonName,
+        supported: false,
+        isFallbackToBase: true,
+        useBaseForGen9: true,
+        isCustom: true,
+        baseStatsSource: resolvedFallback,
+        reason: `Forma custom ${originalName} no oficial en Gen 9, fallback a ${fallback}`,
+      };
+    }
+
+    if (generation === 9) {
+      if (GEN9_MEGA_FALLBACK[smogonName]) {
+        return {
+          smogonName,
+          supported: true,
+          useBaseForGen9: true,
+          isFallbackToBase: true,
+          baseStatsSource: GEN9_MEGA_FALLBACK[smogonName],
+        };
+      }
+    }
+
+    if (
+      originalName.includes("palafin-zero") ||
+      originalName.includes("palafin-zero-base")
+    ) {
+      smogonName = "Palafin";
+    }
+
+    if (baseSpecies === "garchomp" && !originalName.includes("mega")) {
+      smogonName = "Garchomp";
+    }
+
+    return {
+      smogonName,
+      supported: true,
+    };
+  }
+
+  static getFallbackForGen9(smogonName: string): string | null {
+    return GEN9_MEGA_FALLBACK[smogonName] || null;
+  }
+}

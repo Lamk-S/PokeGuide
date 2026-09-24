@@ -1,13 +1,10 @@
 "use client";
 import { useState, useMemo } from "react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
-import { SpriteResolver } from "@/infrastructure/pokemon/SpriteResolver";
-import type { PokemonId } from "@/domain/pokemon/types/pokemon";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
+import { resolvePokemonSprite } from "@/domain/pokemon/services/PokemonSpriteResolver";
 
-interface Props {
-  pokemon: { id: PokemonId; name: string };
-  className?: string;
+interface PokemonSpriteProps {
+  pokemon: { id: number; name: string };
   facing?: "left" | "right";
   size?: number;
   hd?: boolean;
@@ -15,43 +12,46 @@ interface Props {
 
 export function PokemonSprite({
   pokemon,
-  className,
-  facing,
-  size = 112,
+  facing = "left",
+  size = 44,
   hd = false,
-}: Props) {
-  const chain = useMemo(
-    () =>
-      SpriteResolver.getSpriteChain({ id: pokemon.id, name: pokemon.name }, hd),
-    [pokemon.id, pokemon.name, hd],
+}: PokemonSpriteProps) {
+  void hd;
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const identity = useMemo(
+    () => parsePokemonIdentity({ id: pokemon.id, name: pokemon.name }),
+    [pokemon.id, pokemon.name],
   );
-  const [index, setIndex] = useState(0);
-  const src = chain[index] ?? "/placeholder-sprite.png";
-  const isPixelArt = src.includes("/ani/") || src.includes("/gen5/");
+  const resolution = useMemo(() => resolvePokemonSprite(identity), [identity]);
+
+  const src =
+    resolution.chain[Math.min(currentIndex, resolution.chain.length - 1)];
+
   return (
-    <div
+    <span
+      className="relative inline-flex items-center justify-center shrink-0"
       style={{ width: size, height: size }}
-      className={cn(
-        "relative flex items-center justify-center shrink-0 select-none",
-        className,
-      )}
+      title={identity.debugKey}
     >
-      <Image
+      {/* biome-ignore lint/performance/noImgElement: external PokeAPI sprite chain with onError fallback requires <img> */}
+      <img
         src={src}
         alt={pokemon.name}
-        fill
-        unoptimized
-        loader={({ src: s }) => s}
-        sizes={`${size}px`}
+        width={size}
+        height={size}
         style={{
           objectFit: "contain",
-          imageRendering: isPixelArt ? "pixelated" : "auto",
+          width: size,
+          height: size,
+          transform: facing === "right" ? "scaleX(-1)" : undefined,
         }}
-        className={cn("drop-shadow-md", facing === "left" && "-scale-x-100")}
-        onError={() => {
-          if (index < chain.length - 1) setIndex((i) => i + 1);
-        }}
+        onError={() =>
+          setCurrentIndex((i) => Math.min(i + 1, resolution.chain.length - 1))
+        }
+        loading="lazy"
+        decoding="async"
       />
-    </div>
+    </span>
   );
 }
