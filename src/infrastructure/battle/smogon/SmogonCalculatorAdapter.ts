@@ -96,6 +96,7 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
           });
         } catch (e) {
           if (genNum === 9) {
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const { SmogonSpeciesMapper } = require("./SmogonSpeciesMapper");
             const fallback = SmogonSpeciesMapper.getFallbackForGen9(name);
             if (fallback) {
@@ -195,7 +196,18 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
     const minPercent = Number(((minDamage / defenderHp) * 100).toFixed(1));
     const maxPercent = Number(((maxDamage / defenderHp) * 100).toFixed(1));
 
-    const ko = result.kochance();
+    let ko: { n: number; chance?: number | undefined } = { n: 0, chance: 0 };
+    let summary = "El ataque no hace daño o el objetivo es inmune.";
+
+    if (maxDamage > 0) {
+      try {
+        ko = result.kochance();
+        summary = result.desc();
+      } catch (_e) {
+        ko = { n: 0, chance: 0 };
+      }
+    }
+
     let probability = 100;
     let guaranteed = true;
     const hitsToKO = ko.n;
@@ -212,7 +224,7 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
     const activeModifiers: string[] = [];
     const context: Array<{ label: string; value: string }> = [];
 
-    if (result.desc().includes("STAB")) activeModifiers.push("STAB x1.5");
+    if (summary.includes("STAB")) activeModifiers.push("STAB x1.5");
     if (scenario.conditions.isCriticalHit)
       activeModifiers.push("Golpe Crítico x1.5");
     if (raw.weather) activeModifiers.push(`Clima: ${raw.weather}`);
@@ -259,7 +271,7 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       defenderMaxHp: defenderHp,
       damage: { minDamage, maxDamage, minPercent, maxPercent },
       koAnalysis: { hitsToKO, guaranteed, probability },
-      explanation: { summary: result.desc(), activeModifiers, context },
+      explanation: { summary, activeModifiers, context },
     };
   }
 }
