@@ -4,17 +4,26 @@ import {
   Move,
   Field,
   type GenerationNum,
+  type Result,
 } from "@smogon/calc";
+import { SmogonSpeciesMapper } from "./SmogonSpeciesMapper";
+import {
+  Weather,
+  Terrain,
+  Status,
+  type WeatherId,
+  type TerrainId,
+  type StatusId,
+} from "@/domain/battle/value-objects/BattleModifiers";
 import type { BattleCalculator } from "@/domain/battle/repositories/BattleCalculator";
 import type { BattleScenario } from "@/domain/battle/entities/BattleScenario";
 import type { BattleResult } from "@/domain/battle/types/BattleTypes";
 import type { StatName } from "@/domain/pokemon/types/pokemon";
-import { SmogonSpeciesMapper } from "./SmogonSpeciesMapper";
 
-type SmogonWeather = "Sand" | "Sun" | "Rain" | "Hail" | "Snow";
-type SmogonTerrain = "Electric" | "Grassy" | "Psychic" | "Misty";
-
-const STAT_TO_SMOGON: Record<StatName, string> = {
+const STAT_TO_SMOGON: Record<
+  StatName,
+  "hp" | "atk" | "def" | "spa" | "spd" | "spe"
+> = {
   hp: "hp",
   attack: "atk",
   defense: "def",
@@ -23,255 +32,263 @@ const STAT_TO_SMOGON: Record<StatName, string> = {
   speed: "spe",
 };
 
-function toSmogonStats(
-  input: Record<StatName, number> | undefined,
-): Record<string, number> {
-  if (!input) return { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
-  return Object.entries(input).reduce(
-    (acc, [k, v]) => {
-      const key = STAT_TO_SMOGON[k as StatName];
-      if (key) acc[key] = Math.max(0, v ?? 0);
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
+function toSmogonStats(input?: Record<StatName, number>) {
+  const base = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  if (!input) return base;
+  for (const [k, v] of Object.entries(input)) {
+    const smogonKey = STAT_TO_SMOGON[k as StatName];
+    if (smogonKey) base[smogonKey] = Math.max(0, v ?? 0);
+  }
+  return base;
 }
+
+type SmogonStatus = "" | "brn" | "par" | "psn" | "tox" | "slp" | "frz";
+
+type SmogonPokemonBaseOpts = {
+  level: number;
+  nature: string;
+  evs: ReturnType<typeof toSmogonStats>;
+  ivs: ReturnType<typeof toSmogonStats>;
+};
+
+type SmogonPokemonFullOpts = SmogonPokemonBaseOpts & {
+  ability?: string;
+  item?: string;
+  status?: SmogonStatus;
+};
 
 export class SmogonCalculatorAdapter implements BattleCalculator {
   calculate(scenario: BattleScenario): BattleResult {
-    const attackerResolution = SmogonSpeciesMapper.resolve(
+    const attackerRes = SmogonSpeciesMapper.resolve(
       { id: scenario.attacker.id, name: scenario.attacker.name },
       scenario.generation,
     );
-    const defenderResolution = SmogonSpeciesMapper.resolve(
+    const defenderRes = SmogonSpeciesMapper.resolve(
       { id: scenario.defender.id, name: scenario.defender.name },
       scenario.generation,
     );
 
-    const shouldAllowFallback = (r: typeof attackerResolution) =>
-      !r.supported && r.isFallbackToBase && r.baseStatsSource;
+    this.assertSupported(attackerRes, scenario.attacker, scenario.generation);
+    this.assertSupported(defenderRes, scenario.defender, scenario.generation);
 
-    if (
-      !attackerResolution.supported &&
-      !shouldAllowFallback(attackerResolution)
-    ) {
+    const attacker = this.createPokemon(
+      attackerRes.smogonName,
+      scenario.attacker,
+      scenario.generation,
+    );
+    const defender = this.createPokemon(
+      defenderRes.smogonName,
+      scenario.defender,
+      scenario.generation,
+    );
+    const move = this.createMove(
+      scenario.moveName,
+      scenario.generation,
+      scenario.conditions.isCriticalHit,
+    );
+    const field = this.createField(scenario.conditions);
+
+    const result = calculate(
+      scenario.generation as GenerationNum,
+      attacker,
+      defender,
+      move,
+      field,
+    );
+    if (!result?.range)
+      throw new Error("Motor Smogon no devolvió rango válido");
+
+    return this.parseResult(result, defender, scenario);
+  }
+
+  private assertSupported(
+    res: ReturnType<typeof SmogonSpeciesMapper.resolve>,
+    p: { id: number; name: string },
+    gen: number,
+  ) {
+    const isFallback = !res.supported && res.isFallbackToBase;
+    if (!res.supported && !isFallback) {
       throw new Error(
-        `La forma "${scenario.attacker.name}" (ID ${scenario.attacker.id}) no está disponible en el motor de cálculo para Gen ${scenario.generation}. ${attackerResolution.reason ?? ""}`.trim(),
+        `Forma ${p.name} no está disponible en Gen ${gen}. ${res.reason ?? ""}`,
       );
     }
-    if (
-      !defenderResolution.supported &&
-      !shouldAllowFallback(defenderResolution)
-    ) {
-      throw new Error(
-        `La forma "${scenario.defender.name}" (ID ${scenario.defender.id}) no está disponible en el motor de cálculo para Gen ${scenario.generation}. ${defenderResolution.reason ?? ""}`.trim(),
-      );
+  }
+
+  private createPokemon(
+    smogonName: string,
+    input: BattleScenario["attacker"],
+    gen: number,
+  ): Pokemon {
+    const fallback = SmogonSpeciesMapper.getFallbackForGen9(smogonName);
+    const nameToUse = gen === 9 && fallback ? fallback : smogonName;
+
+    const base: SmogonPokemonBaseOpts = {
+      level: input.level,
+      nature: input.nature.name,
+      evs: toSmogonStats(input.evs),
+      ivs: toSmogonStats(input.ivs),
+    };
+
+    const statusId = (input as { status?: StatusId }).status;
+    let smogonStatus: SmogonStatus | undefined;
+    if (statusId && statusId !== "none") {
+      const mapped = Status[statusId]?.smogon as SmogonStatus | undefined;
+      if (mapped) smogonStatus = mapped;
     }
 
-    const atkName = shouldAllowFallback(attackerResolution)
-      ? (attackerResolution.baseStatsSource as string)
-      : attackerResolution.smogonName;
-    const defName = shouldAllowFallback(defenderResolution)
-      ? (defenderResolution.baseStatsSource as string)
-      : defenderResolution.smogonName;
+    const opts: SmogonPokemonFullOpts = {
+      ...base,
+      ...(input.ability ? { ability: input.ability } : {}),
+      ...(input.item ? { item: input.item } : {}),
+      ...(smogonStatus ? { status: smogonStatus } : {}),
+    };
 
-    const gen = scenario.generation as GenerationNum;
-
-    let attacker: InstanceType<typeof Pokemon>;
-    let defender: InstanceType<typeof Pokemon>;
     try {
-      const tryCreatePokemon = (
-        name: string,
-        input: typeof scenario.attacker,
-        genNum: GenerationNum,
-      ) => {
-        try {
-          return new Pokemon(genNum, name, {
-            level: input.level,
-            nature: input.nature.name,
-            evs: toSmogonStats(input.evs),
-            ivs: toSmogonStats(input.ivs),
-            ...(input.ability ? { ability: input.ability } : {}),
-            ...(input.item ? { item: input.item } : {}),
-          });
-        } catch (e) {
-          if (genNum === 9) {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const { SmogonSpeciesMapper } = require("./SmogonSpeciesMapper");
-            const fallback = SmogonSpeciesMapper.getFallbackForGen9(name);
-            if (fallback) {
-              try {
-                return new Pokemon(genNum, fallback, {
-                  level: input.level,
-                  nature: input.nature.name,
-                  evs: toSmogonStats(input.evs),
-                  ivs: toSmogonStats(input.ivs),
-                  ...(input.ability ? { ability: input.ability } : {}),
-                  ...(input.item ? { item: input.item } : {}),
-                });
-              } catch (_e2) {
-                throw e;
-              }
-            }
-          }
-          throw e;
-        }
-      };
+      return new Pokemon(gen as GenerationNum, nameToUse, opts);
+    } catch {
+      if (fallback && gen === 9) {
+        return new Pokemon(gen as GenerationNum, fallback, opts);
+      }
+      throw new Error(`No se pudo crear Pokémon ${nameToUse}`);
+    }
+  }
 
-      attacker = tryCreatePokemon(atkName, scenario.attacker, gen);
-      defender = tryCreatePokemon(defName, scenario.defender, gen);
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      throw new Error(
-        `Error creando Pokémon en Smogon: ${message}. Atacante=${atkName} Defensor=${defName} Gen=${gen}`,
-      );
+  private createMove(name: string, gen: number, isCrit?: boolean) {
+    const opts: { isCrit?: boolean } = {
+      ...(typeof isCrit === "boolean" ? { isCrit } : {}),
+    };
+    return new Move(gen as GenerationNum, name, opts);
+  }
+
+  private createField(conditions: BattleScenario["conditions"]) {
+    const weatherId = conditions.weather;
+    const terrainId = conditions.terrain;
+
+    let weatherValue: string | undefined;
+    let terrainValue: string | undefined;
+
+    if (weatherId && weatherId !== "none") {
+      const w = Weather[weatherId as WeatherId]?.smogon;
+      if (w) weatherValue = w;
     }
 
-    if (!defender?.stats) {
-      throw new Error(
-        `No se pudo resolver el defensor ${scenario.defender.id} (${scenario.defender.name}) mapeado como ${defName} en Gen ${gen}. El motor no devolvió stats.`,
-      );
+    if (terrainId && terrainId !== "none") {
+      const t = Terrain[terrainId as TerrainId]?.smogon;
+      if (t) terrainValue = t;
     }
 
-    const defenderHp = defender.stats.hp;
-    if (typeof defenderHp !== "number" || defenderHp <= 0) {
-      throw new Error(
-        `No se pudo resolver el HP del defensor ${scenario.defender.id} (${scenario.defender.name}) mapeado como ${defName} en Gen ${gen}. HP inválido (${defenderHp}). Esto suele pasar con formas Mega Z / Gmax no soportadas. Prueba con la forma base.`,
-      );
-    }
+    const fieldOpts = {
+      ...(weatherValue ? { weather: weatherValue } : {}),
+      ...(terrainValue ? { terrain: terrainValue } : {}),
+    } as unknown as NonNullable<ConstructorParameters<typeof Field>[0]>;
 
-    if (!attacker?.stats?.hp) {
-      throw new Error(
-        `No se pudo resolver el atacante ${scenario.attacker.id} (${scenario.attacker.name}) mapeado como ${atkName} en Gen ${gen}.`,
-      );
-    }
+    return new Field(fieldOpts);
+  }
 
-    let move: InstanceType<typeof Move>;
-    try {
-      move = new Move(gen, scenario.moveName, {
-        ...(scenario.conditions.isCriticalHit !== undefined
-          ? { isCrit: scenario.conditions.isCriticalHit }
-          : {}),
-      });
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      throw new Error(
-        `Movimiento "${scenario.moveName}" no reconocido en Gen ${gen}: ${message}`,
-      );
-    }
-
-    const field = new Field({
-      ...(scenario.conditions.weather
-        ? { weather: scenario.conditions.weather as SmogonWeather }
-        : {}),
-      ...(scenario.conditions.terrain
-        ? { terrain: scenario.conditions.terrain as SmogonTerrain }
-        : {}),
-    });
-
-    let result: ReturnType<typeof calculate>;
-    try {
-      result = calculate(gen, attacker, defender, move, field);
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      throw new Error(`Error en el cálculo de Smogon: ${message}`);
-    }
-
-    if (!result || typeof result.range !== "function") {
-      throw new Error(
-        "El motor de Smogon no devolvió un resultado válido. Posible incompatibilidad de forma o movimiento.",
-      );
-    }
-
+  private parseResult(
+    result: Result,
+    defender: Pokemon,
+    scenario: BattleScenario,
+  ): BattleResult {
     const range = result.range();
+    if (!range) throw new Error("Sin rango");
 
-    if (!range || range.length < 2) {
-      throw new Error(
-        `Rango de daño inválido: ${JSON.stringify(range)}. Verifica movimiento y generación.`,
-      );
+    const defenderHp = defender.stats?.hp;
+    if (!defenderHp) {
+      throw new Error("No se pudo obtener HP del defensor");
     }
 
-    const minDamage = range[0] ?? 0;
-    const maxDamage = range[1] ?? 0;
-    const minPercent = Number(((minDamage / defenderHp) * 100).toFixed(1));
-    const maxPercent = Number(((maxDamage / defenderHp) * 100).toFixed(1));
+    const [minDamage, maxDamage] = range;
 
-    let ko: { n: number; chance?: number | undefined } = { n: 0, chance: 0 };
-    let summary = "El ataque no hace daño o el objetivo es inmune.";
+    if (maxDamage === 0 && minDamage === 0) {
+      return {
+        defenderMaxHp: defenderHp,
+        damage: {
+          minDamage: 0,
+          maxDamage: 0,
+          minPercent: 0,
+          maxPercent: 0,
+        },
+        koAnalysis: {
+          hitsToKO: 0,
+          guaranteed: false,
+          probability: 0,
+        },
+        explanation: {
+          summary: "El ataque no hace daño por inmunidad (0%)",
+          activeModifiers: [],
+          context: [],
+        },
+      };
+    }
 
-    if (maxDamage > 0) {
+    let summary: string;
+    try {
+      summary = result.desc();
+    } catch {
       try {
-        ko = result.kochance();
-        summary = result.desc();
-      } catch (_e) {
-        ko = { n: 0, chance: 0 };
+        summary = result.fullDesc();
+      } catch {
+        summary = `${minDamage}-${maxDamage} daño`;
       }
     }
 
-    let probability = 100;
-    let guaranteed = true;
-    const hitsToKO = ko.n;
-
-    if (ko.chance !== undefined) {
-      probability = Math.round(ko.chance * 1000) / 10;
-      guaranteed = ko.chance === 1;
-    } else if (ko.n === 0) {
-      probability = 0;
-      guaranteed = false;
+    type KOChanceResult = { n: number; chance?: number; text?: string };
+    let koChanceResult: KOChanceResult | undefined;
+    try {
+      koChanceResult = result.kochance() as KOChanceResult;
+    } catch {
+      koChanceResult = undefined;
     }
 
-    const raw = result.rawDesc;
     const activeModifiers: string[] = [];
-    const context: Array<{ label: string; value: string }> = [];
-
     if (summary.includes("STAB")) activeModifiers.push("STAB x1.5");
     if (scenario.conditions.isCriticalHit)
       activeModifiers.push("Golpe Crítico x1.5");
-    if (raw.weather) activeModifiers.push(`Clima: ${raw.weather}`);
-    if (raw.terrain) activeModifiers.push(`Campo: ${raw.terrain}`);
-    if (raw.isBurned) activeModifiers.push("Quemadura Atacante x0.5");
-
-    interface ExtendedRawDesc {
-      isReflect?: boolean;
-      isLightScreen?: boolean;
-      isProtected?: boolean;
-    }
-    const rawExt = raw as typeof raw & ExtendedRawDesc;
-    if (rawExt.isReflect) activeModifiers.push("Reflejo x0.5 Físico");
-    if (rawExt.isLightScreen)
-      activeModifiers.push("Pantalla Luz x0.5 Especial");
-    if (rawExt.isProtected) activeModifiers.push("Protección");
-
-    if (raw.attackerAbility) {
-      context.push({
-        label: `Habilidad de ${scenario.attacker.name}`,
-        value: raw.attackerAbility,
-      });
-    }
-    if (raw.defenderAbility) {
-      context.push({
-        label: `Habilidad de ${scenario.defender.name}`,
-        value: raw.defenderAbility,
-      });
-    }
-    if (raw.attackerItem) {
-      context.push({
-        label: `Objeto de ${scenario.attacker.name}`,
-        value: raw.attackerItem,
-      });
-    }
-    if (raw.defenderItem) {
-      context.push({
-        label: `Objeto de ${scenario.defender.name}`,
-        value: raw.defenderItem,
-      });
-    }
+    if (result.rawDesc.weather)
+      activeModifiers.push(`Clima: ${result.rawDesc.weather}`);
+    if (result.rawDesc.terrain)
+      activeModifiers.push(`Campo: ${result.rawDesc.terrain}`);
+    if (result.rawDesc.isBurned)
+      activeModifiers.push("Quemadura Atacante x0.5");
 
     return {
       defenderMaxHp: defenderHp,
-      damage: { minDamage, maxDamage, minPercent, maxPercent },
-      koAnalysis: { hitsToKO, guaranteed, probability },
-      explanation: { summary, activeModifiers, context },
+      damage: {
+        minDamage,
+        maxDamage,
+        minPercent: Number(((minDamage / defenderHp) * 100).toFixed(1)),
+        maxPercent: Number(((maxDamage / defenderHp) * 100).toFixed(1)),
+      },
+      koAnalysis: {
+        hitsToKO: koChanceResult?.n ?? 0,
+        guaranteed: koChanceResult?.chance === 1,
+        probability: koChanceResult?.chance
+          ? Math.round(koChanceResult.chance * 1000) / 10
+          : 0,
+      },
+      explanation: {
+        summary,
+        activeModifiers,
+        context: [
+          ...(result.rawDesc.attackerAbility
+            ? [
+                {
+                  label: `Hab. ${scenario.attacker.name}`,
+                  value: result.rawDesc.attackerAbility,
+                },
+              ]
+            : []),
+          ...(result.rawDesc.defenderAbility
+            ? [
+                {
+                  label: `Hab. ${scenario.defender.name}`,
+                  value: result.rawDesc.defenderAbility,
+                },
+              ]
+            : []),
+        ],
+      },
     };
   }
 }

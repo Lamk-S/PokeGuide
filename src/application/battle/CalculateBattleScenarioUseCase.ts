@@ -27,26 +27,14 @@ export class CalculateBattleScenarioUseCase {
     const defenderEntity = await this.pokemonRepo.getById(
       defenderInput.pokemonId,
     );
-
-    if (!attackerEntity) {
+    if (!attackerEntity)
       throw new Error(
         `Pokémon atacante con ID ${attackerInput.pokemonId} no encontrado`,
       );
-    }
-    if (!defenderEntity) {
+    if (!defenderEntity)
       throw new Error(
         `Pokémon defensor con ID ${defenderInput.pokemonId} no encontrado`,
       );
-    }
-
-    const attackerHasMove = attackerEntity.moves.some(
-      (m) => m.name === moveName,
-    );
-    if (!attackerHasMove) {
-      throw new Error(
-        `El movimiento ${moveName} no es legal para ${attackerEntity.name} (ID ${attackerEntity.id})`,
-      );
-    }
 
     const attackerCalculated = calculateStats({
       baseStats: attackerEntity.baseStats,
@@ -56,7 +44,6 @@ export class CalculateBattleScenarioUseCase {
       evs: attackerInput.evs,
       generation,
     });
-
     const defenderCalculated = calculateStats({
       baseStats: defenderEntity.baseStats,
       level: defenderInput.level,
@@ -76,6 +63,7 @@ export class CalculateBattleScenarioUseCase {
       calculatedStats: attackerCalculated,
       ...(attackerInput.ability ? { ability: attackerInput.ability } : {}),
       ...(attackerInput.item ? { item: attackerInput.item } : {}),
+      ...(attackerInput.status ? { status: attackerInput.status } : {}),
     };
 
     const defender: BattlePokemon = {
@@ -88,6 +76,7 @@ export class CalculateBattleScenarioUseCase {
       calculatedStats: defenderCalculated,
       ...(defenderInput.ability ? { ability: defenderInput.ability } : {}),
       ...(defenderInput.item ? { item: defenderInput.item } : {}),
+      ...(defenderInput.status ? { status: defenderInput.status } : {}),
     };
 
     return this.calculator.calculate({

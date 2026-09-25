@@ -1,175 +1,117 @@
 "use client";
-import { TypeBadge } from "@/components/ui/TypeBadge";
+import { memo, useMemo } from "react";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
+import { TypeBadge } from "@/components/ui/TypeBadge";
 import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
 import type { Pokemon } from "@/domain/pokemon/types/pokemon";
-import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
+import {
+  extractTypeName,
+  type PokemonTypeRef,
+} from "@/domain/pokemon/utils/pokemonHelpers";
 
 interface BattleSummaryProps {
-  attackerPokemon?:
-    | Pokemon
-    | { id: number; name: string; types?: unknown[] }
-    | null
-    | undefined;
-  defenderPokemon?:
-    | Pokemon
-    | { id: number; name: string; types?: unknown[] }
-    | null
-    | undefined;
-  attackerInput: BattleParticipantInput | null;
-  defenderInput: BattleParticipantInput | null;
+  attackerPokemon?: Pokemon | undefined;
+  defenderPokemon?: Pokemon | undefined;
+  attackerLevel?: number | undefined;
+  defenderLevel?: number | undefined;
+  generation: number;
 }
 
-type PokemonTypeRef = { type?: { name?: string } } | string;
-
-function getTypeName(t: PokemonTypeRef): string {
-  if (typeof t === "string") return t.charAt(0).toUpperCase() + t.slice(1);
-  const name = t.type?.name;
-  if (!name) return "Desconocido";
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
-export function BattleSummary({
+export const BattleSummary = memo(function BattleSummary({
   attackerPokemon,
   defenderPokemon,
-  attackerInput,
-  defenderInput,
+  attackerLevel,
+  defenderLevel,
+  generation: _generation,
 }: BattleSummaryProps) {
-  const attackerName = attackerPokemon
-    ? formatPokemonDisplayName(attackerPokemon.name)
-    : "—";
-  const defenderName = defenderPokemon
-    ? formatPokemonDisplayName(defenderPokemon.name)
-    : "Sin seleccionar";
+  const attackerTypes = useMemo(
+    () =>
+      (attackerPokemon?.types
+        ?.map((t) => extractTypeName(t as PokemonTypeRef))
+        .filter(Boolean) as string[]) || [],
+    [attackerPokemon],
+  );
+  const defenderTypes = useMemo(
+    () =>
+      (defenderPokemon?.types
+        ?.map((t) => extractTypeName(t as PokemonTypeRef))
+        .filter(Boolean) as string[]) || [],
+    [defenderPokemon],
+  );
 
   return (
-    <div className="sticky top-14 z-20 bg-white/90 backdrop-blur-md border-y border-[#D9E0E8] overflow-hidden">
-      <div className="max-w-7xl mx-auto px-3 md:px-6 h-16 md:h-17 flex items-center justify-between gap-2 md:gap-4">
-        {/* Atacante */}
-        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
-          <div className="size-9 md:size-12 rounded-full bg-[#F0F3F7] border border-[#D9E0E8] flex items-center justify-center overflow-hidden shrink-0">
+    <div className="w-full bg-white rounded-2xl border border-[#E0E6EE] shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between gap-2 px-4 py-3 bg-linear-to-r from-[#FBFCFD] via-white to-[#FBFCFD]">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="size-10 rounded-full bg-white border border-[#E0E6EE] flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
             {attackerPokemon ? (
               <PokemonSprite
                 pokemon={{ id: attackerPokemon.id, name: attackerPokemon.name }}
-                facing="left"
                 size={32}
-                hd={false}
               />
             ) : (
-              <span className="text-[#7B8794] text-xs">?</span>
+              <span className="text- text-[#7B8794]">?</span>
             )}
           </div>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-[13px] md:text-[15px] font-semibold tracking-[-0.01em] truncate text-[#182033]">
-                {attackerName}
+              <span className="text- font-semibold truncate">
+                {attackerPokemon
+                  ? formatPokemonDisplayName(attackerPokemon.name)
+                  : "Sin atacante"}
               </span>
               {attackerPokemon && (
-                <span className="hidden sm:inline-flex size-4 rounded-full bg-[#ECFDF5] text-[#16845B] items-center justify-center">
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 16 16"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M3 8l3 3 7-7"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                <span className="size-3.5 rounded-full bg-[#22C55E] flex items-center justify-center text- text-white">
+                  ✔
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1 mt-0.5">
-              <span className="text-[10px] md:text-xs text-[#5F6B7A] truncate">
-                Nv. {attackerInput?.level ?? 50}
+            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              <span className="text- text-[#5F6B7A] tabular-nums">
+                Nv. {attackerLevel ?? 50}
               </span>
-              <span className="hidden md:flex items-center gap-1">
-                {attackerPokemon?.types?.slice(0, 2).map((t) => {
-                  const typeName = getTypeName(t as PokemonTypeRef);
-                  return <TypeBadge key={typeName} type={typeName} size="sm" />;
-                })}
-              </span>
-              {/* En móvil solo primera letra del tipo para no distorsionar */}
-              <span className="flex md:hidden items-center gap-0.5">
-                {attackerPokemon?.types?.slice(0, 1).map((t) => {
-                  const typeName = getTypeName(t as PokemonTypeRef);
-                  return <TypeBadge key={typeName} type={typeName} size="sm" />;
-                })}
-              </span>
+              {attackerTypes.map((tn) => (
+                <TypeBadge key={tn} type={tn} size="sm" />
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="shrink-0 flex flex-col items-center gap-1 px-1">
-          <div className="w-7 h-5 md:w-8 md:h-5.5 rounded-full bg-[#182033] text-white flex items-center justify-center text-[10px] md:text-[11px] font-bold tracking-widest">
+        <div className="shrink-0 flex items-center justify-center">
+          <div className="h-6 px-2 rounded-full bg-[#182033] text-white text- font-bold tracking-wide flex items-center justify-center">
             VS
           </div>
         </div>
 
-        {/* Defensor */}
-        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1 justify-end text-right">
-          {defenderPokemon ? (
-            <>
-              <div className="min-w-0 flex-1 md:flex-none order-2 md:order-1">
-                <div className="text-[13px] md:text-[15px] font-semibold tracking-[-0.01em] truncate text-[#182033] text-right">
-                  {defenderName}
-                </div>
-                <div className="flex items-center justify-end gap-1 mt-0.5">
-                  <span className="hidden md:flex items-center gap-1 justify-end">
-                    {defenderPokemon?.types?.slice(0, 2).map((t) => {
-                      const typeName = getTypeName(t as PokemonTypeRef);
-                      return (
-                        <TypeBadge key={typeName} type={typeName} size="sm" />
-                      );
-                    })}
-                  </span>
-                  <span className="flex md:hidden items-center gap-0.5 justify-end">
-                    {defenderPokemon?.types?.slice(0, 1).map((t) => {
-                      const typeName = getTypeName(t as PokemonTypeRef);
-                      return (
-                        <TypeBadge key={typeName} type={typeName} size="sm" />
-                      );
-                    })}
-                  </span>
-                  <span className="text-[10px] md:text-xs text-[#5F6B7A] truncate">
-                    Nv. {defenderInput?.level ?? 50}
-                  </span>
-                </div>
-              </div>
-              <div className="size-9 md:size-12 rounded-full bg-[#F0F3F7] border border-[#D9E0E8] flex items-center justify-center overflow-hidden shrink-0 order-1 md:order-2">
-                <PokemonSprite
-                  pokemon={{
-                    id: defenderPokemon.id,
-                    name: defenderPokemon.name,
-                  }}
-                  facing="right"
-                  size={32}
-                  hd={false}
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="min-w-0 text-right">
-                <div className="text-[13px] md:text-sm font-medium text-[#7B8794] truncate">
-                  Sin seleccionar
-                </div>
-                <div className="text-[10px] md:text-xs text-[#AAB5C4]">
-                  Defensor
-                </div>
-              </div>
-              <div className="size-9 md:size-12 rounded-full bg-[#F0F3F7] border border-dashed border-[#B9C4D1] flex items-center justify-center shrink-0">
-                <span className="text-base md:text-lg text-[#B9C4D1]">+</span>
-              </div>
-            </>
-          )}
+        <div className="flex items-center gap-3 min-w-0 flex-1 justify-end">
+          <div className="min-w-0 text-right">
+            <div className="text- font-semibold truncate text-right">
+              {defenderPokemon
+                ? formatPokemonDisplayName(defenderPokemon.name)
+                : "Sin defensor"}
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap justify-end">
+              {defenderTypes.map((tn) => (
+                <TypeBadge key={tn} type={tn} size="sm" />
+              ))}
+              <span className="text- text-[#5F6B7A] tabular-nums">
+                Nv. {defenderLevel ?? 50}
+              </span>
+            </div>
+          </div>
+          <div className="size-10 rounded-full bg-white border border-[#E0E6EE] flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+            {defenderPokemon ? (
+              <PokemonSprite
+                pokemon={{ id: defenderPokemon.id, name: defenderPokemon.name }}
+                facing="right"
+                size={32}
+              />
+            ) : (
+              <span className="text- text-[#7B8794]">?</span>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
-}
+});

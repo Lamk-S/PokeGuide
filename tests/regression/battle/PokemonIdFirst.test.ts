@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { SmogonSpeciesMapper } from "@/infrastructure/battle/smogon/SmogonSpeciesMapper";
-import { SpriteResolver } from "@/infrastructure/pokemon/SpriteResolver";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
+import { resolvePokemonSprite } from "@/domain/pokemon/services/PokemonSpriteResolver";
+
+function getSpriteChain(input: { id: number; name: string }) {
+  const identity = parsePokemonIdentity(input);
+  const resolved = resolvePokemonSprite(identity);
+  return resolved.chain;
+}
 
 describe("Id-first identity", () => {
   it("mapper recibe ID y no depende de nombre como identidad interna", () => {
@@ -21,20 +28,20 @@ describe("Id-first identity", () => {
   });
 
   it("sprite resolver usa ID como identidad, estático y sin fallback incorrecto", () => {
-    const chainBase = SpriteResolver.getSpriteChain({ id: 487, name: "giratina-altered" }, false);
+    const chainBase = getSpriteChain({ id: 487, name: "giratina-altered" });
     const firstBase = chainBase[0]?? "";
     expect(firstBase).toContain("/487.png");
     expect(firstBase).toContain("/home/");
 
-    const chainOrigin = SpriteResolver.getSpriteChain({ id: 10007, name: "giratina-origin" }, false);
+    const chainOrigin = getSpriteChain({ id: 10007, name: "giratina-origin" });
     const firstOrigin = chainOrigin[0]?? "";
     expect(firstOrigin).toContain("/10007.png");
     expect(firstOrigin).not.toBe(firstBase);
 
-    const chainPika = SpriteResolver.getSpriteChain({ id: 10080, name: "pikachu-rock-star" }, false);
+    const chainPika = getSpriteChain({ id: 10080, name: "pikachu-rock-star" });
     expect(chainPika[0]).toContain("/10080.png");
 
-    const chainMegaZ = SpriteResolver.getSpriteChain({ id: 10307, name: "absol-mega-z" }, false);
+    const chainMegaZ = getSpriteChain({ id: 10307, name: "absol-mega-z" });
     expect(chainMegaZ[0]).toContain("/10307.png");
   });
 
