@@ -1,6 +1,10 @@
 "use client";
-
 import { create } from "zustand";
+import type {
+  WeatherId,
+  TerrainId,
+  StatusId,
+} from "@/domain/battle/value-objects/BattleModifiers";
 import type { PokemonId, StatName } from "@/domain/pokemon/types/pokemon";
 import type { Nature } from "@/domain/stats/types/StatTypes";
 import type {
@@ -15,6 +19,7 @@ export interface BattleParticipantInput {
   nature: Nature;
   ability?: string;
   item?: string;
+  status?: StatusId;
   ivs: Record<StatName, number>;
   evs: Record<StatName, number>;
 }
@@ -31,7 +36,9 @@ interface BattleStore {
   setDefender: (input: BattleParticipantInput | null) => void;
   setMoveName: (name: string) => void;
   setGeneration: (gen: number) => void;
-  setConditions: (c: BattleConditions) => void;
+  setConditions: (c: Partial<BattleConditions>) => void;
+  setWeather: (w: WeatherId) => void;
+  setTerrain: (t: TerrainId) => void;
   calculateResult: () => Promise<void>;
 }
 
@@ -39,22 +46,24 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   attackerInput: null,
   defenderInput: null,
   moveName: "",
-  generation: 7,
-  conditions: {},
+  generation: 9,
+  conditions: { weather: "none", terrain: "none" } as BattleConditions,
   result: null,
   isCalculating: false,
-
   setAttacker: (input) => set({ attackerInput: input, result: null }),
   setDefender: (input) => set({ defenderInput: input, result: null }),
   setMoveName: (name) => set({ moveName: name, result: null }),
   setGeneration: (gen) => set({ generation: gen, result: null }),
-  setConditions: (c) => set({ conditions: c, result: null }),
-
+  setConditions: (patch) =>
+    set((s) => ({ conditions: { ...s.conditions, ...patch }, result: null })),
+  setWeather: (weather) =>
+    set((s) => ({ conditions: { ...s.conditions, weather }, result: null })),
+  setTerrain: (terrain) =>
+    set((s) => ({ conditions: { ...s.conditions, terrain }, result: null })),
   calculateResult: async () => {
     const { attackerInput, defenderInput, moveName, generation, conditions } =
       get();
     if (!attackerInput || !defenderInput || !moveName) return;
-
     set({ isCalculating: true });
     try {
       const useCase = container.getCalculateBattleScenarioUseCase();
