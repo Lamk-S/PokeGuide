@@ -1,86 +1,97 @@
-export type TransformationKind =
-  | "mega"
-  | "mega-z"
-  | "gigantamax"
-  | "base"
-  | null;
 export interface PokemonIdentity {
-  speciesId: string;
-  formId: string;
-  spriteKey: string;
   numericId: number;
   originalName: string;
-  isBattleTransformation: boolean;
-  transformationKind: TransformationKind;
+  normalizedName: string;
+  speciesId: string;
+  formId?: string | undefined;
+  baseName: string;
   debugKey: string;
+  transformationKind?: string | undefined;
+  isBattleTransformation?: boolean | undefined;
 }
+
 const FORM_SUFFIXES = [
+  "-50-power-construct",
   "-mega-z",
-  "-z-mega",
+  "-mega-y",
+  "-mega-x",
   "-mega",
   "-gmax",
   "-gigantamax",
-  "-power-construct",
-  "-complete",
-  "-10",
-  "-50",
+  "-primal",
+  "-ultra",
+  "-alola",
+  "-galar",
+  "-hisui",
+  "-paldea",
+  "-origin",
+  "-sky",
+  "-blade",
+  "-shield",
+  "-cap",
 ];
-function extractSpeciesId(name: string): string {
-  let n = name.toLowerCase();
-  for (const s of FORM_SUFFIXES.sort((a, b) => b.length - a.length)) {
-    if (n.endsWith(s)) n = n.slice(0, -s.length);
+const SORTED_SUFFIXES = [...FORM_SUFFIXES].sort((a, b) => b.length - a.length);
+const CAP_REGEX = /-cap.*$/;
+const POWER_CONSTRUCT_REGEX = /-50-power-construct$/;
+
+function getBattleTransformation(formId?: string): {
+  kind?: string;
+  isBattle?: boolean;
+} {
+  if (!formId) return {};
+  if (["mega", "mega-x", "mega-y", "mega-z"].includes(formId)) {
+    return { kind: formId, isBattle: true };
   }
-  n = n
-    .replace(
-      /-cap.*|-original.*|-hoenn.*|-sinnoh.*|-unova.*|-kalos.*|-alola.*|-partner.*|-starter.*|-world.*/g,
-      "",
-    )
-    .replace(/-$/, "");
-  return n || name.toLowerCase();
+  if (["gmax", "gigantamax"].includes(formId)) {
+    return { kind: "gigantamax", isBattle: true };
+  }
+  if (["primal", "ultra"].includes(formId)) {
+    return { kind: formId, isBattle: true };
+  }
+  return {};
 }
-function extractFormId(name: string): string {
-  const l = name.toLowerCase();
-  if (l.includes("mega-z") || l.includes("z-mega")) return "mega-z";
-  if (l.endsWith("-mega")) return "mega";
-  if (l.endsWith("-gmax") || l.endsWith("-gigantamax")) return "gmax";
-  if (l.endsWith("-complete")) return "complete";
-  if (l.endsWith("-10")) return "10";
-  if (l.endsWith("-50") || l.includes("50-power-construct")) return "50";
-  if (l.includes("power-construct")) return "50-power-construct";
-  return "base";
-}
-function extractTransformationKind(name: string): TransformationKind {
-  const l = name.toLowerCase();
-  if (l.includes("mega-z") || l.includes("z-mega")) return "mega-z";
-  if (l.endsWith("-mega")) return "mega";
-  if (l.endsWith("-gmax") || l.endsWith("-gigantamax")) return "gigantamax";
-  return null;
-}
-export function parsePokemonIdentity(pokemon: { id: number; name: string }) {
-  const originalName = pokemon.name;
-  const speciesId = extractSpeciesId(originalName);
-  const formId = extractFormId(originalName);
-  const transformationKind = extractTransformationKind(originalName);
-  const isBattleTransformation =
-    transformationKind === "mega" ||
-    transformationKind === "mega-z" ||
-    transformationKind === "gigantamax";
+
+export function parsePokemonIdentity(input: {
+  id: number;
+  name: string;
+}): PokemonIdentity {
+  const originalName = input.name;
+  let normalized = originalName.toLowerCase().trim();
+  let formId: string | undefined;
+
+  if (POWER_CONSTRUCT_REGEX.test(normalized)) {
+    formId = "50-power-construct";
+    normalized = normalized.replace(POWER_CONSTRUCT_REGEX, "");
+  }
+
+  normalized = normalized.replace(CAP_REGEX, "");
+
+  for (const suffix of SORTED_SUFFIXES) {
+    if (normalized.endsWith(suffix)) {
+      const clean = suffix.replace(/^-/, "");
+      formId = formId ? `${clean}-${formId}` : clean;
+      normalized = normalized.slice(0, -suffix.length);
+      break;
+    }
+  }
+
+  const speciesId = normalized;
+  const { kind: transformationKind, isBattle: isBattleTransformation } =
+    getBattleTransformation(formId);
+
   return {
-    speciesId,
-    formId,
-    spriteKey: `${pokemon.id}`,
-    numericId: pokemon.id,
+    numericId: input.id,
     originalName,
-    isBattleTransformation,
-    transformationKind,
-    debugKey: `${speciesId}:${formId}:${pokemon.id}:${originalName}`,
-  } as const;
+    normalizedName: normalized,
+    speciesId,
+    baseName: normalized,
+    debugKey: `${input.id}:${originalName}${formId ? `[${formId}]` : ""}`,
+    ...(formId ? { formId } : {}),
+    ...(transformationKind ? { transformationKind } : {}),
+    ...(isBattleTransformation ? { isBattleTransformation } : {}),
+  };
 }
-export function createIdentityFromNumericId(
-  id: number,
-  pokemonList: Array<{ id: number; name: string }>,
-) {
-  const found = pokemonList.find((p) => p.id === id);
-  if (!found) return null;
-  return parsePokemonIdentity(found);
+
+export function extractSpeciesId(identity: PokemonIdentity): string {
+  return identity.speciesId;
 }
