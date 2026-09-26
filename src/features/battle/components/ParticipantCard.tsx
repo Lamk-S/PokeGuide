@@ -4,7 +4,7 @@ import { ChevronDown, Info } from "lucide-react";
 import { Combobox } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
-import { TypeBadge, getTypeStyle } from "@/components/ui/TypeBadge";
+import { TypeBadge } from "@/components/ui/TypeBadge";
 import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
 import type {
   Pokemon,
@@ -47,12 +47,12 @@ const STAT_ORDER: StatName[] = [
   "speed",
 ];
 const STAT_LABELS: Record<StatName, { full: string; abbr: string }> = {
-  hp: { full: "PS", abbr: "HP" },
-  attack: { full: "Ataque", abbr: "ATK" },
-  defense: { full: "Defensa", abbr: "DEF" },
-  "special-attack": { full: "At. Especial", abbr: "SPA" },
-  "special-defense": { full: "Def. Especial", abbr: "SPD" },
-  speed: { full: "Velocidad", abbr: "SPE" },
+  hp: { full: "PS", abbr: "PS" },
+  attack: { full: "ATQ", abbr: "ATQ" },
+  defense: { full: "DEF", abbr: "DEF" },
+  "special-attack": { full: "ATE", abbr: "ATE" },
+  "special-defense": { full: "DFE", abbr: "DFE" },
+  speed: { full: "VEL", abbr: "VEL" },
 };
 
 type MoveOption = {
@@ -71,164 +71,28 @@ type FormResolverPokemon = {
   abilities?: Array<{ name: string }>;
 };
 
-function IvRow({
-  stat,
-  iv,
-  liveValue,
-  onChangeIV,
+function CompactStatGrid({
+  liveStats,
 }: {
-  stat: StatName;
-  iv: number;
-  liveValue: number;
-  onChangeIV: (v: number) => void;
+  liveStats: Record<StatName, number> | null;
 }) {
-  const label = STAT_LABELS[stat];
   return (
-    <div className="flex flex-col gap-2 py-3 border-b border-[#F0F3F7] last:border-0">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text- font-medium">{label.full}</span>
-          <span className="text- bg-[#F0F3F7] px-1.5 py-0.5 rounded-md tabular-nums">
-            {label.abbr}
-          </span>
-        </div>
-        <span className="text- text-[#7B8794] tabular-nums">
-          Actual: {liveValue}
-        </span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text- w-6 shrink-0 text-[#5F6B7A]">IV</span>
-        <input
-          type="number"
-          min={0}
-          max={31}
-          value={iv}
-          onChange={(e) =>
-            onChangeIV(
-              Math.min(31, Math.max(0, parseInt(e.target.value, 10) || 0)),
-            )
-          }
-          className="w-14 h-8 text-center rounded-lg border text- tabular-nums shrink-0 focus:outline-none focus:ring-2 focus:ring-[#182033]/20"
-        />
-        <input
-          type="range"
-          min={0}
-          max={31}
-          value={iv}
-          onChange={(e) => onChangeIV(parseInt(e.target.value, 10))}
-          className="flex-1 h-1.5 accent-[#182033] min-w-0"
-        />
-        <button
-          type="button"
-          onClick={() => onChangeIV(31)}
-          className="h-8 w-8 shrink-0 rounded-lg text- bg-[#182033] text-white tabular-nums font-medium hover:bg-black transition-colors"
+    <div className="grid grid-cols-6 border border-[#EDE8E0] rounded-lg overflow-hidden bg-[#FFFEFB]">
+      {STAT_ORDER.map((st) => (
+        <div
+          key={st}
+          className="px-1.5 py-2 text-center border-r last:border-r-0 border-[#F0EDE6] flex flex-col gap-0.5"
         >
-          31
-        </button>
-      </div>
+          <div className="text-[9px] font-semibold uppercase tracking-[0.08em] text-[#9A9590]">
+            {STAT_LABELS[st].abbr}
+          </div>
+          <div className="text-[13px] font-mono font-bold tabular-nums">
+            {liveStats ? liveStats[st] : 0}
+          </div>
+        </div>
+      ))}
     </div>
   );
-}
-
-function EvRow({
-  stat,
-  ev,
-  liveValue,
-  evTotal,
-  onChangeEV,
-}: {
-  stat: StatName;
-  ev: number;
-  liveValue: number;
-  evTotal: number;
-  onChangeEV: (v: number) => void;
-}) {
-  const label = STAT_LABELS[stat];
-  const remaining = 510 - (evTotal - ev);
-  const maxForThisStat = Math.min(252, remaining);
-  return (
-    <div className="flex flex-col gap-2 py-3 border-b border-[#F0F3F7] last:border-0">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text- font-medium">{label.full}</span>
-          <span className="text- bg-[#F0F3F7] px-1.5 py-0.5 rounded-md tabular-nums shrink-0">
-            {label.abbr}
-          </span>
-          {ev > 0 && (
-            <span className="text- px-2 py-0.5 rounded-full bg-[#EFF6FF] text-[#2868B2] tabular-nums shrink-0 font-medium">
-              {ev} EV
-            </span>
-          )}
-        </div>
-        <span className="text- text-[#7B8794] tabular-nums shrink-0">
-          Actual: {liveValue}
-        </span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text- w-6 shrink-0 text-[#5F6B7A]">EV</span>
-        <input
-          type="number"
-          min={0}
-          max={maxForThisStat}
-          value={ev}
-          onChange={(e) =>
-            onChangeEV(
-              Math.min(
-                maxForThisStat,
-                Math.max(0, parseInt(e.target.value, 10) || 0),
-              ),
-            )
-          }
-          className="w-14 h-8 text-center rounded-lg border text- tabular-nums shrink-0 focus:outline-none focus:ring-2 focus:ring-[#182033]/20"
-        />
-        <input
-          type="range"
-          min={0}
-          max={252}
-          step={4}
-          value={ev}
-          onChange={(e) =>
-            onChangeEV(
-              Math.min(
-                maxForThisStat,
-                Math.max(0, parseInt(e.target.value, 10)),
-              ),
-            )
-          }
-          className="flex-1 h-1.5 accent-[#182033] min-w-0"
-        />
-        <button
-          type="button"
-          onClick={() => onChangeEV(0)}
-          className="h-8 w-8 shrink-0 rounded-lg text- bg-[#F0F3F7] tabular-nums hover:bg-[#E8ECF1] transition-colors"
-        >
-          0
-        </button>
-        <button
-          type="button"
-          onClick={() => onChangeEV(maxForThisStat)}
-          className="h-8 w-12 shrink-0 rounded-lg text- bg-[#182033] text-white tabular-nums text-center font-medium hover:bg-black transition-colors"
-        >
-          {maxForThisStat}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-type SectionKey = "ivs" | "evs" | "mods";
-interface ParticipantCardProps {
-  label: string;
-  pokemonList: Pokemon[];
-  input: BattleParticipantInput | null;
-  onChange: (input: BattleParticipantInput | null) => void;
-  facing: "left" | "right";
-  generation: number;
-  isAttacker?: boolean;
-  moveName?: string;
-  onMoveChange?: (name: string) => void;
-  availableMoves?: MoveOption[];
-  defenderTypes?: string[];
 }
 
 export const ParticipantCard = memo(function ParticipantCard({
@@ -243,17 +107,28 @@ export const ParticipantCard = memo(function ParticipantCard({
   onMoveChange,
   availableMoves,
   defenderTypes,
-}: ParticipantCardProps) {
+}: {
+  label: string;
+  pokemonList: Pokemon[];
+  input: BattleParticipantInput | null;
+  onChange: (input: BattleParticipantInput | null) => void;
+  facing: "left" | "right";
+  generation: number;
+  isAttacker?: boolean;
+  moveName?: string;
+  onMoveChange?: (name: string) => void;
+  availableMoves?: MoveOption[];
+  defenderTypes?: string[];
+}) {
   const levelId = useId();
-  const [sections, setSections] = useState<Record<SectionKey, boolean>>({
-    ivs: false,
-    evs: false,
-    mods: false,
-  });
+  const [openIV, setOpenIV] = useState(false);
+  const [openEV, setOpenEV] = useState(true);
+  const [openMods, setOpenMods] = useState(false);
   const { abilityList } = useAbilityStore();
   const { itemList } = useItemStore();
   const conditions = useBattleStore((s) => s.conditions);
   const setConditions = useBattleStore((s) => s.setConditions);
+
   const currentPokemon = useMemo(
     () => pokemonList.find((p) => p.id === input?.pokemonId),
     [pokemonList, input?.pokemonId],
@@ -294,7 +169,7 @@ export const ParticipantCard = memo(function ParticipantCard({
         ivs: input.ivs as unknown as Record<StatName, number>,
         evs: input.evs as unknown as Record<StatName, number>,
         generation,
-      });
+      }) as Record<StatName, number>;
     } catch {
       return null;
     }
@@ -307,72 +182,31 @@ export const ParticipantCard = memo(function ParticipantCard({
     ).reduce<number>((s, v) => s + getStatNumber(v), 0);
   }, [input]);
 
-  const modifiedIVs = useMemo(() => {
-    if (!input) return 0;
-    return Object.values(
-      input.ivs as unknown as Record<string, StatValue>,
-    ).filter((v) => getStatNumber(v) !== 31).length;
-  }, [input]);
-
-  const modifiedEVs = useMemo(() => {
-    if (!input) return 0;
-    return Object.values(
-      input.evs as unknown as Record<string, StatValue>,
-    ).filter((v) => getStatNumber(v) > 0).length;
-  }, [input]);
-
-  const primaryType = useMemo(
-    () =>
-      currentPokemon?.types?.[0]
-        ? extractTypeName(currentPokemon.types[0] as PokemonTypeRef)
-        : null,
-    [currentPokemon],
-  );
-
-  const headerBgStyle = useMemo(() => {
-    if (!primaryType) return {};
-    const style = getTypeStyle(primaryType);
-    return {
-      background: `linear-gradient(135deg, ${style.bg} 0%, white 100%)`,
-      borderColor: style.border,
-    };
-  }, [primaryType]);
-
   const abilityOptions = useMemo(() => {
     if (!currentPokemon?.abilities) return [];
     return currentPokemon.abilities.map((a: PokemonAbilityRef) => {
       const found = abilityList.find((ab) => ab.name === a.name);
-      return {
-        value: a.name,
-        label: found?.nameEs || a.name,
-        description: found?.effectEs?.slice(0, 60) || "",
-      };
+      return { value: a.name, label: found?.nameEs || a.name };
     });
   }, [currentPokemon, abilityList]);
 
   const natureOptions = useMemo(
-    () =>
-      NATURES.map((n) => ({
-        value: n.name,
-        label: n.nameEs,
-        description: `${n.increasedStat ? `+${n.increasedStat}` : "Neutro"} ${n.decreasedStat ? `-${n.decreasedStat}` : ""} • ${n.name}`,
-      })),
+    () => NATURES.map((n) => ({ value: n.name, label: n.nameEs || n.name })),
     [],
   );
-
   const statusOptions = useMemo(
     () => Object.values(Status).map((s) => ({ value: s.id, label: s.label })),
     [],
   );
 
   if (!input) {
-    const isAttackerEmpty = label.toLowerCase().includes("atacante");
-    const QUICK_PICKS = [
-      { id: 25, name: "Pikachu" },
+    const isAtk = label.toLowerCase().includes("atacante");
+    const QUICK = [
+      { id: 6, name: "Charizard" },
+      { id: 3, name: "Venusaur" },
       { id: 445, name: "Garchomp" },
-      { id: 658, name: "Greninja" },
     ];
-    const handleSelectById = (id: number) => {
+    const select = (id: number) => {
       const p = pokemonList.find((x) => x.id === id);
       if (!p) return;
       onChange({
@@ -386,236 +220,215 @@ export const ParticipantCard = memo(function ParticipantCard({
       } as unknown as BattleParticipantInput);
     };
     return (
-      <div className="bg-[#FCFDFE] rounded-2xl border border-dashed border-[#D0D8E2] p-5 flex flex-col items-center text-center">
-        <h3 className="text- font-semibold">
-          {isAttackerEmpty
-            ? "Selecciona un atacante"
-            : "Selecciona un defensor"}
-        </h3>
-        <div className="w-full mt-6 text-left">
-          <Label className="text-">
-            {isAttackerEmpty ? "Pokémon atacante" : "Pokémon defensor"}
-          </Label>
-          <div className="mt-2">
-            <PokemonSelect
-              pokemonList={pokemonList}
-              value=""
-              onValueChange={(val) => handleSelectById(parseInt(val, 10))}
-              placeholder="Busca un Pokémon..."
-            />
-          </div>
+      <div className="bg-[#FFFEFB] rounded-xl border border-dashed border-[#D9CFC2] p-6 flex flex-col gap-4 min-h-70 justify-between">
+        <div className="flex flex-col gap-3">
+          <h3 className="text-[13px] font-semibold">
+            {isAtk ? "Selecciona atacante" : "Selecciona defensor"}
+          </h3>
+          <PokemonSelect
+            pokemonList={pokemonList}
+            value=""
+            onValueChange={(val) => select(parseInt(val, 10))}
+            placeholder="Busca un Pokémon..."
+          />
         </div>
-        <div className="grid grid-cols-3 gap-2 mt-4 w-full">
-          {QUICK_PICKS.map((qp) => (
-            <button
-              key={qp.id}
-              type="button"
-              onClick={() => handleSelectById(qp.id)}
-              className="h- rounded-xl border bg-white flex flex-col items-center justify-center gap-1 hover:bg-[#F5F7FA] transition-colors"
-            >
-              <span className="size-7 flex items-center justify-center">
+        <div className="flex flex-col gap-3 mt-auto">
+          <div className="grid grid-cols-3 gap-2">
+            {QUICK.map((qp) => (
+              <button
+                key={qp.id}
+                type="button"
+                onClick={() => select(qp.id)}
+                className="h-18 rounded-lg border border-[#EDE8E0] bg-white flex flex-col items-center justify-center gap-1 hover:bg-[#F8F5F0] hover:border-[#D9CFC2] transition-colors"
+              >
                 <PokemonSprite
                   pokemon={{ id: qp.id, name: qp.name.toLowerCase() }}
                   size={28}
                 />
-              </span>
-              <span className="text- font-medium">{qp.name}</span>
-            </button>
-          ))}
+                <span className="text-[11px] font-medium">{qp.name}</span>
+              </button>
+            ))}
+          </div>
+          <div className="h-18 rounded-lg bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center">
+            <span className="text-[10px] font-mono text-[#9A9590] uppercase tracking-widest">
+              Elige un Pokémon
+            </span>
+          </div>
         </div>
       </div>
     );
   }
 
-  const panelSections: {
-    key: SectionKey;
-    title: string;
-    desc: string;
-    badge?: string;
-    count: string;
-  }[] = [
-    {
-      key: "ivs",
-      title: "IVs (Valores Individuales)",
-      desc: "Rango 0–31",
-      count: "6 valores",
-      ...(modifiedIVs ? { badge: `${modifiedIVs} modificados` } : {}),
-    },
-    {
-      key: "evs",
-      title: "EVs (Esfuerzo)",
-      desc: `${evTotal}/510`,
-      count: `${evTotal}/510`,
-      ...(evTotal > 510
-        ? { badge: "Límite superado" }
-        : modifiedEVs
-          ? { badge: `${modifiedEVs} modificados` }
-          : {}),
-    },
-    {
-      key: "mods",
-      title: "Estados y modificadores",
-      desc: "Clima, campo, estados",
-      count: "Opcional",
-      ...(conditions.weather !== "none" ||
-      conditions.terrain !== "none" ||
-      (input.status && input.status !== "none")
-        ? { badge: "Activo" }
-        : {}),
-    },
-  ];
-
   return (
-    <div className="bg-white rounded-2xl border border-[#D9E0E8] shadow-sm overflow-visible">
-      <div
-        className="p-3 md:p-4 border-b flex items-center justify-between gap-3 rounded-t-2xl"
-        style={headerBgStyle as React.CSSProperties}
-      >
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="size-11 md:size-12 rounded-full bg-white border flex items-center justify-center overflow-hidden shrink-0">
+    <div className="bg-[#FFFEFB] rounded-xl border border-[#EDE8E0] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-visible">
+      {/* Header */}
+      <div className="p-3 flex items-start justify-between gap-3">
+        <div className="flex gap-3 min-w-0">
+          <div className="size-16 rounded-xl bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center overflow-hidden shrink-0">
             {currentPokemon ? (
               <PokemonSprite
                 pokemon={{ id: currentPokemon.id, name: currentPokemon.name }}
                 facing={facing}
-                size={40}
+                size={52}
               />
             ) : (
-              <span>?</span>
+              "?"
             )}
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="text- font-semibold truncate">
+          <div className="min-w-0">
+            <div className="text-[16px] font-bold tracking-[-0.01em] leading-none">
               {formatPokemonDisplayName(currentPokemon?.name || "")}
             </div>
-            <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+            <div className="text-[10px] font-mono text-[#9A9590] mt-1">
+              {currentPokemon
+                ? `${identity?.speciesId || ""}:base #${String(currentPokemon.id).padStart(4, "0")}`
+                : ""}
+            </div>
+            <div className="flex items-center gap-1 mt-2">
               {currentPokemon?.types?.map((t) => {
                 const tn = extractTypeName(t as PokemonTypeRef);
                 return <TypeBadge key={tn} type={tn} size="sm" />;
               })}
-              <span className="text- ml-1 text-[#5F6B7A] tabular-nums">
-                Nv. {input.level}
-              </span>
             </div>
           </div>
         </div>
         <button
           type="button"
           onClick={() => onChange(null)}
-          className="h-7 px-2.5 rounded-lg border bg-white text-xs hover:bg-[#F5F7FA] transition-colors"
+          className="text-[11px] font-medium text-[#9A9590] underline underline-offset-4 decoration-dotted hover:text-[#111]"
         >
           Cambiar
         </button>
       </div>
 
-      <div className="grid grid-cols-3 md:grid-cols-6 border-b bg-[#FBFCFD]">
-        {STAT_ORDER.map((st) => {
-          const v = liveStats ? (liveStats as Record<StatName, number>)[st] : 0;
-          return (
-            <div
-              key={st}
-              className="p-2.5 text-center border-r last:border-r-0"
-            >
-              <div className="text- font-semibold text-[#7B8794] uppercase tracking-wide">
-                {STAT_LABELS[st].abbr}
-              </div>
-              <div className="text- font-semibold tabular-nums">{v}</div>
-            </div>
-          );
-        })}
+      <div className="px-3 pb-3">
+        <CompactStatGrid liveStats={liveStats} />
       </div>
 
-      <div className="p-4 space-y-4">
-        <div className="space-y-3">
-          <div className="flex flex-col gap-2">
-            <Label className="text-">Pokémon</Label>
-            <PokemonSelect
-              pokemonList={pokemonList}
-              value={input.pokemonId.toString()}
-              onValueChange={(val) => {
-                const id = parseInt(val, 10);
-                const p = pokemonList.find((x) => x.id === id);
-                if (!p) return;
+      <div className="px-3 pb-3 space-y-3">
+        <div className="space-y-1">
+          <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
+            Pokémon
+          </Label>
+          <PokemonSelect
+            pokemonList={pokemonList}
+            value={input.pokemonId.toString()}
+            onValueChange={(val) => {
+              const id = parseInt(val, 10);
+              const p = pokemonList.find((x) => x.id === id);
+              if (!p) return;
+              onChange({
+                ...input,
+                pokemonId: id,
+                ability: p.abilities?.[0]?.name || input.ability,
+              } as BattleParticipantInput);
+            }}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="space-y-1">
+            <Label
+              htmlFor={`${levelId}-level`}
+              className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]"
+            >
+              Nivel
+            </Label>
+            <input
+              id={`${levelId}-level`}
+              type="number"
+              min={1}
+              max={100}
+              value={input.level}
+              onChange={(e) =>
                 onChange({
                   ...input,
-                  pokemonId: id,
-                  ability: p.abilities?.[0]?.name || input.ability,
-                } as BattleParticipantInput);
-              }}
+                  level: Math.min(
+                    100,
+                    Math.max(1, parseInt(e.target.value, 10) || 1),
+                  ),
+                })
+              }
+              className="h-8 w-full px-2.5 rounded-md border border-[#E8E0D6] bg-white text-[13px] font-mono"
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={`${levelId}-level`} className="text-">
-                Nivel
-              </Label>
-              <input
-                id={`${levelId}-level`}
-                type="number"
-                min={1}
-                max={100}
-                value={input.level}
-                onChange={(e) =>
-                  onChange({
-                    ...input,
-                    level: Math.min(
-                      100,
-                      Math.max(1, parseInt(e.target.value, 10) || 1),
-                    ),
-                  })
-                }
-                className="h-10 px-3 rounded-xl border text-"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label className="text-">Naturaleza</Label>
-              <Combobox
-                options={natureOptions}
-                value={input.nature.name}
-                onValueChange={(val) => {
-                  const nat = NATURES.find((n) => n.name === val);
-                  if (nat) onChange({ ...input, nature: nat });
-                }}
-                placeholder="Naturaleza"
-              />
-            </div>
+          <div className="space-y-1">
+            <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
+              Naturaleza
+            </Label>
+            <Combobox
+              options={natureOptions}
+              value={input.nature.name}
+              onValueChange={(val) => {
+                const nat = NATURES.find((n) => n.name === val);
+                if (nat) onChange({ ...input, nature: nat });
+              }}
+              placeholder="—"
+            />
           </div>
+        </div>
 
-          {isAttacker &&
-            availableMoves &&
-            onMoveChange &&
-            moveName !== undefined && (
-              <div className="flex flex-col gap-2">
-                <Label className="text-">Movimiento</Label>
-                <MoveSelect
-                  options={availableMoves}
-                  value={moveName}
-                  onValueChange={onMoveChange}
-                  defenderTypes={defenderTypes}
-                />
+        {isAttacker &&
+          availableMoves &&
+          onMoveChange &&
+          moveName !== undefined && (
+            <div className="space-y-1">
+              <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
+                Movimiento
+              </Label>
+              <MoveSelect
+                options={availableMoves}
+                value={moveName}
+                onValueChange={onMoveChange}
+                defenderTypes={defenderTypes}
+                attackerTypes={
+                  currentPokemon?.types
+                    ?.map((t) => extractTypeName(t as PokemonTypeRef))
+                    .filter(Boolean) as string[]
+                }
+              />
+              <div className="text-[10px] font-mono text-[#9A9590] leading-snug">
+                {availableMoves.find((m) => m.value === moveName)
+                  ?.description || "—"}
               </div>
-            )}
+            </div>
+          )}
 
-          <div className="flex flex-col gap-2">
-            <Label className="text-">Habilidad</Label>
+        {!isAttacker && (
+          <div className="space-y-1">
+            <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
+              Movimiento recibido
+            </Label>
+            <Combobox
+              options={[{ value: "none", label: "—" }]}
+              value="none"
+              onValueChange={() => {}}
+              placeholder="—"
+            />
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="space-y-1">
+            <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
+              Habilidad
+            </Label>
             <Combobox
               options={abilityOptions}
               value={input.ability || ""}
               onValueChange={(val) => {
                 if (val) onChange({ ...input, ability: val });
                 else {
-                  const { ability: _ability, ...rest } = input;
+                  const { ability: _a, ...rest } = input;
                   onChange(rest as BattleParticipantInput);
                 }
               }}
-              placeholder="Busca habilidad..."
+              placeholder="—"
             />
           </div>
-
-          <div className="flex flex-col gap-2">
-            <Label className="text-">
-              Objeto{" "}
-              <span className="text-[#7B8794] font-normal">(opcional)</span>
+          <div className="space-y-1">
+            <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
+              Objeto
             </Label>
             <ItemSelect
               itemList={itemList as never}
@@ -623,198 +436,236 @@ export const ParticipantCard = memo(function ParticipantCard({
               onValueChange={(val) => {
                 if (val) onChange({ ...input, item: val });
                 else {
-                  const { item: _item, ...rest } = input;
+                  const { item: _i, ...rest } = input;
                   onChange(rest as BattleParticipantInput);
                 }
               }}
-              placeholder="Opcional..."
+              placeholder="—"
             />
           </div>
         </div>
       </div>
 
-      <div className="border-t border-[#F0F3F7]">
-        {panelSections.map((sec) => {
-          const open = sections[sec.key];
-          const isError = sec.key === "evs" && evTotal > 510;
-          return (
-            <div
-              key={sec.key}
-              className="border-b border-[#F0F3F7] last:border-0"
-            >
-              <button
-                type="button"
-                onClick={() =>
-                  setSections((s) => ({ ...s, [sec.key]: !s[sec.key] }))
-                }
-                className="w-full flex items-center justify-between p-3 md:p-4 text-left hover:bg-[#F5F7FA]/60 transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className={`size-6 rounded-lg border flex items-center justify-center shrink-0 ${open ? "bg-[#182033] border-[#182033] text-white" : "bg-white"}`}
-                  >
-                    <ChevronDown
-                      className={`size-3.5 ${open ? "rotate-180" : ""} transition-transform`}
+      {/* Collapsibles */}
+      <div className="border-t border-[#F0EDE6] divide-y divide-[#F0EDE6]">
+        <div>
+          <button
+            type="button"
+            onClick={() => setOpenIV(!openIV)}
+            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-[#F8F5F0]"
+          >
+            <span className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#1A1A1A]">
+              Valores Individuales 0–31
+            </span>
+            <ChevronDown
+              className={`size-3.5 text-[#9A9590] transition-transform ${openIV ? "rotate-180" : ""}`}
+            />
+          </button>
+          {openIV && (
+            <div className="px-3 pb-3 grid grid-cols-3 gap-2">
+              {STAT_ORDER.map((st) => {
+                const iv =
+                  getStatNumber(
+                    (input.ivs as unknown as Record<string, StatValue>)[st],
+                  ) || 31;
+                return (
+                  <div key={st} className="space-y-1">
+                    <span className="text-[10px] font-mono text-[#9A9590] uppercase">
+                      {STAT_LABELS[st].abbr}
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={31}
+                      value={iv}
+                      onChange={(e) => {
+                        const v = Math.min(
+                          31,
+                          Math.max(0, parseInt(e.target.value, 10) || 0),
+                        );
+                        const newIVs = {
+                          ...(input.ivs as unknown as Record<string, number>),
+                          [st]: v,
+                        };
+                        try {
+                          onChange({ ...input, ivs: IV.createSet(newIVs) });
+                        } catch {
+                          onChange({
+                            ...input,
+                            ivs: newIVs as unknown as BattleParticipantInput["ivs"],
+                          });
+                        }
+                      }}
+                      className="h-7 w-full px-2 rounded-md border border-[#E8E0D6] text-[12px] font-mono"
                     />
                   </div>
-                  <div className="min-w-0">
-                    <div className="text- font-medium flex items-center gap-2 truncate">
-                      {sec.title}
-                      {sec.badge && (
-                        <span
-                          className={`text- px-2 py-0.5 rounded-full font-medium ${isError ? "bg-[#FEE2E2] text-[#C7373F]" : "bg-[#EFF6FF] text-[#2868B2]"}`}
-                        >
-                          {sec.badge}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text- text-[#7B8794] truncate">
-                      {sec.desc}
-                    </div>
-                  </div>
-                </div>
-                <span className="text- text-[#7B8794] hidden md:block shrink-0 ml-2 tabular-nums">
-                  {sec.count}
-                </span>
-              </button>
-
-              {open && (
-                <div className="px-3 md:px-4 pb-4">
-                  {sec.key === "ivs" && (
-                    <div className="rounded-xl border bg-[#FBFCFD] p-3">
-                      {STAT_ORDER.map((st) => {
-                        const ivVal =
-                          getStatNumber(
-                            (input.ivs as unknown as Record<string, StatValue>)[
-                              st
-                            ],
-                          ) || 31;
-                        return (
-                          <IvRow
-                            key={st}
-                            stat={st}
-                            iv={ivVal}
-                            liveValue={
-                              liveStats
-                                ? (liveStats as Record<StatName, number>)[st]
-                                : 0
-                            }
-                            onChangeIV={(v) => {
-                              const newIVs = {
-                                ...(input.ivs as unknown as Record<
-                                  string,
-                                  number
-                                >),
-                                [st]: v,
-                              };
-                              try {
-                                onChange({
-                                  ...input,
-                                  ivs: IV.createSet(newIVs),
-                                });
-                              } catch {
-                                onChange({
-                                  ...input,
-                                  ivs: newIVs as unknown as BattleParticipantInput["ivs"],
-                                });
-                              }
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                  {sec.key === "evs" && (
-                    <div className="rounded-xl border bg-[#FBFCFD] p-3">
-                      {STAT_ORDER.map((st) => {
-                        const evVal =
-                          getStatNumber(
-                            (input.evs as unknown as Record<string, StatValue>)[
-                              st
-                            ],
-                          ) || 0;
-                        return (
-                          <EvRow
-                            key={st}
-                            stat={st}
-                            ev={evVal}
-                            evTotal={evTotal}
-                            liveValue={
-                              liveStats
-                                ? (liveStats as Record<StatName, number>)[st]
-                                : 0
-                            }
-                            onChangeEV={(v) => {
-                              const newEVs = {
-                                ...(input.evs as unknown as Record<
-                                  string,
-                                  number
-                                >),
-                                [st]: v,
-                              };
-                              try {
-                                onChange({
-                                  ...input,
-                                  evs: EV.createSet(newEVs),
-                                });
-                              } catch {
-                                onChange({
-                                  ...input,
-                                  evs: newEVs as unknown as BattleParticipantInput["evs"],
-                                });
-                              }
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                  {sec.key === "mods" && (
-                    <div className="space-y-4">
-                      <BattleFieldControls />
-                      <div className="flex flex-col gap-2">
-                        <Label className="text- flex items-center gap-1.5">
-                          Estado alterado ({label})
-                          <span className="group relative">
-                            <Info className="size-3.5 text-[#7B8794]" />
-                            <span className="absolute left-0 top-5 hidden group-hover:block w-64 p-2.5 rounded-lg bg-[#182033] text-white text- leading-snug z-10 shadow-lg">
-                              Quemado reduce Ataque físico 50%. Paralizado
-                              reduce Velocidad 50%. Se aplica según reglas
-                              oficiales de la generación seleccionada.
-                            </span>
-                          </span>
-                        </Label>
-                        <Combobox
-                          options={statusOptions}
-                          value={input.status ?? "none"}
-                          onValueChange={(v) =>
-                            onChange({ ...input, status: v as StatusId })
-                          }
-                          placeholder="Ninguno"
-                        />
-                        <p className="text- text-[#5F6B7A] leading-snug">
-                          Aplica penalizaciones oficiales. Ej: quemadura con
-                          Facade o habilidad Guts se calcula automáticamente.
-                        </p>
-                      </div>
-                      <label className="flex items-center gap-2 text-">
-                        <input
-                          type="checkbox"
-                          checked={conditions.isCriticalHit ?? false}
-                          onChange={(e) =>
-                            setConditions({ isCriticalHit: e.target.checked })
-                          }
-                          className="rounded"
-                        />
-                        Golpe crítico (x1.5 e ignora cambios defensivos)
-                      </label>
-                    </div>
-                  )}
-                </div>
-              )}
+                );
+              })}
             </div>
-          );
-        })}
+          )}
+        </div>
+
+        <div>
+          <button
+            type="button"
+            onClick={() => setOpenEV(!openEV)}
+            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-[#F8F5F0]"
+          >
+            <span className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#1A1A1A]">
+                Esfuerzo
+              </span>
+              <span
+                className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${evTotal > 510 ? "bg-[#FEF2F2] border-[#FECACA] text-[#991B1B]" : "bg-[#F8F5F0] border-[#EDE8E0] text-[#9A9590]"}`}
+              >
+                {evTotal}/510
+              </span>
+            </span>
+            <ChevronDown
+              className={`size-3.5 text-[#9A9590] transition-transform ${openEV ? "rotate-180" : ""}`}
+            />
+          </button>
+          {openEV && (
+            <div className="px-3 pb-3 space-y-2.5">
+              {STAT_ORDER.map((st) => {
+                const ev =
+                  getStatNumber(
+                    (input.evs as unknown as Record<string, StatValue>)[st],
+                  ) || 0;
+                const remaining = 510 - (evTotal - ev);
+                const maxFor = Math.min(252, remaining);
+                return (
+                  <div key={st} className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono w-7 text-[#9A9590]">
+                      {STAT_LABELS[st].abbr}
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={252}
+                      step={4}
+                      value={ev}
+                      onChange={(e) => {
+                        const v = Math.min(
+                          maxFor,
+                          Math.max(0, parseInt(e.target.value, 10)),
+                        );
+                        const newEVs = {
+                          ...(input.evs as unknown as Record<string, number>),
+                          [st]: v,
+                        };
+                        try {
+                          onChange({ ...input, evs: EV.createSet(newEVs) });
+                        } catch {
+                          onChange({
+                            ...input,
+                            evs: newEVs as unknown as BattleParticipantInput["evs"],
+                          });
+                        }
+                      }}
+                      className="flex-1 accent-[#111] h-1"
+                    />
+                    <input
+                      type="number"
+                      min={0}
+                      max={maxFor}
+                      value={ev}
+                      onChange={(e) => {
+                        const v = Math.min(
+                          maxFor,
+                          Math.max(0, parseInt(e.target.value, 10) || 0),
+                        );
+                        const newEVs = {
+                          ...(input.evs as unknown as Record<string, number>),
+                          [st]: v,
+                        };
+                        try {
+                          onChange({ ...input, evs: EV.createSet(newEVs) });
+                        } catch {
+                          onChange({
+                            ...input,
+                            evs: newEVs as unknown as BattleParticipantInput["evs"],
+                          });
+                        }
+                      }}
+                      className="h-6 w-12 px-1 rounded-md border border-[#E8E0D6] text-[11px] font-mono text-center"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <button
+            type="button"
+            onClick={() => setOpenMods(!openMods)}
+            className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-[#F8F5F0]"
+          >
+            <span className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#1A1A1A]">
+              Estado y modificadores
+            </span>
+            <ChevronDown
+              className={`size-3.5 text-[#9A9590] transition-transform ${openMods ? "rotate-180" : ""}`}
+            />
+          </button>
+          {openMods && (
+            <div className="px-3 pb-3 space-y-3">
+              <BattleFieldControls />
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590] flex items-center gap-1">
+                  Estado alterado <Info className="size-3" />
+                </Label>
+                <Combobox
+                  options={statusOptions}
+                  value={input.status ?? "none"}
+                  onValueChange={(v) =>
+                    onChange({ ...input, status: v as StatusId })
+                  }
+                  placeholder="Ninguno"
+                />
+                <p className="text-[10px] text-[#9A9590] leading-snug">
+                  {(() => {
+                    const map: Record<string, string> = {
+                      none: "Sin estado alterado.",
+                      burn: "Quemado reduce Ataque físico 50% y causa daño residual.",
+                      paralyze:
+                        "Paralizado reduce Velocidad 50% y puede impedir moverse.",
+                      paralysis:
+                        "Paralizado reduce Velocidad 50% y puede impedir moverse.",
+                      poison: "Envenenado causa daño residual cada turno.",
+                      "badly-poisoned":
+                        "Gravemente envenenado, daño creciente cada turno.",
+                      sleep: "Dormido no puede atacar por 1-3 turnos.",
+                      freeze: "Congelado no puede atacar hasta descongelarse.",
+                      envenenado: "Envenenado causa daño residual cada turno.",
+                      quemado: "Quemado reduce Ataque físico 50%.",
+                      paralizado: "Paralizado reduce Velocidad 50%.",
+                    };
+                    const s = (input.status as string) || "none";
+                    return (
+                      map[s] ||
+                      map[s.toLowerCase()] ||
+                      "Selecciona un estado para ver su efecto en combate."
+                    );
+                  })()}
+                </p>
+              </div>
+              <label className="flex items-center gap-2 text-[11px] font-mono">
+                <input
+                  type="checkbox"
+                  checked={conditions.isCriticalHit ?? false}
+                  onChange={(e) =>
+                    setConditions({ isCriticalHit: e.target.checked })
+                  }
+                  className="rounded"
+                />
+                Golpe crítico (×1.5)
+              </label>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

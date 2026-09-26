@@ -21,30 +21,30 @@ import { Button } from "@/components/ui/button";
 const NAV_LINKS = [
   {
     href: "/battle-lab",
-    label: "Battle Lab",
-    labelEs: "Batalla",
+    label: "Batalla",
+    labelEn: "Battle Lab",
     icon: Swords,
   },
   {
     href: "/team-builder",
-    label: "Team Builder",
-    labelEs: "Equipo",
+    label: "Equipo",
+    labelEn: "Team Builder",
     icon: Shield,
   },
   {
     href: "/build-optimizer",
-    label: "Optimizer",
-    labelEs: "Optimizar",
+    label: "Optimizar",
+    labelEn: "Optimizer",
     icon: Zap,
   },
-  { href: "/breeding", label: "Breeding", labelEs: "Crianza", icon: Egg },
+  { href: "/breeding", label: "Crianza", labelEn: "Breeding", icon: Egg },
   {
     href: "/generations",
-    label: "Generations",
-    labelEs: "Gens",
+    label: "Generaciones",
+    labelEn: "Generations",
     icon: History,
   },
-  { href: "/pokedex", label: "Pokédex", labelEs: "Pokédex", icon: BookOpen },
+  { href: "/pokedex", label: "Pokédex", labelEn: "Pokédex", icon: BookOpen },
 ] as const;
 
 function isActivePath(pathname: string, href: string) {
@@ -71,26 +71,25 @@ export function Header() {
       className={cn(
         "sticky top-0 z-40 w-full border-b transition-all",
         scrolled
-          ? "border-zinc-200/80 bg-white/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(0,0,0,0.04)] dark:border-zinc-800/80 dark:bg-zinc-950/90"
-          : "border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80",
+          ? "border-[#EDE8E0] bg-[#FFFEFB]/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(0,0,0,0.04)]"
+          : "border-[#EDE8E0] bg-[#FFFEFB]/80 backdrop-blur-md",
       )}
     >
-      <div className="mx-auto flex h-15 w-full max-w-7xl items-center justify-between px-4 md:px-6 lg:px-8">
-        {/* Logo */}
+      <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center justify-between px-4 md:px-6 lg:px-8">
         <Link
           href="/"
           onClick={closeMobileMenu}
-          className="flex items-center gap-2.5 rounded-xl px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-blue-600 group"
+          className="flex items-center gap-2 rounded-xl px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 group"
         >
-          <div className="size-8 rounded-lg bg-linear-to-br from-[#D93B32] to-[#B91C1C] flex items-center justify-center shadow-[0_2px_8px_rgba(217,59,50,0.25)] group-hover:shadow-[0_4px_12px_rgba(217,59,50,0.3)] transition-shadow">
+          <div className="size-7 rounded-lg bg-linear-to-br from-[#D93B32] to-[#B91C1C] flex items-center justify-center shadow-[0_2px_8px_rgba(217,59,50,0.25)]">
             <Flame className="size-4 text-white" />
           </div>
-          <span className="text-[17px] font-bold tracking-[-0.02em] text-zinc-900 dark:text-zinc-50">
+          <span className="text-[15px] font-bold tracking-[-0.02em] text-[#111] flex items-center gap-1.5">
             PokeGuide
+            <span className="size-1.5 rounded-full bg-[#D93B32] animate-pulse" />
           </span>
         </Link>
 
-        {/* Desktop Nav */}
         <nav
           className="hidden items-center gap-1 lg:flex"
           aria-label="Navegación principal"
@@ -103,26 +102,25 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={active ? "page" : undefined}
+                title={link.labelEn}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-blue-600",
+                  "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20",
                   active
-                    ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-sm"
-                    : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100",
+                    ? "bg-[#111] text-white shadow-sm"
+                    : "text-[#7A7570] hover:bg-[#F8F5F0] hover:text-[#111]",
                 )}
               >
                 <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                <span className="hidden xl:inline">{link.label}</span>
-                <span className="xl:hidden">{link.labelEs}</span>
+                {link.label}
               </Link>
             );
           })}
         </nav>
 
-        {/* Mobile toggle */}
         <Button
           variant="ghost"
           size="icon"
-          className="size-9 rounded-full lg:hidden hover:bg-zinc-100 dark:hover:bg-zinc-900"
+          className="size-8 rounded-full lg:hidden hover:bg-[#F8F5F0]"
           onClick={toggleMobileMenu}
           aria-label={isMobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
           aria-expanded={isMobileMenuOpen}
@@ -136,11 +134,10 @@ export function Header() {
         </Button>
       </div>
 
-      {/* Mobile Nav */}
       {isMobileMenuOpen && (
         <div
           id="mobile-nav"
-          className="border-t border-zinc-200 bg-white px-4 py-4 dark:border-zinc-800 dark:bg-zinc-950 lg:hidden animate-in slide-in-from-top-2 duration-200"
+          className="border-t border-[#EDE8E0] bg-[#FFFEFB] px-4 py-3 lg:hidden animate-in slide-in-from-top-2 duration-200"
         >
           <nav className="flex flex-col gap-1" aria-label="Navegación móvil">
             {NAV_LINKS.map((link) => {
@@ -153,25 +150,23 @@ export function Header() {
                   onClick={closeMobileMenu}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-4 py-3 text-[14px] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-600",
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors",
                     active
-                      ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                      : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900",
+                      ? "bg-[#111] text-white"
+                      : "text-[#5A5652] hover:bg-[#F8F5F0]",
                   )}
                 >
                   <div
                     className={cn(
-                      "size-8 rounded-lg flex items-center justify-center",
-                      active
-                        ? "bg-white/15 dark:bg-zinc-900/10"
-                        : "bg-zinc-100 dark:bg-zinc-800",
+                      "size-7 rounded-lg flex items-center justify-center",
+                      active ? "bg-white/15" : "bg-[#F8F5F0]",
                     )}
                   >
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </div>
                   {link.label}
-                  <span className="ml-auto text-[11px] text-zinc-400">
-                    {link.labelEs}
+                  <span className="ml-auto text-[10px] font-mono text-[#9A9590]">
+                    {link.labelEn}
                   </span>
                 </Link>
               );
