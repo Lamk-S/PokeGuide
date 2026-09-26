@@ -26,6 +26,7 @@ import {
   type StatValue,
   type PokemonTypeRef,
 } from "@/domain/pokemon/utils/pokemonHelpers";
+import { translateType } from "@/components/ui/TypeBadge";
 
 type MoveOptionRich = {
   value: string;
@@ -55,13 +56,13 @@ type PokemonListItem = {
 };
 
 const GEN_OPTIONS = [
-  { value: "3", label: "Gen 3 - Rubí/Zafiro" },
-  { value: "4", label: "Gen 4 - Diamante/Perla" },
-  { value: "5", label: "Gen 5 - Negro/Blanco" },
-  { value: "6", label: "Gen 6 - X/Y" },
-  { value: "7", label: "Gen 7 - Sol/Luna" },
-  { value: "8", label: "Gen 8 - Espada/Escudo" },
-  { value: "9", label: "Gen 9 - Escarlata/Violeta" },
+  { value: "3", label: "Gen 3 · Rubí/Zafiro" },
+  { value: "4", label: "Gen 4 · Diamante/Perla" },
+  { value: "5", label: "Gen 5 · Negro/Blanco" },
+  { value: "6", label: "Gen 6 · X/Y" },
+  { value: "7", label: "Gen 7 · Sol/Luna" },
+  { value: "8", label: "Gen 8 · Espada/Escudo" },
+  { value: "9", label: "Gen 9 · Escarlata/Violeta" },
 ];
 
 const BADGE_LABELS: Record<BattleValidationError, string> = {
@@ -111,6 +112,7 @@ export function BattleLabView() {
     loadItems();
     loadAbilities();
   }, [loadPokemon, loadMoves, loadItems, loadAbilities]);
+
   useEffect(() => {
     if (attackerInput?.pokemonId !== prevAttackerIdRef.current) {
       userHasManuallySelectedMove.current = false;
@@ -123,11 +125,13 @@ export function BattleLabView() {
     const raw = pokemonList.find((p) => p.id === attackerInput.pokemonId);
     return raw ? parsePokemonIdentity({ id: raw.id, name: raw.name }) : null;
   }, [attackerInput?.pokemonId, pokemonList]);
+
   const defenderIdentity = useMemo(() => {
     if (!defenderInput?.pokemonId) return null;
     const raw = pokemonList.find((p) => p.id === defenderInput.pokemonId);
     return raw ? parsePokemonIdentity({ id: raw.id, name: raw.name }) : null;
   }, [defenderInput?.pokemonId, pokemonList]);
+
   const attackerResolvedForm = useMemo(
     () =>
       attackerIdentity
@@ -159,6 +163,7 @@ export function BattleLabView() {
       attackerResolvedForm?.basePokemon ||
       null) as unknown as PokemonListItem | null;
   }, [attackerIdentity, attackerResolvedForm, pokemonList]);
+
   const defenderPokemon = useMemo(() => {
     if (!defenderIdentity) return undefined;
     const original = pokemonList.find(
@@ -190,13 +195,21 @@ export function BattleLabView() {
     if (!attackerInput || resolvedAttackerMoves.moves.length === 0) return [];
     return resolvedAttackerMoves.moves.map((mName: string) => {
       const fm = moveList[mName];
+      const typeEs = fm?.type ? translateType(fm.type) : "Normal";
+      const rawCat = (fm as { category?: string } | undefined)?.category;
+      const cat =
+        rawCat === "special"
+          ? "Especial"
+          : rawCat === "status"
+            ? "Estado"
+            : "Físico";
       return {
         value: mName,
         label: fm?.nameEs || fm?.name || mName,
         type: fm?.type || "normal",
         power: fm?.power ?? null,
         accuracy: fm?.accuracy ?? null,
-        description: `${(fm?.type || "normal").toUpperCase()} • ${fm?.power || 0} pot.`,
+        description: `${typeEs.toUpperCase()} • ${fm?.power || 0} pot. · Precisión ${fm?.accuracy ?? 100}% · ${cat}`,
       };
     });
   }, [attackerInput, resolvedAttackerMoves, moveList]);
@@ -319,87 +332,117 @@ export function BattleLabView() {
       setLocalError(e instanceof Error ? e.message : String(e));
     }
   };
+
   const canCalculate = validationState.valid && !isCalculating;
   const missing: string[] = [];
   if (!attackerInput) missing.push("atacante");
   if (!defenderInput) missing.push("defensor");
   if (!moveName) missing.push("movimiento");
+
   const evTotalAtk = useMemo(() => {
     if (!attackerInput) return 0;
     return Object.values(
       attackerInput.evs as unknown as Record<string, StatValue>,
     ).reduce<number>((s, v) => s + getStatNumber(v), 0);
   }, [attackerInput]);
+  const evTotalDef = useMemo(() => {
+    if (!defenderInput) return 0;
+    return Object.values(
+      defenderInput.evs as unknown as Record<string, StatValue>,
+    ).reduce<number>((s, v) => s + getStatNumber(v), 0);
+  }, [defenderInput]);
+
   const resolvedMoveName =
     moveList[moveName]?.nameEs || moveList[moveName]?.name || moveName;
   const tabs = [
     { id: "attacker" as TabId, label: "Atacante" },
-    { id: "defender" as TabId, label: "Defensor" },
     { id: "result" as TabId, label: "Resultado" },
+    { id: "defender" as TabId, label: "Defensor" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-[#182033]">
-      <div className="max-w-7xl mx-auto px-4 lg:px-6 pt-6 pb-2">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-          <div>
-            <h1 className="text- font-bold tracking-[-0.02em]">
-              Laboratorio de Batalla
-            </h1>
-            <p className="text- text-[#5F6B7A] mt-1 max-w- leading-snug">
-              Simula daño real considerando nivel, naturaleza, IVs, EVs, objeto,
-              habilidad, estado, clima y terreno. Optimizado para competitivo y
-              VGC.
-            </p>
-          </div>
-          <div className="flex flex-row items-end gap-3 shrink-0">
-            <div className="flex flex-col gap-1.5 min-w-">
-              <Label className="text- uppercase tracking-[0.12em] text-[#5F6B7A]">
-                Generación
-              </Label>
-              <Combobox
-                options={GEN_OPTIONS}
-                value={generation.toString()}
-                onValueChange={(v) => setGeneration(parseInt(v, 10))}
-                placeholder="Elige generación"
-              />
+    <div className="min-h-screen bg-[#F8F5F0] text-[#1A1A1A] -mx-4 md:-mx-6 lg:-mx-8 -my-6 md:-my-8">
+      {/* Sticky context bar - meta + VS - stays visible on scroll */}
+      <div className="sticky top-14 z-30 w-full bg-[#FFFEFB] border-b border-[#EDE8E0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        {/* Top meta bar - responsive, no more "Labr" truncation */}
+        <div className="max-w-[1600px] mx-auto px-4 lg:px-6 py-2 md:py-0 md:h-11 flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
+          <div className="flex items-center justify-between gap-3 w-full md:w-auto min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <h1 className="text-[12px] font-bold tracking-[-0.01em] whitespace-nowrap shrink-0">
+                Laboratorio de Batalla
+              </h1>
+              <span className="hidden md:block h-3 w-px bg-[#EDE8E0] shrink-0" />
+              <p className="hidden lg:block text-[11px] text-[#7A7570] truncate max-w-140 leading-snug">
+                Herramienta de precisión para simular daño real con naturaleza,
+                IVs, EVs, objeto, habilidad, estado, clima y terreno.
+              </p>
             </div>
+            {/* Mobile badge */}
             <span
-              className={`inline-flex items-center gap-2 h-8 px-3 rounded-full border text-xs font-medium ${result ? "bg-[#EFF6FF] border-[#BFDBFE] text-[#2868B2]" : canCalculate ? "bg-[#ECFDF5] border-[#B7E4CE] text-[#16845B]" : "bg-[#FFFBEB] border-[#F6E6B8] text-[#A96B00]"}`}
+              className={`md:hidden inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
             >
               <span
-                className={`size-1.5 rounded-full ${result ? "bg-[#2868B2]" : canCalculate ? "bg-[#16845B]" : "bg-[#D9A900] animate-pulse"}`}
+                className={`size-1.5 rounded-full ${result ? "bg-white" : canCalculate ? "bg-[#2D5A27]" : "bg-[#D97706] animate-pulse"}`}
+              />
+              {result ? "LISTO" : canCalculate ? "LISTO" : "FALTA"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <Label className="hidden md:block text-[10px] uppercase tracking-[0.08em] text-[#9A9590] font-semibold shrink-0">
+                Generación
+              </Label>
+              <div className="w-full md:w-55">
+                <Combobox
+                  options={GEN_OPTIONS}
+                  value={generation.toString()}
+                  onValueChange={(v) => setGeneration(parseInt(v, 10))}
+                  placeholder="Gen 9 · Escarlata/Violeta"
+                />
+              </div>
+            </div>
+            <span
+              className={`hidden md:inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
+            >
+              <span
+                className={`size-1.5 rounded-full ${result ? "bg-white" : canCalculate ? "bg-[#2D5A27]" : "bg-[#D97706] animate-pulse"}`}
               />
               {result
-                ? "Resultado listo"
+                ? "CÁLCULO LISTO"
                 : canCalculate
-                  ? "Listo para calcular"
-                  : BADGE_LABELS[
-                      validationState.errors[0] as BattleValidationError
-                    ] || "Faltan datos"}
+                  ? "LISTO"
+                  : (
+                      BADGE_LABELS[
+                        validationState.errors[0] as BattleValidationError
+                      ] || "FALTAN DATOS"
+                    ).toUpperCase()}
             </span>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 lg:px-6 pb-4">
         <BattleSummary
           attackerPokemon={attackerPokemon as never}
           defenderPokemon={defenderPokemon as never}
           attackerLevel={attackerInput?.level}
           defenderLevel={defenderInput?.level}
           generation={generation}
+          moveName={resolvedMoveName}
+          moveType={moveName ? moveList[moveName]?.type : undefined}
+          movePower={
+            moveName ? ((moveList[moveName]?.power as number) ?? null) : null
+          }
         />
       </div>
 
-      <div className="lg:hidden sticky top-14 z-20 bg-[#F5F7FA] px-4 pt-3">
-        <div className="flex p-1 rounded-xl bg-[#E8ECF1] gap-1">
+      {/* Mobile tabs - sticky debajo del VS bar */}
+      <div className="lg:hidden sticky top-28 z-20 bg-[#F8F5F0] px-4 pt-3 pb-2 border-b border-[#EDE8E0]">
+        <div className="flex p-1 rounded-xl bg-[#EDE8E0] gap-1">
           {tabs.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`flex-1 h-9 rounded-lg text- font-medium transition-colors ${activeTab === t.id ? "bg-white shadow text-[#182033]" : "text-[#5F6B7A]"}`}
+              className={`flex-1 h-8 rounded-lg text-[12px] font-medium transition-colors ${activeTab === t.id ? "bg-white shadow-sm text-[#111]" : "text-[#7A7570]"}`}
             >
               {t.label}
             </button>
@@ -407,10 +450,11 @@ export function BattleLabView() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 lg:px-6 py-6 pb-24 lg:pb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <main className="max-w-[1600px] mx-auto px-4 lg:px-6 py-5 pb-24 lg:pb-6">
+        {/* 3 columns - desktop - items-start para que no se estiren cuando uno es alto */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           <section
-            className={`${activeTab !== "attacker" ? "hidden lg:block" : "block"} self-start`}
+            className={`${activeTab !== "attacker" ? "hidden lg:block" : "block"} lg:col-span-4 xl:col-span-4 self-start`}
           >
             <ParticipantCard
               label="Atacante"
@@ -426,17 +470,10 @@ export function BattleLabView() {
               defenderTypes={defenderTypes}
             />
           </section>
+
           <section
-            className={`${activeTab === "attacker" ? "hidden lg:block" : "block"} self-start space-y-6`}
+            className={`${activeTab !== "result" ? "hidden lg:block" : "block"} lg:col-span-4 xl:col-span-4 self-start`}
           >
-            <ParticipantCard
-              label="Defensor"
-              pokemonList={pokemonList as never}
-              input={defenderInput}
-              onChange={setDefender}
-              facing="right"
-              generation={generation}
-            />
             {result ? (
               <BattleResultCard
                 result={result}
@@ -446,6 +483,7 @@ export function BattleLabView() {
                 defenderInput={defenderInput}
                 conditions={conditions}
                 moveName={resolvedMoveName}
+                generation={generation}
                 {...(moveList[moveName]?.type
                   ? { moveType: moveList[moveName]?.type }
                   : {})}
@@ -457,30 +495,49 @@ export function BattleLabView() {
               <ResultEmptyState missing={missing} />
             )}
             {localError && (
-              <p className="mt-3 text- text-[#C7373F] p-3 bg-[#FFF5F5] rounded-xl border border-[#FEE2E2]">
+              <p className="mt-3 text-[12px] text-[#991B1B] p-3 bg-[#FEF2F2] rounded-xl border border-[#FECACA] font-mono">
                 {localError}
               </p>
             )}
           </section>
+
+          <section
+            className={`${activeTab !== "defender" ? "hidden lg:block" : "block"} lg:col-span-4 xl:col-span-4 self-start`}
+          >
+            <ParticipantCard
+              label="Defensor"
+              pokemonList={pokemonList as never}
+              input={defenderInput}
+              onChange={setDefender}
+              facing="right"
+              generation={generation}
+            />
+          </section>
         </div>
       </main>
 
-      <div className="fixed lg:sticky bottom-0 left-0 right-0 z-30 bg-white border-t border-[#D9E0E8]">
-        <div className="max-w-7xl mx-auto px-4 lg:px-6 h-16 flex items-center justify-between gap-3">
-          <div className="hidden md:flex items-center gap-4 text-xs">
-            <span
-              className={`flex items-center gap-1.5 ${evTotalAtk > 510 ? "text-[#C7373F]" : "text-[#5F6B7A]"}`}
-            >
-              <span
-                className={`size-2 rounded-full ${evTotalAtk > 510 ? "bg-[#C7373F]" : evTotalAtk === 510 ? "bg-[#16845B]" : "bg-[#B9C4D1]"}`}
-              />
-              EVs: {evTotalAtk}/510
+      <div className="fixed lg:sticky bottom-0 left-0 right-0 z-30 bg-[#FFFEFB]/95 backdrop-blur-md border-t border-[#EDE8E0]">
+        <div className="max-w-[1600px] mx-auto px-4 lg:px-6 h-14 flex items-center justify-between gap-3">
+          <div className="hidden md:flex items-center gap-4 text-[10px] font-mono text-[#9A9590]">
+            <span className={evTotalAtk > 510 ? "text-[#991B1B]" : ""}>
+              {evTotalAtk}/510 Esfuerzo atacante
+            </span>
+            <span className="text-[#EDE8E0]">·</span>
+            <span className={evTotalDef > 510 ? "text-[#991B1B]" : ""}>
+              {evTotalDef}/510 Esfuerzo defensor
+            </span>
+            <span className="text-[#EDE8E0]">·</span>
+            <span>
+              VIDA RESTANTE{" "}
+              {result
+                ? `${(100 - result.damage.maxPercent).toFixed(1)}%`
+                : "0%"}
             </span>
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto justify-end">
             <Button
-              variant="outline"
-              className="hidden md:inline-flex h-9 px-3 rounded-xl border"
+              variant="ghost"
+              className="hidden md:inline-flex h-8 px-3 rounded-full text-[11px] font-mono underline decoration-dotted underline-offset-4"
               onClick={() => {
                 if (attackerInput && defenderInput) {
                   setAttacker(defenderInput);
@@ -493,7 +550,7 @@ export function BattleLabView() {
             <Button
               onClick={handleCalculate}
               disabled={!canCalculate}
-              className={`flex-1 md:flex-none h-11 px-5 rounded-xl text-sm font-semibold ${!canCalculate ? "bg-[#F0F3F7] text-[#7B8794] border cursor-not-allowed" : "bg-[#D93B32] text-white hover:bg-[#B92C2A]"}`}
+              className={`flex-1 md:flex-none h-9 px-5 rounded-full text-[12px] font-semibold ${!canCalculate ? "bg-[#F0EDE6] text-[#9A9590] cursor-not-allowed" : "bg-[#111] text-white hover:bg-black"}`}
             >
               {isCalculating ? "Calculando..." : "Calcular daño"}
             </Button>
