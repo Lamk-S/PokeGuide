@@ -6,6 +6,7 @@ import { useItemStore } from "@/features/items/store/useItemStore";
 import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
 import { useBattleStore } from "@/features/battle/store/useBattleStore";
 import { ParticipantCard } from "./ParticipantCard";
+import { BattleFieldControls } from "./BattleFieldControls";
 import { BattleSummary } from "./BattleSummary";
 import { BattleResultCard, ResultEmptyState } from "./BattleResultCard";
 import { Button } from "@/components/ui/button";
@@ -364,22 +365,22 @@ export function BattleLabView() {
     <div className="min-h-screen bg-[#F8F5F0] text-[#1A1A1A] -mx-4 md:-mx-6 lg:-mx-8 -my-6 md:-my-8">
       {/* Sticky context bar - meta + VS - stays visible on scroll */}
       <div className="sticky top-14 z-30 w-full bg-[#FFFEFB] border-b border-[#EDE8E0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-        {/* Top meta bar - responsive, no more "Labr" truncation */}
-        <div className="max-w-[1600px] mx-auto px-4 lg:px-6 py-2 md:py-0 md:h-11 flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-4">
-          <div className="flex items-center justify-between gap-3 w-full md:w-auto min-w-0">
+        {/* Top meta bar - uniforme desktop/tablet, sin distorsión */}
+        <div className="max-w-[1600px] mx-auto px-4 lg:px-6 py-2.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 w-full lg:w-auto min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <h1 className="text-[12px] font-bold tracking-[-0.01em] whitespace-nowrap shrink-0">
                 Laboratorio de Batalla
               </h1>
               <span className="hidden md:block h-3 w-px bg-[#EDE8E0] shrink-0" />
-              <p className="hidden lg:block text-[11px] text-[#7A7570] truncate max-w-140 leading-snug">
+              <p className="hidden xl:block text-[11px] text-[#7A7570] truncate max-w-140 leading-snug">
                 Herramienta de precisión para simular daño real con naturaleza,
                 IVs, EVs, objeto, habilidad, estado, clima y terreno.
               </p>
             </div>
             {/* Mobile badge */}
             <span
-              className={`md:hidden inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
+              className={`lg:hidden inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
             >
               <span
                 className={`size-1.5 rounded-full ${result ? "bg-white" : canCalculate ? "bg-[#2D5A27]" : "bg-[#D97706] animate-pulse"}`}
@@ -387,22 +388,25 @@ export function BattleLabView() {
               {result ? "LISTO" : canCalculate ? "LISTO" : "FALTA"}
             </span>
           </div>
-          <div className="flex items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <Label className="hidden md:block text-[10px] uppercase tracking-[0.08em] text-[#9A9590] font-semibold shrink-0">
-                Generación
-              </Label>
-              <div className="w-full md:w-55">
-                <Combobox
-                  options={GEN_OPTIONS}
-                  value={generation.toString()}
-                  onValueChange={(v) => setGeneration(parseInt(v, 10))}
-                  placeholder="Gen 9 · Escarlata/Violeta"
-                />
+          <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="flex flex-col gap-1">
+                <Label className="hidden md:block text-[10px] uppercase tracking-[0.08em] text-[#9A9590] font-semibold leading-none">
+                  Generación
+                </Label>
+                <div className="w-40 md:w-55">
+                  <Combobox
+                    options={GEN_OPTIONS}
+                    value={generation.toString()}
+                    onValueChange={(v) => setGeneration(parseInt(v, 10))}
+                    placeholder="Gen 9 · Escarlata/Violeta"
+                  />
+                </div>
               </div>
+              <BattleFieldControls variant="compact" />
             </div>
             <span
-              className={`hidden md:inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
+              className={`hidden lg:inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
             >
               <span
                 className={`size-1.5 rounded-full ${result ? "bg-white" : canCalculate ? "bg-[#2D5A27]" : "bg-[#D97706] animate-pulse"}`}
