@@ -19,6 +19,7 @@ import type { BattleCalculator } from "@/domain/battle/repositories/BattleCalcul
 import type { BattleScenario } from "@/domain/battle/entities/BattleScenario";
 import type { BattleResult } from "@/domain/battle/types/BattleTypes";
 import type { StatName } from "@/domain/pokemon/types/pokemon";
+import { BattleStatusEffectService } from "@/domain/battle/services/BattleStatusEffectService";
 
 const STAT_TO_SMOGON: Record<
   StatName,
@@ -244,13 +245,22 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
     const activeModifiers: string[] = [];
     if (summary.includes("STAB")) activeModifiers.push("STAB x1.5");
     if (scenario.conditions.isCriticalHit)
-      activeModifiers.push("Golpe Crítico x1.5");
+      activeModifiers.push(
+        BattleStatusEffectService.getCriticalLog(scenario.generation),
+      );
     if (result.rawDesc.weather)
       activeModifiers.push(`Clima: ${result.rawDesc.weather}`);
     if (result.rawDesc.terrain)
       activeModifiers.push(`Campo: ${result.rawDesc.terrain}`);
-    if (result.rawDesc.isBurned)
-      activeModifiers.push("Quemadura Atacante x0.5");
+    if (result.rawDesc.isBurned) {
+      const isPhysical = true;
+      const burnResult = BattleStatusEffectService.evaluateBurn({
+        moveName: scenario.moveName,
+        ability: scenario.attacker.ability,
+        isPhysical,
+      });
+      activeModifiers.push(burnResult.log);
+    }
 
     return {
       defenderMaxHp: defenderHp,
