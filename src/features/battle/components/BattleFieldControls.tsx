@@ -44,11 +44,49 @@ const terrainOptions = Object.values(Terrain).map((t) => {
   };
 });
 
-export function BattleFieldControls() {
+type Props = {
+  variant?: "default" | "compact";
+};
+
+export function BattleFieldControls({ variant = "default" }: Props) {
   const weather = useBattleStore((s) => s.conditions.weather ?? "none");
   const terrain = useBattleStore((s) => s.conditions.terrain ?? "none");
   const setWeather = useBattleStore((s) => s.setWeather);
   const setTerrain = useBattleStore((s) => s.setTerrain);
+
+  if (variant === "compact") {
+    // Uniforme con GENERACIÓN: label 10px uppercase + combobox h-8 mismo ancho
+    return (
+      <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-1">
+          <span className="hidden md:block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9A9590] leading-none">
+            Clima
+          </span>
+          <div className="w-30 md:w-33">
+            <Combobox
+              options={weatherOptions}
+              value={weather}
+              onValueChange={(v) => setWeather(v as WeatherId)}
+              placeholder="Ninguno"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <span className="hidden md:block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9A9590] leading-none">
+            Campo
+          </span>
+          <div className="w-30 md:w-33">
+            <Combobox
+              options={terrainOptions}
+              value={terrain}
+              onValueChange={(v) => setTerrain(v as TerrainId)}
+              placeholder="Ninguno"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 gap-2.5">

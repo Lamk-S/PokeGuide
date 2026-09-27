@@ -23,7 +23,6 @@ import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIden
 import { resolvePokemonForm } from "@/domain/pokemon/services/PokemonFormResolver";
 import { MoveSelect } from "./MoveSelect";
 import { ItemSelect } from "./ItemSelect";
-import { BattleFieldControls } from "./BattleFieldControls";
 import {
   Status,
   type StatusId,
@@ -597,7 +596,7 @@ export const ParticipantCard = memo(function ParticipantCard({
           )}
         </div>
 
-        <div>
+        <div className="relative">
           <button
             type="button"
             onClick={() => setOpenMods(!openMods)}
@@ -611,25 +610,26 @@ export const ParticipantCard = memo(function ParticipantCard({
             />
           </button>
           {openMods && (
-            <div className="px-3 pb-3 space-y-3">
-              <BattleFieldControls />
-              <div className="space-y-1">
+            <div className="px-3 pb-4 space-y-3 overflow-visible">
+              <div className="space-y-2 relative">
                 <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590] flex items-center gap-1">
                   Estado alterado <Info className="size-3" />
                 </Label>
-                <Combobox
-                  options={statusOptions}
-                  value={input.status ?? "none"}
-                  onValueChange={(v) =>
-                    onChange({ ...input, status: v as StatusId })
-                  }
-                  placeholder="Ninguno"
-                />
+                <div className="relative isolate z-20">
+                  <Combobox
+                    options={statusOptions}
+                    value={input.status ?? "none"}
+                    onValueChange={(v) =>
+                      onChange({ ...input, status: v as StatusId })
+                    }
+                    placeholder="Ninguno"
+                  />
+                </div>
                 <p className="text-[10px] text-[#9A9590] leading-snug">
                   {(() => {
                     const map: Record<string, string> = {
                       none: "Sin estado alterado.",
-                      burn: "Quemado reduce Ataque físico 50% y causa daño residual.",
+                      burn: "Quemado reduce daño físico 50% (Guts/Facade lo ignoran) y causa daño residual.",
                       paralyze:
                         "Paralizado reduce Velocidad 50% y puede impedir moverse.",
                       paralysis:
@@ -652,17 +652,19 @@ export const ParticipantCard = memo(function ParticipantCard({
                   })()}
                 </p>
               </div>
-              <label className="flex items-center gap-2 text-[11px] font-mono">
-                <input
-                  type="checkbox"
-                  checked={conditions.isCriticalHit ?? false}
-                  onChange={(e) =>
-                    setConditions({ isCriticalHit: e.target.checked })
-                  }
-                  className="rounded"
-                />
-                Golpe crítico (×1.5)
-              </label>
+              {isAttacker && (
+                <label className="flex items-center gap-2 text-[11px] font-mono">
+                  <input
+                    type="checkbox"
+                    checked={conditions.isCriticalHit ?? false}
+                    onChange={(e) =>
+                      setConditions({ isCriticalHit: e.target.checked })
+                    }
+                    className="rounded"
+                  />
+                  Golpe crítico (×{generation >= 6 ? "1.5" : "2.0"})
+                </label>
+              )}
             </div>
           )}
         </div>

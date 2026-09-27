@@ -1,4 +1,5 @@
 "use client";
+import { BattleStatusEffectService } from "@/domain/battle/services/BattleStatusEffectService";
 import { memo, useMemo } from "react";
 import type { BattleResult } from "@/domain/battle/types/BattleTypes";
 import type { Pokemon } from "@/domain/pokemon/types/pokemon";
@@ -158,30 +159,30 @@ export const BattleResultCard = memo(function BattleResultCard({
 
   const calculationLog = useMemo(() => {
     const logs: string[] = [];
-    // Efectividad real del motor si existe, sino calculamos texto genérico
-    const moveTypeEs = moveType ? translateType(moveType) : "—";
-    const defTypesEs = defenderTypes.map((dt) => translateType(dt)).join(" / ");
-    if (moveType && defenderTypes.length) {
-      logs.push(
-        `×${(result.damage.maxPercent / 50).toFixed(1)} efectividad ${moveTypeEs} → ${defTypesEs}`,
-      );
-    } else if (result.explanation.activeModifiers.length) {
+    // Usar modificadores reales del motor Smogon, no inventar efectividad
+    if (result.explanation.activeModifiers.length) {
       logs.push(...result.explanation.activeModifiers.map((m) => `× ${m}`));
     }
-    // Clima
-    logs.push(getWeatherFactor(conditions?.weather, moveType));
-    // Campo
-    const terrainLog = getTerrainFactor(conditions?.terrain, moveType);
-    if (terrainLog) logs.push(terrainLog);
-    // Objeto
+    // Clima y Campo desde el motor, sin hardcodear multiplicadores fantasma
+    if (conditions?.weather && conditions.weather !== "none") {
+      logs.push(getWeatherFactor(conditions?.weather, moveType));
+    }
+    if (conditions?.terrain && conditions.terrain !== "none") {
+      const terrainLog = getTerrainFactor(conditions?.terrain, moveType);
+      if (terrainLog) logs.push(terrainLog);
+    }
+    // Objeto - no asumir ×1.3 siempre
     if (attackerLine?.item && attackerLine.item !== "—")
-      logs.push(`×1.3 objeto (${attackerLine.item})`);
-    else logs.push("×1.0 objeto (ninguno)");
+      logs.push(`Objeto: ${attackerLine.item}`);
     // Habilidad
     if (attackerLine?.ability && attackerLine.ability !== "—")
       logs.push(`Habilidad: ${attackerLine.ability}`);
-    // Crítico
-    if (conditions?.isCriticalHit) logs.push("×1.5 golpe crítico");
+    // Crítico - usando servicio de dominio para integridad mecánica
+    if (conditions?.isCriticalHit) {
+      const critMult =
+        BattleStatusEffectService.getCriticalMultiplier(generation);
+      logs.push(`×${critMult.toFixed(1)} golpe crítico`);
+    }
     // STAB
     logs.push(hasStab ? "×1.5 STAB" : "×1.0 sin STAB");
     // Estado
@@ -198,13 +199,13 @@ export const BattleResultCard = memo(function BattleResultCard({
     return logs;
   }, [
     moveType,
-    defenderTypes,
     result,
     conditions,
     attackerLine,
     hasStab,
     attackerInput,
     defenderInput,
+    generation,
   ]);
 
   const tacticalNote = useMemo(() => {
@@ -354,7 +355,10 @@ export const BattleResultCard = memo(function BattleResultCard({
                 Crítico y estado
               </span>
               <span className="text-[11px] font-mono text-[#5A5652] text-right">
-                {conditions?.isCriticalHit ? "Crítico ×1.5" : "Normal"} ·{" "}
+                {conditions?.isCriticalHit
+                  ? `Crítico ×${generation >= 6 ? "1.5" : "2.0"}`
+                  : "Normal"}{" "}
+                ·{" "}
                 {attackerInput?.status && attackerInput.status !== "none"
                   ? STATUS_LABEL_ES[attackerInput.status] ||
                     attackerInput.status
