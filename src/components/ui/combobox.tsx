@@ -23,6 +23,7 @@ export function Combobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [placement, setPlacement] = useState<"bottom" | "top">("bottom");
   const [coords, setCoords] = useState<{
     left: number;
@@ -47,41 +48,54 @@ export function Combobox({
     );
   }, [options, query]);
 
-  const updatePosition = () => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const dropdownHeight = 260; // estimado max-h-65
-    const spaceBelow = window.innerHeight - rect.bottom - 16; // 16px margen + barra fija
-    const spaceAbove = rect.top - 16;
-
-    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
-      setPlacement("top");
-      setCoords({
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-      });
-    } else {
-      setPlacement("bottom");
-      setCoords({
-        left: rect.left,
-        top: rect.bottom,
-        width: rect.width,
-      });
-    }
-  };
-
-  useLayoutEffect(() => {
+  // Manejo de foco manual al abrir el menú (reemplaza autoFocus)
+  useEffect(() => {
     if (open) {
-      updatePosition();
-      // Re-calcular en resize/scroll
-      window.addEventListener("resize", updatePosition);
-      window.addEventListener("scroll", updatePosition, true);
-      return () => {
-        window.removeEventListener("resize", updatePosition);
-        window.removeEventListener("scroll", updatePosition, true);
-      };
+      // Un pequeño delay asegura que el portal ya esté montado en el DOM
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+      return () => clearTimeout(timer);
     }
+  }, [open]);
+
+  // Cálculo de posición movido dentro del hook para satisfacer exhaustive-deps
+  useLayoutEffect(() => {
+    if (!open) return;
+
+    const updatePosition = () => {
+      if (!triggerRef.current) return;
+      const rect = triggerRef.current.getBoundingClientRect();
+      const dropdownHeight = 260; // estimado max-h-65
+      const spaceBelow = window.innerHeight - rect.bottom - 16; // 16px margen + barra fija
+      const spaceAbove = rect.top - 16;
+
+      if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+        setPlacement("top");
+        setCoords({
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+        });
+      } else {
+        setPlacement("bottom");
+        setCoords({
+          left: rect.left,
+          top: rect.bottom,
+          width: rect.width,
+        });
+      }
+    };
+
+    updatePosition();
+    // Re-calcular en resize/scroll
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -139,7 +153,7 @@ export function Combobox({
             <div className="flex items-center gap-2 border-b border-[#F0EDE6] px-2.5 py-2">
               <Search className="size-3.5 text-[#9A9590] shrink-0" />
               <input
-                autoFocus
+                ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar..."
