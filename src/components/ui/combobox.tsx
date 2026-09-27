@@ -1,243 +1,178 @@
 "use client";
-import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { useState, useMemo, useRef, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
+import { ChevronDown, Search, Check } from "lucide-react";
 
-export interface ComboboxOption {
-  value: string;
-  label: string;
-  description?: string | undefined;
-  disabled?: boolean | undefined;
-}
+type Option = { value: string; label: string };
 
 interface ComboboxProps {
-  options: ComboboxOption[];
-  value?: string;
-  onValueChange: (value: string) => void;
+  options: Option[];
+  value: string;
+  onValueChange: (val: string) => void;
   placeholder?: string;
-  searchPlaceholder?: string;
-  emptyMessage?: string;
   disabled?: boolean;
-  id?: string;
-  "aria-label"?: string;
-  "aria-labelledby"?: string;
-  "aria-describedby"?: string;
 }
 
 export function Combobox({
   options,
   value,
   onValueChange,
-  placeholder = "Selecciona...",
-  searchPlaceholder = "Buscar...",
-  emptyMessage = "Sin resultados.",
+  placeholder = "—",
   disabled,
-  id,
-  ...ariaProps
 }: ComboboxProps) {
-  const autoId = React.useId();
-  const comboboxId = id || autoId;
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [placement, setPlacement] = useState<"bottom" | "top">("bottom");
+  const [coords, setCoords] = useState<{
+    left: number;
+    top: number;
+    width: number;
+  } | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  const [open, setOpen] = React.useState(false);
-  const [query, setQuery] = React.useState("");
-  const [activeIndex, setActiveIndex] = React.useState(0);
+  useEffect(() => setMounted(true), []);
 
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
-
-  const filtered = React.useMemo(() => {
-    if (!query) return options.slice(0, 100);
-    const lowerQuery = query.toLowerCase();
-    return options
-      .filter(
-        (o) =>
-          o.label.toLowerCase().includes(lowerQuery) ||
-          o.description?.toLowerCase().includes(lowerQuery),
-      )
-      .slice(0, 100);
-  }, [options, query]);
-
-  React.useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-      setTimeout(() => inputRef.current?.focus(), 0);
-    } else {
-      setQuery("");
-      setActiveIndex(0);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
-
-  // ELIMINADO: Se borró el useEffect problemático.
-  // Ahora manejamos el reseteo de índice reactivamente en el evento onChange.
-
-  const selected = React.useMemo(
+  const selected = useMemo(
     () => options.find((o) => o.value === value),
     [options, value],
   );
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!open) {
-      if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        setOpen(true);
-      }
-      return;
-    }
+  const filtered = useMemo(() => {
+    if (!query) return options;
+    const q = query.toLowerCase();
+    return options.filter(
+      (o) =>
+        o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q),
+    );
+  }, [options, query]);
 
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setActiveIndex((prev) => (prev + 1) % filtered.length);
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setActiveIndex(
-          (prev) => (prev - 1 + filtered.length) % filtered.length,
-        );
-        break;
-      case "Enter": {
-        // SOLUCIÓN: Agregadas las llaves { } para encapsular el scope de const activeOpt.
-        e.preventDefault();
-        const activeOpt = filtered[activeIndex];
-        if (activeOpt && !activeOpt.disabled) {
-          onValueChange(activeOpt.value);
-          setOpen(false);
-          triggerRef.current?.focus();
-        }
-        break;
-      }
-      case "Escape":
-        e.preventDefault();
-        setOpen(false);
-        triggerRef.current?.focus();
-        break;
+  const updatePosition = () => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const dropdownHeight = 260; // estimado max-h-65
+    const spaceBelow = window.innerHeight - rect.bottom - 16; // 16px margen + barra fija
+    const spaceAbove = rect.top - 16;
+
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+      setPlacement("top");
+      setCoords({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+      });
+    } else {
+      setPlacement("bottom");
+      setCoords({
+        left: rect.left,
+        top: rect.bottom,
+        width: rect.width,
+      });
     }
   };
 
+  useLayoutEffect(() => {
+    if (open) {
+      updatePosition();
+      // Re-calcular en resize/scroll
+      window.addEventListener("resize", updatePosition);
+      window.addEventListener("scroll", updatePosition, true);
+      return () => {
+        window.removeEventListener("resize", updatePosition);
+        window.removeEventListener("scroll", updatePosition, true);
+      };
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target as Node)
+      ) {
+        const dropdown = document.getElementById("combobox-portal-dropdown");
+        if (dropdown && !dropdown.contains(e.target as Node)) {
+          setOpen(false);
+        }
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
   return (
-    // SOLUCIÓN: Directiva explícita para Biome explicando la arquitectura del evento.
-    // biome-ignore lint/a11y/noStaticElementInteractions: Delegación intencional de eventos de teclado (bubbling) desde el Input y Button internos.
-    <div
-      className="relative w-full"
-      ref={containerRef}
-      onKeyDown={handleKeyDown}
-    >
-      <Button
+    <>
+      <button
         ref={triggerRef}
         type="button"
-        id={comboboxId}
-        variant="outline"
-        role="combobox"
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        aria-controls={open ? `${comboboxId}-listbox` : undefined}
-        disabled={disabled ?? false}
-        className={cn(
-          "w-full justify-between font-normal",
-          !selected && "text-zinc-500 dark:text-zinc-400",
-        )}
-        onClick={() => setOpen(!open)}
-        {...ariaProps}
+        disabled={disabled}
+        onClick={() => {
+          if (!disabled) {
+            setOpen((o) => !o);
+            if (!open) setQuery("");
+          }
+        }}
+        className="flex h-8 w-full items-center justify-between rounded-lg border border-[#E8E0D6] bg-[#FFFEFB] px-2.5 text-[12px] font-medium text-[#1A1A1A] shadow-[0_1px_1px_rgba(0,0,0,0.02)] transition-colors hover:border-[#D9CFC2] disabled:opacity-50"
       >
-        <span className="truncate">
-          {selected ? selected.label : placeholder}
-        </span>
-        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-      </Button>
-      {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-zinc-200 bg-white shadow-lg animate-in fade-in-80 zoom-in-95 dark:border-zinc-800 dark:bg-zinc-950">
-          <Command>
-            <CommandInput
-              ref={inputRef}
-              placeholder={searchPlaceholder}
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                // SOLUCIÓN: Reseteamos el índice de foco aquí al tipear, puramente Event-Driven.
-                setActiveIndex(0);
-              }}
-              role="combobox"
-              aria-expanded={true}
-              aria-controls={`${comboboxId}-listbox`}
-              aria-autocomplete="list"
-              aria-activedescendant={
-                filtered[activeIndex]
-                  ? `${comboboxId}-option-${filtered[activeIndex].value}`
-                  : undefined
-              }
-            />
-            <CommandList id={`${comboboxId}-listbox`} role="listbox">
+        <span className="truncate">{selected?.label || placeholder}</span>
+        <ChevronDown
+          className={`size-3.5 shrink-0 text-[#9A9590] transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {mounted &&
+        open &&
+        coords &&
+        createPortal(
+          <div
+            id="combobox-portal-dropdown"
+            className="fixed z-9999 overflow-hidden rounded-lg border border-[#EDE8E0] bg-white shadow-[0_8px_24px_rgba(0,0,0,0.12)] animate-in fade-in zoom-in-95"
+            style={{
+              left: coords.left,
+              width: coords.width,
+              ...(placement === "bottom"
+                ? { top: coords.top + 4 }
+                : { bottom: window.innerHeight - coords.top + 4 }),
+            }}
+          >
+            <div className="flex items-center gap-2 border-b border-[#F0EDE6] px-2.5 py-2">
+              <Search className="size-3.5 text-[#9A9590] shrink-0" />
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar..."
+                className="w-full bg-transparent text-[12px] outline-none placeholder:text-[#9A9590]"
+              />
+            </div>
+            <div className="max-h-60 overflow-y-auto p-1">
               {filtered.length === 0 ? (
-                <CommandEmpty>{emptyMessage}</CommandEmpty>
+                <div className="px-2.5 py-2 text-[12px] text-[#9A9590]">
+                  Sin resultados
+                </div>
               ) : (
-                <CommandGroup>
-                  {filtered.map((opt, index) => {
-                    const isSelected = value === opt.value;
-                    const isActive = index === activeIndex;
-                    return (
-                      <CommandItem
-                        key={opt.value}
-                        id={`${comboboxId}-option-${opt.value}`}
-                        role="option"
-                        aria-selected={isSelected}
-                        data-selected={isActive}
-                        disabled={opt.disabled ?? false}
-                        onMouseEnter={() => setActiveIndex(index)}
-                        onClick={() => {
-                          if (!opt.disabled) {
-                            onValueChange(opt.value);
-                            setOpen(false);
-                            triggerRef.current?.focus();
-                          }
-                        }}
-                        className={cn(
-                          opt.disabled && "cursor-not-allowed opacity-50",
-                        )}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4 shrink-0",
-                            isSelected ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        <div className="flex flex-col overflow-hidden">
-                          <span className="truncate font-medium">
-                            {opt.label}
-                          </span>
-                          {opt.description && (
-                            <span className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                              {opt.description}
-                            </span>
-                          )}
-                        </div>
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
+                filtered.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      onValueChange(opt.value);
+                      setOpen(false);
+                    }}
+                    className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[12px] transition-colors hover:bg-[#F8F5F0] ${value === opt.value ? "bg-[#F8F5F0] font-semibold text-[#111]" : "text-[#1A1A1A]"}`}
+                  >
+                    <Check
+                      className={`size-3.5 shrink-0 ${value === opt.value ? "opacity-100" : "opacity-0"}`}
+                    />
+                    <span className="truncate">{opt.label}</span>
+                  </button>
+                ))
               )}
-            </CommandList>
-          </Command>
-        </div>
-      )}
-    </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
