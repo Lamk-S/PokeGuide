@@ -1,41 +1,109 @@
 export const Weather = {
-  none: { id: "none" as const, label: "Ninguno", smogon: undefined },
-  Sun: { id: "Sun" as const, label: "Sol", smogon: "Sun" as const },
-  Rain: { id: "Rain" as const, label: "Lluvia", smogon: "Rain" as const },
-  Sand: {
-    id: "Sand" as const,
-    label: "Tormenta Arena",
-    smogon: "Sand" as const,
+  none: { id: "none", label: "None", labelEs: "Ninguno", smogon: undefined },
+  sun: { id: "sun", label: "Sun", labelEs: "Sol", smogon: "Sun" },
+  rain: { id: "rain", label: "Rain", labelEs: "Lluvia", smogon: "Rain" },
+  sand: {
+    id: "sand",
+    label: "Sand",
+    labelEs: "Tormenta arena",
+    smogon: "Sand",
   },
-  Snow: { id: "Snow" as const, label: "Nieve", smogon: "Snow" as const },
-  Hail: { id: "Hail" as const, label: "Granizo", smogon: "Hail" as const },
+  hail: { id: "hail", label: "Hail", labelEs: "Granizo", smogon: "Hail" },
+  snow: { id: "snow", label: "Snow", labelEs: "Nieve", smogon: "Snow" },
+  harsh_sun: {
+    id: "harsh_sun",
+    label: "Harsh Sun",
+    labelEs: "Sol intenso",
+    smogon: "Harsh Sunshine",
+  },
+  heavy_rain: {
+    id: "heavy_rain",
+    label: "Heavy Rain",
+    labelEs: "Lluvia intensa",
+    smogon: "Heavy Rain",
+  },
+  strong_winds: {
+    id: "strong_winds",
+    label: "Strong Winds",
+    labelEs: "Vientos fuertes",
+    smogon: "Strong Winds",
+  },
 } as const;
-export type WeatherId = keyof typeof Weather;
 
 export const Terrain = {
-  none: { id: "none" as const, label: "Ninguno", smogon: undefined },
-  Electric: {
-    id: "Electric" as const,
-    label: "Eléctrico",
-    smogon: "Electric" as const,
+  none: { id: "none", label: "None", labelEs: "Ninguno", smogon: undefined },
+  electric: {
+    id: "electric",
+    label: "Electric",
+    labelEs: "Eléctrico",
+    smogon: "Electric Terrain",
   },
-  Grassy: { id: "Grassy" as const, label: "Híper", smogon: "Grassy" as const },
-  Psychic: {
-    id: "Psychic" as const,
-    label: "Psíquico",
-    smogon: "Psychic" as const,
+  grassy: {
+    id: "grassy",
+    label: "Grassy",
+    labelEs: "Hierba",
+    smogon: "Grassy Terrain",
   },
-  Misty: { id: "Misty" as const, label: "Niebla", smogon: "Misty" as const },
+  misty: {
+    id: "misty",
+    label: "Misty",
+    labelEs: "Niebla",
+    smogon: "Misty Terrain",
+  },
+  psychic: {
+    id: "psychic",
+    label: "Psychic",
+    labelEs: "Psíquico",
+    smogon: "Psychic Terrain",
+  },
 } as const;
-export type TerrainId = keyof typeof Terrain;
 
 export const Status = {
-  none: { id: "none" as const, label: "Ninguno", smogon: undefined },
-  brn: { id: "brn" as const, label: "Quemado", smogon: "brn" as const },
-  par: { id: "par" as const, label: "Paralizado", smogon: "par" as const },
-  psn: { id: "psn" as const, label: "Envenenado", smogon: "psn" as const },
-  tox: { id: "tox" as const, label: "Intoxicado", smogon: "tox" as const },
-  slp: { id: "slp" as const, label: "Dormido", smogon: "slp" as const },
-  frz: { id: "frz" as const, label: "Congelado", smogon: "frz" as const },
+  none: { id: "none", label: "None", labelEs: "Ninguno", smogon: "" as const },
+  burn: {
+    id: "burn",
+    label: "Burn",
+    labelEs: "Quemado",
+    smogon: "brn" as const,
+  },
+  paralyze: {
+    id: "paralyze",
+    label: "Paralyze",
+    labelEs: "Paralizado",
+    smogon: "par" as const,
+  },
+  poison: {
+    id: "poison",
+    label: "Poison",
+    labelEs: "Envenenado",
+    smogon: "psn" as const,
+  },
+  "badly-poisoned": {
+    id: "badly-poisoned",
+    label: "Badly Poisoned",
+    labelEs: "Grav. envenenado",
+    smogon: "tox" as const,
+  },
+  sleep: {
+    id: "sleep",
+    label: "Sleep",
+    labelEs: "Dormido",
+    smogon: "slp" as const,
+  },
+  freeze: {
+    id: "freeze",
+    label: "Freeze",
+    labelEs: "Congelado",
+    smogon: "frz" as const,
+  },
 } as const;
+
+export type WeatherId = keyof typeof Weather;
+export type TerrainId = keyof typeof Terrain;
 export type StatusId = keyof typeof Status;
+
+export interface BattleConditions {
+  weather?: WeatherId | undefined;
+  terrain?: TerrainId | undefined;
+  isCriticalHit?: boolean | undefined;
+}

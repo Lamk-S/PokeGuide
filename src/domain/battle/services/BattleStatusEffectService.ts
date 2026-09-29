@@ -1,8 +1,7 @@
-/**
- * Servicio de Dominio - Efectos de Estado y Modificadores
- * Responsabilidad única: centralizar la lógica competitiva real de Pokémon
- * para evitar lógica fantasma y duplicación en UI / Adaptador.
- */
+import type { MoveCategory } from "../value-objects/MoveCategory";
+import { isPhysicalCategory } from "../value-objects/MoveCategory";
+import { isGutsAbility } from "../value-objects/AbilityId";
+import { isFacadeMove } from "../value-objects/MoveId";
 
 export type StatusEffectResult = {
   applies: boolean;
@@ -12,36 +11,26 @@ export type StatusEffectResult = {
 };
 
 export interface BurnContext {
-  moveName: string;
-  moveCategory?: "Physical" | "Special" | "Status" | undefined;
-  ability?: string | undefined;
-  isPhysical: boolean;
+  moveId: string;
+  moveName?: string | undefined;
+  moveCategory: MoveCategory;
+  abilityId?: string | undefined;
+  abilityName?: string | undefined;
 }
 
-/**
- * Lógica oficial Pokémon para quemadura:
- * - Gen 3+: Quemadura reduce daño físico ×0.5
- * - NO afecta movimientos especiales
- * - Guts: ignora reducción y además da ×1.5 ATQ
- * - Facade: duplica potencia (70→140) cuando está quemado/paralizado/envenenado
- */
 export function evaluateBurn(context: BurnContext): StatusEffectResult {
-  const moveNameLower = context.moveName.toLowerCase();
-  const abilityLower = context.ability?.toLowerCase() || "";
-  const isFacade = moveNameLower === "facade";
-  const hasGuts = abilityLower === "guts";
+  const { moveId, moveCategory, abilityId } = context;
 
-  // Si no es físico, quemadura no aplica
-  if (!context.isPhysical) {
+  if (!isPhysicalCategory(moveCategory)) {
     return {
       applies: false,
       multiplier: 1.0,
-      log: "Quemadura no afecta (mov. especial)",
+      log: "Quemadura no afecta (mov. especial/estado)",
       explanation: "La quemadura solo reduce daño físico.",
     };
   }
 
-  if (isFacade) {
+  if (isFacadeMove(moveId)) {
     return {
       applies: true,
       multiplier: 2.0,
@@ -50,10 +39,10 @@ export function evaluateBurn(context: BurnContext): StatusEffectResult {
     };
   }
 
-  if (hasGuts) {
+  if (isGutsAbility(abilityId)) {
     return {
       applies: true,
-      multiplier: 1.0, // El motor Smogon ya calcula el ×1.5 de Guts internamente
+      multiplier: 1.0,
       log: "Guts ignora quemadura + x1.5 ATQ",
       explanation:
         "Guts ignora la reducción de quemadura y potencia el ataque.",
@@ -68,11 +57,6 @@ export function evaluateBurn(context: BurnContext): StatusEffectResult {
   };
 }
 
-/**
- * Crítico por generación - mecánica oficial:
- * Gen 1-5: ×2.0
- * Gen 6+: ×1.5
- */
 export function getCriticalMultiplier(generation: number): number {
   return generation >= 6 ? 1.5 : 2.0;
 }
@@ -82,7 +66,6 @@ export function getCriticalLog(generation: number): string {
   return `Golpe Crítico x${mult.toFixed(1)}`;
 }
 
-// Compatibilidad hacia atrás para código existente que usa BattleStatusEffectService.xxx
 export const BattleStatusEffectService = {
   evaluateBurn,
   getCriticalMultiplier,
