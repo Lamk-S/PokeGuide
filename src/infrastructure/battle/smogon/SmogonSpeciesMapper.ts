@@ -77,9 +77,175 @@ const GEN9_MEGA_FALLBACK: Record<string, string> = {
   "Urshifu-Rapid-Strike-Gmax": "Urshifu-Rapid-Strike",
 };
 
+const ID_TO_SMOGON: Record<number, string> = {
+  1: "Bulbasaur",
+  2: "Ivysaur",
+  3: "Venusaur",
+  4: "Charmander",
+  5: "Charmeleon",
+  6: "Charizard",
+  7: "Squirtle",
+  8: "Wartortle",
+  9: "Blastoise",
+  10: "Caterpie",
+  11: "Metapod",
+  12: "Butterfree",
+  13: "Weedle",
+  14: "Kakuna",
+  15: "Beedrill",
+  16: "Pidgey",
+  17: "Pidgeotto",
+  18: "Pidgeot",
+  19: "Rattata",
+  20: "Raticate",
+  21: "Spearow",
+  22: "Fearow",
+  23: "Ekans",
+  24: "Arbok",
+  25: "Pikachu",
+  26: "Raichu",
+  27: "Sandshrew",
+  28: "Sandslash",
+  29: "Nidoran-F",
+  30: "Nidorina",
+  31: "Nidoqueen",
+  32: "Nidoran-M",
+  33: "Nidorino",
+  34: "Nidoking",
+  35: "Clefairy",
+  36: "Clefable",
+  37: "Vulpix",
+  38: "Ninetales",
+  39: "Jigglypuff",
+  40: "Wigglytuff",
+  41: "Zubat",
+  42: "Golbat",
+  43: "Oddish",
+  44: "Gloom",
+  45: "Vileplume",
+  46: "Paras",
+  47: "Parasect",
+  48: "Venonat",
+  49: "Venomoth",
+  50: "Diglett",
+  51: "Dugtrio",
+  52: "Meowth",
+  53: "Persian",
+  54: "Psyduck",
+  55: "Golduck",
+  56: "Mankey",
+  57: "Primeape",
+  58: "Growlithe",
+  59: "Arcanine",
+  60: "Poliwag",
+  61: "Poliwhirl",
+  62: "Poliwrath",
+  63: "Abra",
+  64: "Kadabra",
+  65: "Alakazam",
+  66: "Machop",
+  67: "Machoke",
+  68: "Machamp",
+  69: "Bellsprout",
+  70: "Weepinbell",
+  71: "Victreebel",
+  72: "Tentacool",
+  73: "Tentacruel",
+  74: "Geodude",
+  75: "Graveler",
+  76: "Golem",
+  77: "Ponyta",
+  78: "Rapidash",
+  79: "Slowpoke",
+  80: "Slowbro",
+  81: "Magnemite",
+  82: "Magneton",
+  83: "Farfetch'd",
+  84: "Doduo",
+  85: "Dodrio",
+  86: "Seel",
+  87: "Dewgong",
+  88: "Grimer",
+  89: "Muk",
+  90: "Shellder",
+  91: "Cloyster",
+  92: "Gastly",
+  93: "Haunter",
+  94: "Gengar",
+  95: "Onix",
+  96: "Drowzee",
+  97: "Hypno",
+  98: "Krabby",
+  99: "Kingler",
+  100: "Voltorb",
+  101: "Electrode",
+  102: "Exeggcute",
+  103: "Exeggutor",
+  104: "Cubone",
+  105: "Marowak",
+  106: "Hitmonlee",
+  107: "Hitmonchan",
+  108: "Lickitung",
+  109: "Koffing",
+  110: "Weezing",
+  111: "Rhyhorn",
+  112: "Rhydon",
+  113: "Chansey",
+  114: "Tangela",
+  115: "Kangaskhan",
+  116: "Horsea",
+  117: "Seadra",
+  118: "Goldeen",
+  119: "Seaking",
+  120: "Staryu",
+  121: "Starmie",
+  122: "Mr. Mime",
+  123: "Scyther",
+  124: "Jynx",
+  125: "Electabuzz",
+  126: "Magmar",
+  127: "Pinsir",
+  128: "Tauros",
+  129: "Magikarp",
+  130: "Gyarados",
+  131: "Lapras",
+  132: "Ditto",
+  133: "Eevee",
+  134: "Vaporeon",
+  135: "Jolteon",
+  136: "Flareon",
+  137: "Porygon",
+  138: "Omanyte",
+  139: "Omastar",
+  140: "Kabuto",
+  141: "Kabutops",
+  142: "Aerodactyl",
+  143: "Snorlax",
+  144: "Articuno",
+  145: "Zapdos",
+  146: "Moltres",
+  147: "Dratini",
+  148: "Dragonair",
+  149: "Dragonite",
+  150: "Mewtwo",
+  151: "Mew",
+  359: "Absol",
+  445: "Garchomp",
+  448: "Lucario",
+  10307: "Absol",
+  10308: "Staraptor",
+  10309: "Garchomp",
+  10310: "Lucario",
+};
+
 function normalizeSmogonName(name: string): string {
   const lower = name.toLowerCase();
   if (SMOGON_NAME_MAP[lower]) return SMOGON_NAME_MAP[lower];
+  const pokemonMatch = lower.match(/^pokemon-(\d+)$/);
+  if (pokemonMatch) {
+    const id = parseInt(pokemonMatch[1], 10);
+    if (ID_TO_SMOGON[id]) return ID_TO_SMOGON[id];
+  }
   return name
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
@@ -102,7 +268,38 @@ export class SmogonSpeciesMapper {
     pokemon: { id: number; name: string },
     generation: number,
   ): SmogonResolution {
-    const originalName = pokemon.name.toLowerCase();
+    let rawName = pokemon.name;
+
+    if (
+      !rawName ||
+      rawName.trim() === "" ||
+      /^pokemon-\d+$/i.test(rawName) ||
+      /^\d+$/.test(rawName)
+    ) {
+      const fromId = ID_TO_SMOGON[pokemon.id];
+      if (fromId) {
+        rawName = fromId;
+      } else {
+        const match = pokemon.name.match(/^pokemon-(\d+)$/i);
+        if (match) {
+          const idFromName = parseInt(match[1], 10);
+          const fromIdFromName = ID_TO_SMOGON[idFromName];
+          if (fromIdFromName) rawName = fromIdFromName;
+        }
+      }
+    }
+
+    if (!rawName || /^pokemon-\d+$/i.test(rawName)) {
+      const fallback = ID_TO_SMOGON[pokemon.id] || "Bulbasaur";
+      return {
+        smogonName: fallback,
+        supported: false,
+        isFallbackToBase: true,
+        reason: `Nombre inválido "${pokemon.name}" para ID ${pokemon.id}, fallback a ${fallback}`,
+      };
+    }
+
+    const originalName = rawName.toLowerCase();
     let baseSpecies = originalName
       .replace(/-mega-z|-z-mega|-mega|-gmax|-gigantamax/g, "")
       .replace(/-power-construct|-complete|-10|-50/g, "")
@@ -127,7 +324,7 @@ export class SmogonSpeciesMapper {
 
     if (generation < debutGen) {
       return {
-        smogonName: normalizeSmogonName(originalName),
+        smogonName: normalizeSmogonName(rawName),
         supported: false,
         reason: `La forma ${originalName} debutó en Gen ${debutGen}, no está disponible en Gen ${generation}`,
       };
@@ -135,7 +332,7 @@ export class SmogonSpeciesMapper {
 
     if (originalName.includes("mega") && generation < 6) {
       return {
-        smogonName: normalizeSmogonName(originalName),
+        smogonName: normalizeSmogonName(rawName),
         supported: false,
         reason: `Mega evolución no disponible en Gen ${generation} (disponible desde Gen 6)`,
       };
@@ -147,7 +344,7 @@ export class SmogonSpeciesMapper {
     ) {
       const baseFallback = originalName.replace(/-gmax|-gigantamax/g, "");
       return {
-        smogonName: normalizeSmogonName(originalName),
+        smogonName: normalizeSmogonName(rawName),
         supported: false,
         isFallbackToBase: true,
         baseStatsSource: normalizeSmogonName(baseFallback),
@@ -155,7 +352,7 @@ export class SmogonSpeciesMapper {
       };
     }
 
-    let smogonName = normalizeSmogonName(originalName);
+    let smogonName = normalizeSmogonName(rawName);
 
     const isCustom = pokemon.id >= 10000;
     if (
@@ -210,5 +407,9 @@ export class SmogonSpeciesMapper {
 
   static getFallbackForGen9(smogonName: string): string | null {
     return GEN9_MEGA_FALLBACK[smogonName] || null;
+  }
+
+  static getSmogonNameById(id: number): string | undefined {
+    return ID_TO_SMOGON[id];
   }
 }

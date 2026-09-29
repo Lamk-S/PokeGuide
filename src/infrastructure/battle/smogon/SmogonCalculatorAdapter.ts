@@ -19,7 +19,11 @@ import type { BattleCalculator } from "@/domain/battle/repositories/BattleCalcul
 import type { BattleScenario } from "@/domain/battle/entities/BattleScenario";
 import type { BattleResult } from "@/domain/battle/types/BattleTypes";
 import type { StatName } from "@/domain/pokemon/types/pokemon";
-import { BattleStatusEffectService } from "@/domain/battle/services/BattleStatusEffectService";
+import {
+  evaluateBurn,
+  getCriticalLog,
+} from "@/domain/battle/services/BattleStatusEffectService";
+import { MoveCategory } from "@/domain/battle/value-objects/MoveCategory";
 
 const STAT_TO_SMOGON: Record<
   StatName,
@@ -58,6 +62,25 @@ type SmogonPokemonFullOpts = SmogonPokemonBaseOpts & {
   status?: SmogonStatus;
 };
 
+function resolveMoveCategory(smogonMove: Move): MoveCategory {
+  const rawCategory = (smogonMove as unknown as { category?: string }).category;
+
+  if (rawCategory === "Physical") return MoveCategory.PHYSICAL;
+  if (rawCategory === "Special") return MoveCategory.SPECIAL;
+  if (rawCategory === "Status") return MoveCategory.STATUS;
+
+  const moveWithDesc = smogonMove as unknown as {
+    basePower?: number;
+    category?: string;
+  };
+
+  if (!moveWithDesc.basePower || moveWithDesc.basePower === 0) {
+    return MoveCategory.STATUS;
+  }
+
+  return MoveCategory.STATUS;
+}
+
 export class SmogonCalculatorAdapter implements BattleCalculator {
   calculate(scenario: BattleScenario): BattleResult {
     const attackerRes = SmogonSpeciesMapper.resolve(
@@ -82,11 +105,19 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       scenario.defender,
       scenario.generation,
     );
+
+    const isCriticalHit =
+      scenario.attacker.isCriticalHit ??
+      (scenario as unknown as { conditions: { isCriticalHit?: boolean } })
+        .conditions.isCriticalHit ??
+      false;
+
     const move = this.createMove(
       scenario.moveName,
       scenario.generation,
-      scenario.conditions.isCriticalHit,
+      isCriticalHit,
     );
+
     const field = this.createField(scenario.conditions);
 
     const result = calculate(
@@ -99,7 +130,9 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
     if (!result?.range)
       throw new Error("Motor Smogon no devolvió rango válido");
 
-    return this.parseResult(result, defender, scenario);
+    const moveCategory = scenario.moveCategory || resolveMoveCategory(move);
+
+    return this.parseResult(result, defender, scenario, move, moveCategory);
   }
 
   private assertSupported(
@@ -109,8 +142,16 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
   ) {
     const isFallback = !res.supported && res.isFallbackToBase;
     if (!res.supported && !isFallback) {
+      const displayName =
+        p.name &&
+        p.name.trim() !== "" &&
+        !p.name.toLowerCase().startsWith("pokemon-")
+          ? p.name
+          : res.smogonName ||
+            SmogonSpeciesMapper.getSmogonNameById(p.id) ||
+            `Pokémon ID ${p.id}`;
       throw new Error(
-        `Forma ${p.name} no está disponible en Gen ${gen}. ${res.reason ?? ""}`,
+        `Forma ${displayName} no está disponible en Gen ${gen}. ${res.reason ?? ""}`,
       );
     }
   }
@@ -120,8 +161,24 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
     input: BattleScenario["attacker"],
     gen: number,
   ): Pokemon {
-    const fallback = SmogonSpeciesMapper.getFallbackForGen9(smogonName);
-    const nameToUse = gen === 9 && fallback ? fallback : smogonName;
+    let resolvedName = smogonName;
+    if (
+      !resolvedName ||
+      resolvedName.toLowerCase().startsWith("pokemon-") ||
+      resolvedName.trim() === ""
+    ) {
+      const byId = SmogonSpeciesMapper.getSmogonNameById(input.id);
+      if (byId) {
+        resolvedName = byId;
+      } else if (input.id === 3) {
+        resolvedName = "Venusaur";
+      } else if (input.id) {
+        resolvedName = byId || "Bulbasaur";
+      }
+    }
+
+    const fallback = SmogonSpeciesMapper.getFallbackForGen9(resolvedName);
+    const nameToUse = gen === 9 && fallback ? fallback : resolvedName;
 
     const base: SmogonPokemonBaseOpts = {
       level: input.level,
@@ -137,20 +194,37 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       if (mapped) smogonStatus = mapped;
     }
 
+    const abilityName = input.abilityId || input.ability;
+
     const opts: SmogonPokemonFullOpts = {
       ...base,
-      ...(input.ability ? { ability: input.ability } : {}),
+      ...(abilityName ? { ability: abilityName } : {}),
       ...(input.item ? { item: input.item } : {}),
       ...(smogonStatus ? { status: smogonStatus } : {}),
     };
 
     try {
       return new Pokemon(gen as GenerationNum, nameToUse, opts);
-    } catch {
+    } catch (err) {
+      console.warn(
+        `[SmogonAdapter] Falló crear ${nameToUse} (original: ${smogonName}, id: ${input.id})`,
+        err,
+      );
       if (fallback && gen === 9) {
-        return new Pokemon(gen as GenerationNum, fallback, opts);
+        try {
+          return new Pokemon(gen as GenerationNum, fallback, opts);
+        } catch {}
       }
-      throw new Error(`No se pudo crear Pokémon ${nameToUse}`);
+      const byId = SmogonSpeciesMapper.getSmogonNameById(input.id);
+      if (byId && byId !== nameToUse) {
+        try {
+          return new Pokemon(gen as GenerationNum, byId, opts);
+        } catch {}
+      }
+      const originalError = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `No se pudo crear Pokémon ${nameToUse} (id: ${input.id}, original: ${smogonName}): ${originalError}`,
+      );
     }
   }
 
@@ -190,6 +264,8 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
     result: Result,
     defender: Pokemon,
     scenario: BattleScenario,
+    _smogonMove: Move,
+    moveCategory: MoveCategory,
   ): BattleResult {
     const range = result.range();
     if (!range) throw new Error("Sin rango");
@@ -244,20 +320,76 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
 
     const activeModifiers: string[] = [];
     if (summary.includes("STAB")) activeModifiers.push("STAB x1.5");
-    if (scenario.conditions.isCriticalHit)
-      activeModifiers.push(
-        BattleStatusEffectService.getCriticalLog(scenario.generation),
-      );
-    if (result.rawDesc.weather)
-      activeModifiers.push(`Clima: ${result.rawDesc.weather}`);
-    if (result.rawDesc.terrain)
-      activeModifiers.push(`Campo: ${result.rawDesc.terrain}`);
+
+    const isCrit = scenario.attacker.isCriticalHit ?? false;
+    if (isCrit) {
+      activeModifiers.push(getCriticalLog(scenario.generation));
+    }
+
+    const WEATHER_ES: Record<string, string> = {
+      none: "Ninguno",
+      sun: "Sol",
+      rain: "Lluvia",
+      sand: "Tormenta arena",
+      hail: "Granizo",
+      snow: "Nieve",
+      harsh_sun: "Sol intenso",
+      heavy_rain: "Lluvia intensa",
+      strong_winds: "Vientos fuertes",
+      Sun: "Sol",
+      Rain: "Lluvia",
+      Sand: "Tormenta arena",
+      Hail: "Granizo",
+      Snow: "Nieve",
+      "Harsh Sunshine": "Sol intenso",
+      "Heavy Rain": "Lluvia intensa",
+      "Strong Winds": "Vientos fuertes",
+    };
+    const TERRAIN_ES: Record<string, string> = {
+      none: "Ninguno",
+      electric: "Eléctrico",
+      grassy: "Hierba",
+      misty: "Niebla",
+      psychic: "Psíquico",
+      "Electric Terrain": "Eléctrico",
+      "Grassy Terrain": "Hierba",
+      "Misty Terrain": "Niebla",
+      "Psychic Terrain": "Psíquico",
+      Electric: "Eléctrico",
+      Grassy: "Hierba",
+    };
+    if (
+      result.rawDesc.weather ||
+      (scenario.conditions.weather && scenario.conditions.weather !== "none")
+    ) {
+      const rawWeather =
+        result.rawDesc.weather || scenario.conditions.weather || "none";
+      const weatherEs =
+        WEATHER_ES[rawWeather] ||
+        WEATHER_ES[rawWeather.toLowerCase()] ||
+        rawWeather;
+      activeModifiers.push(`Clima: ${weatherEs}`);
+    }
+    if (
+      result.rawDesc.terrain ||
+      (scenario.conditions.terrain && scenario.conditions.terrain !== "none")
+    ) {
+      const rawTerrain =
+        result.rawDesc.terrain || scenario.conditions.terrain || "none";
+      const terrainEs =
+        TERRAIN_ES[rawTerrain] ||
+        TERRAIN_ES[rawTerrain.toLowerCase()] ||
+        rawTerrain;
+      activeModifiers.push(`Campo: ${terrainEs}`);
+    }
+
     if (result.rawDesc.isBurned) {
-      const isPhysical = true;
-      const burnResult = BattleStatusEffectService.evaluateBurn({
-        moveName: scenario.moveName,
-        ability: scenario.attacker.ability,
-        isPhysical,
+      const burnResult = evaluateBurn({
+        moveId: scenario.moveId || scenario.moveName,
+        moveName: scenario.moveDisplayName || scenario.moveName,
+        moveCategory,
+        abilityId: scenario.attacker.abilityId || scenario.attacker.ability,
+        abilityName: scenario.attacker.ability,
       });
       activeModifiers.push(burnResult.log);
     }
