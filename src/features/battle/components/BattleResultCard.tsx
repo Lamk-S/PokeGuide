@@ -159,7 +159,6 @@ export const BattleResultCard = memo(function BattleResultCard({
 
   const calculationLog = useMemo(() => {
     const logs: string[] = [];
-    // Usar modificadores reales del motor Smogon, no inventar efectividad
     if (result.explanation.activeModifiers.length) {
       logs.push(...result.explanation.activeModifiers.map((m) => `× ${m}`));
     }
@@ -171,21 +170,25 @@ export const BattleResultCard = memo(function BattleResultCard({
       const terrainLog = getTerrainFactor(conditions?.terrain, moveType);
       if (terrainLog) logs.push(terrainLog);
     }
-    // Objeto - no asumir ×1.3 siempre
+    // Objeto
     if (attackerLine?.item && attackerLine.item !== "—")
       logs.push(`Objeto: ${attackerLine.item}`);
     // Habilidad
     if (attackerLine?.ability && attackerLine.ability !== "—")
       logs.push(`Habilidad: ${attackerLine.ability}`);
-    // Crítico - usando servicio de dominio para integridad mecánica
-    if (conditions?.isCriticalHit) {
+    // Crítico - es propiedad del atacante, no global (preparado para VGC/Doubles)
+    const isCrit =
+      attackerInput?.isCriticalHit ??
+      (conditions as unknown as { isCriticalHit?: boolean })?.isCriticalHit ??
+      false;
+    if (isCrit) {
       const critMult =
         BattleStatusEffectService.getCriticalMultiplier(generation);
       logs.push(`×${critMult.toFixed(1)} golpe crítico`);
     }
-    // STAB
+
     logs.push(hasStab ? "×1.5 STAB" : "×1.0 sin STAB");
-    // Estado
+
     const atkStatus =
       attackerInput?.status && attackerInput.status !== "none"
         ? STATUS_LABEL_ES[attackerInput.status] || attackerInput.status
@@ -252,6 +255,17 @@ export const BattleResultCard = memo(function BattleResultCard({
 
   const moveTypeDisplay = moveType ? translateTypeUpper(moveType) : "—";
 
+  const GEN_LABEL: Record<number, string> = {
+    3: "Rubí/Zafiro",
+    4: "Diamante/Perla",
+    5: "Negro/Blanco",
+    6: "X/Y",
+    7: "Sol/Luna",
+    8: "Espada/Escudo",
+    9: "Escarlata/Violeta",
+  };
+  const genLabel = GEN_LABEL[generation] || "Escarlata/Violeta";
+
   return (
     <div className="flex flex-col gap-3">
       <div className="bg-[#FFFEFB] rounded-xl border border-[#EDE8E0] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-hidden">
@@ -260,7 +274,7 @@ export const BattleResultCard = memo(function BattleResultCard({
             Daño estimado
           </span>
           <span className="text-[10px] font-mono text-[#9A9590]">
-            Gen {generation} · Escarlata/Violeta
+            Gen {generation} · {genLabel}
           </span>
         </div>
 
@@ -355,7 +369,7 @@ export const BattleResultCard = memo(function BattleResultCard({
                 Crítico y estado
               </span>
               <span className="text-[11px] font-mono text-[#5A5652] text-right">
-                {conditions?.isCriticalHit
+                {attackerInput?.isCriticalHit
                   ? `Crítico ×${generation >= 6 ? "1.5" : "2.0"}`
                   : "Normal"}{" "}
                 ·{" "}

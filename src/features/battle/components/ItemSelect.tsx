@@ -1,11 +1,11 @@
 "use client";
 import { useState, useMemo, useRef, useEffect } from "react";
-import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import {
   filterCompetitiveItems,
   type CompetitiveItem,
 } from "../constants/competitiveItems";
+import { ItemSprite } from "@/components/ui/ItemSprite";
 
 interface ItemSelectProps {
   itemList: CompetitiveItem[];
@@ -61,19 +61,8 @@ export function ItemSelect({
       >
         {selected ? (
           <span className="flex items-center gap-1.5 min-w-0">
-            <span className="size-5 rounded bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center shrink-0">
-              {selected.sprite ? (
-                <Image
-                  src={selected.sprite}
-                  alt={selected.name}
-                  width={16}
-                  height={16}
-                  className="size-4 object-contain"
-                  unoptimized
-                />
-              ) : (
-                <span className="text-[10px]">🎒</span>
-              )}
+            <span className="size-5 rounded bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center shrink-0 overflow-hidden">
+              <ItemSprite itemName={selected.name} size={16} />
             </span>
             <span className="font-medium truncate text-[12px]">
               {selected.nameEs || selected.name}
@@ -136,19 +125,8 @@ export function ItemSelect({
                 }}
                 className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-[#F8F5F0] ${item.name === value ? "bg-[#F0EDE6]" : ""}`}
               >
-                <span className="size-6 rounded bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center shrink-0 mt-0.5">
-                  {item.sprite ? (
-                    <Image
-                      src={item.sprite}
-                      alt={item.name}
-                      width={16}
-                      height={16}
-                      className="size-4 object-contain"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="text-[10px]">🎒</span>
-                  )}
+                <span className="size-6 rounded bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
+                  <ItemSprite itemName={item.name} size={18} />
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="text-[12px] font-medium block truncate">

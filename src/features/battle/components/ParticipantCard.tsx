@@ -27,7 +27,6 @@ import {
   Status,
   type StatusId,
 } from "@/domain/battle/value-objects/BattleModifiers";
-import { useBattleStore } from "../store/useBattleStore";
 import {
   getStatNumber,
   extractTypeName,
@@ -125,8 +124,6 @@ export const ParticipantCard = memo(function ParticipantCard({
   const [openMods, setOpenMods] = useState(false);
   const { abilityList } = useAbilityStore();
   const { itemList } = useItemStore();
-  const conditions = useBattleStore((s) => s.conditions);
-  const setConditions = useBattleStore((s) => s.setConditions);
 
   const currentPokemon = useMemo(
     () => pokemonList.find((p) => p.id === input?.pokemonId),
@@ -194,7 +191,7 @@ export const ParticipantCard = memo(function ParticipantCard({
     [],
   );
   const statusOptions = useMemo(
-    () => Object.values(Status).map((s) => ({ value: s.id, label: s.label })),
+    () => Object.values(Status).map((s) => ({ value: s.id, label: s.labelEs })),
     [],
   );
 
@@ -656,9 +653,9 @@ export const ParticipantCard = memo(function ParticipantCard({
                 <label className="flex items-center gap-2 text-[11px] font-mono">
                   <input
                     type="checkbox"
-                    checked={conditions.isCriticalHit ?? false}
+                    checked={input.isCriticalHit ?? false}
                     onChange={(e) =>
-                      setConditions({ isCriticalHit: e.target.checked })
+                      onChange({ ...input, isCriticalHit: e.target.checked })
                     }
                     className="rounded"
                   />

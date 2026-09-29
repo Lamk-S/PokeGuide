@@ -21,6 +21,7 @@ import {
   validateBattleState,
   type BattleValidationError,
 } from "@/domain/battle/services/BattleValidation";
+import { SmogonSpeciesMapper } from "@/infrastructure/battle/smogon/SmogonSpeciesMapper";
 import {
   getStatNumber,
   extractTypeName,
@@ -250,10 +251,37 @@ export function BattleLabView() {
       move: moveData as never,
       generation,
     });
-    const filtered = base.errors.filter(
+
+    const genErrors: BattleValidationError[] = [];
+    if (attackerPokemon) {
+      const res = SmogonSpeciesMapper.resolve(
+        { id: attackerPokemon.id, name: attackerPokemon.name },
+        generation,
+      );
+      if (!res.supported && !res.isFallbackToBase) {
+        genErrors.push(
+          "UNSUPPORTED_FORM_FOR_GENERATION" as BattleValidationError,
+        );
+      }
+    }
+    if (defenderPokemon) {
+      const res = SmogonSpeciesMapper.resolve(
+        { id: defenderPokemon.id, name: defenderPokemon.name },
+        generation,
+      );
+      if (!res.supported && !res.isFallbackToBase) {
+        genErrors.push(
+          "UNSUPPORTED_FORM_FOR_GENERATION" as BattleValidationError,
+        );
+      }
+    }
+
+    const allErrors = [...base.errors, ...genErrors];
+    const filtered = allErrors.filter(
       (e) => !(e === "INVALID_BATTLE_CONTEXT" && generation === 9),
     );
-    return { ...base, errors: filtered, valid: filtered.length === 0 };
+    const uniqueErrors = Array.from(new Set(filtered));
+    return { ...base, errors: uniqueErrors, valid: uniqueErrors.length === 0 };
   }, [
     attackerPokemon,
     defenderPokemon,
@@ -363,10 +391,10 @@ export function BattleLabView() {
 
   return (
     <div className="min-h-screen bg-[#F8F5F0] text-[#1A1A1A] -mx-4 md:-mx-6 lg:-mx-8 -my-6 md:-my-8">
-      {/* Sticky context bar - meta + VS - stays visible on scroll */}
+      {/* Sticky context bar - meta + VS */}
       <div className="sticky top-14 z-30 w-full bg-[#FFFEFB] border-b border-[#EDE8E0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-        {/* Top meta bar - uniforme desktop/tablet, sin distorsión */}
-        <div className="max-w-[1600px] mx-auto px-4 lg:px-6 py-2.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        {/* Top meta bar */}
+        <div className="max-w-[1600px] mx-auto px-4 lg:px-6 py-2.5 flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between gap-3 w-full lg:w-auto min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <h1 className="text-[12px] font-bold tracking-[-0.01em] whitespace-nowrap shrink-0">
@@ -378,23 +406,32 @@ export function BattleLabView() {
                 IVs, EVs, objeto, habilidad, estado, clima y terreno.
               </p>
             </div>
-            {/* Mobile badge */}
+            {/* Mobile badge - muestra texto completo */}
             <span
-              className={`lg:hidden inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
+              className={`lg:hidden inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 max-w-[40%] truncate ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
             >
               <span
-                className={`size-1.5 rounded-full ${result ? "bg-white" : canCalculate ? "bg-[#2D5A27]" : "bg-[#D97706] animate-pulse"}`}
+                className={`size-1.5 rounded-full shrink-0 ${result ? "bg-white" : canCalculate ? "bg-[#2D5A27]" : "bg-[#D97706] animate-pulse"}`}
               />
-              {result ? "LISTO" : canCalculate ? "LISTO" : "FALTA"}
+              <span className="truncate">
+                {result
+                  ? "LISTO"
+                  : canCalculate
+                    ? "LISTO"
+                    : BADGE_LABELS[
+                        validationState.errors[0] as BattleValidationError
+                      ] || "FALTAN DATOS"}
+              </span>
             </span>
           </div>
-          <div className="flex items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="flex flex-col gap-1">
-                <Label className="hidden md:block text-[10px] uppercase tracking-[0.08em] text-[#9A9590] font-semibold leading-none">
+          {/* Controles Generación / Clima / Campo */}
+          <div className="flex flex-col sm:flex-row sm:items-end gap-2.5 w-full lg:w-auto lg:justify-end">
+            <div className="flex items-end gap-2 w-full sm:w-auto">
+              <div className="flex flex-col gap-1 flex-1 min-w-0 sm:w-56">
+                <Label className="text-[10px] uppercase tracking-[0.08em] text-[#9A9590] font-semibold leading-none">
                   Generación
                 </Label>
-                <div className="w-40 md:w-55">
+                <div className="w-full">
                   <Combobox
                     options={GEN_OPTIONS}
                     value={generation.toString()}
@@ -403,7 +440,10 @@ export function BattleLabView() {
                   />
                 </div>
               </div>
-              <BattleFieldControls variant="compact" />
+              {/* Clima y Campo - 2 columnas en móvil */}
+              <div className="flex-1 sm:flex-none">
+                <BattleFieldControls variant="compact" />
+              </div>
             </div>
             <span
               className={`hidden lg:inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
@@ -455,7 +495,7 @@ export function BattleLabView() {
       </div>
 
       <main className="max-w-[1600px] mx-auto px-4 lg:px-6 py-5 pb-24 lg:pb-6">
-        {/* 3 columns - desktop - items-start para que no se estiren cuando uno es alto */}
+        {/* 3 columns - desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           <section
             className={`${activeTab !== "attacker" ? "hidden lg:block" : "block"} lg:col-span-4 xl:col-span-4 self-start`}
@@ -544,8 +584,10 @@ export function BattleLabView() {
               className="hidden md:inline-flex h-8 px-3 rounded-full text-[11px] font-mono underline decoration-dotted underline-offset-4"
               onClick={() => {
                 if (attackerInput && defenderInput) {
-                  setAttacker(defenderInput);
-                  setDefender(attackerInput);
+                  const newAttacker = { ...defenderInput };
+                  const newDefender = { ...attackerInput };
+                  setAttacker(newAttacker);
+                  setDefender(newDefender);
                 }
               }}
             >
