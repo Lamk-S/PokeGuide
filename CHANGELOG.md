@@ -1,6 +1,16 @@
 # Changelog
 Todos los cambios notables de PokeGuide.
 
+## [v1.3.0] - Domain Integrity, Critical Scoping & i18n Decoupling
+
+### Fixed
+- **Falso Positivo del Adaptador:** Eliminado el hardcode `isPhysical = true` en `SmogonCalculatorAdapter`. Ahora la categoría del movimiento (Físico, Especial, Estado) se extrae dinámicamente con `resolveMoveCategory(move)`, garantizando cálculos de estado perfectos (ej. Quemadura no afecta ataques especiales).
+- **Desincronización de Crítico (VGC Ready):** El flag `isCriticalHit` se movió de `BattleConditions` (estado global) a `BattleParticipant` (estado local). Esto soluciona bugs al pulsar "Intercambiar" y prepara el sistema para combates Dobles (VGC).
+
+### Added
+- **Domain-Driven i18n Isolation:** Creación de Value Objects (`AbilityId`, `MoveId`) con funciones de normalización (`normalizeAbilityId`). Permite que la UI esté 100% en español (ej. "Agallas", "Imagen") mientras el motor de dominio y las fórmulas operan inmutablemente con IDs internos (`guts`, `facade`).
+- **BattleStatusEffectService:** Extracción de toda la lógica de validación de efectos de estado a un servicio de dominio puro (Cumplimiento estricto del principio SRP). 
+
 ## [v1.2.1] - Fix Naturaleza ES, IV/EV Distortion, EV Remaining, Header
 
 ### Fixed
