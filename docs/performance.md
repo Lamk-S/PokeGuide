@@ -9,6 +9,7 @@
 *   **Server Components por defecto:** `GenerationRulesProvider`, `GenerationComparisonService` y `CompareGenerationsUseCase` son puros, estáticos y memoizados con `Map`. Deben ejecutarse en servidor.
 *   **Client Leaf Nodes:** `"use client"` solo en hojas: `ReportWebVitals`, `SkipLink`, sliders de EVs, selector de naturaleza. Nunca en `app/layout.tsx`.
 *   **Memoización:** `GenerationRulesProvider` tiene `CACHE` interno. `GenerationComparison.getChangesByCategory()` hace `Object.freeze`.
+*   **React Portals para UI Densa:** Componentes como el `Combobox` utilizan React Portals (`createPortal`) para evitar problemas de *z-index* y recálculos de layout masivos en las grillas complejas del Battle Lab, manteniendo un renderizado fluido (60fps).
 
 ## 3. Monitorización
 *   `ReportWebVitals.tsx` usa `navigator.sendBeacon` + `keepalive: true` para no bloquear Main Thread.
