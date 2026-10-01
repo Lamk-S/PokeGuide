@@ -1,7 +1,27 @@
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 
-// Matriz de efectividad simplificada para el ejemplo (Atacante -> Defensor)
-const typeChart: Record<string, Record<string, number>> = {
+export const ALL_POKEMON_TYPES: readonly PokemonType[] = [
+  "normal",
+  "fire",
+  "water",
+  "electric",
+  "grass",
+  "ice",
+  "fighting",
+  "poison",
+  "ground",
+  "flying",
+  "psychic",
+  "bug",
+  "rock",
+  "ghost",
+  "dragon",
+  "dark",
+  "steel",
+  "fairy",
+] as const;
+
+const TYPE_CHART: Record<PokemonType, Partial<Record<PokemonType, number>>> = {
   normal: { rock: 0.5, ghost: 0, steel: 0.5 },
   fire: {
     fire: 0.5,
@@ -13,7 +33,22 @@ const typeChart: Record<string, Record<string, number>> = {
     dragon: 0.5,
     steel: 2,
   },
-  water: { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
+  water: {
+    fire: 2,
+    water: 0.5,
+    grass: 0.5,
+    ground: 2,
+    rock: 2,
+    dragon: 0.5,
+  },
+  electric: {
+    water: 2,
+    electric: 0.5,
+    grass: 0.5,
+    ground: 0,
+    flying: 2,
+    dragon: 0.5,
+  },
   grass: {
     fire: 0.5,
     water: 2,
@@ -25,14 +60,6 @@ const typeChart: Record<string, Record<string, number>> = {
     rock: 2,
     dragon: 0.5,
     steel: 0.5,
-  },
-  electric: {
-    water: 2,
-    electric: 0.5,
-    grass: 0.5,
-    ground: 0,
-    flying: 2,
-    dragon: 0.5,
   },
   ice: {
     fire: 0.5,
@@ -84,7 +111,13 @@ const typeChart: Record<string, Record<string, number>> = {
     rock: 0.5,
     steel: 0.5,
   },
-  psychic: { fighting: 2, poison: 2, psychic: 0.5, dark: 0, steel: 0.5 },
+  psychic: {
+    fighting: 2,
+    poison: 2,
+    psychic: 0.5,
+    dark: 0,
+    steel: 0.5,
+  },
   bug: {
     fire: 0.5,
     grass: 2,
@@ -106,9 +139,24 @@ const typeChart: Record<string, Record<string, number>> = {
     bug: 2,
     steel: 0.5,
   },
-  ghost: { normal: 0, psychic: 2, ghost: 2, dark: 0.5 },
-  dragon: { dragon: 2, steel: 0.5, fairy: 0 },
-  dark: { fighting: 0.5, psychic: 2, ghost: 2, dark: 0.5, fairy: 0.5 },
+  ghost: {
+    normal: 0,
+    psychic: 2,
+    ghost: 2,
+    dark: 0.5,
+  },
+  dragon: {
+    dragon: 2,
+    steel: 0.5,
+    fairy: 0,
+  },
+  dark: {
+    fighting: 0.5,
+    psychic: 2,
+    ghost: 2,
+    dark: 0.5,
+    fairy: 0.5,
+  },
   steel: {
     fire: 0.5,
     water: 0.5,
@@ -128,17 +176,39 @@ const typeChart: Record<string, Record<string, number>> = {
   },
 };
 
-export const TypeEffectiveness = {
-  getMultiplier(attackType: PokemonType, defenderTypes: PokemonType[]): number {
-    let multiplier = 1;
-    const attackerChart = typeChart[attackType.toLowerCase()] || {};
+function getMultiplier(
+  attackType: PokemonType,
+  defenderTypes: readonly PokemonType[],
+): number {
+  if (defenderTypes.length === 0) return 1;
 
-    for (const defType of defenderTypes) {
-      const modifier = attackerChart[defType.toLowerCase()];
-      if (modifier !== undefined) {
-        multiplier *= modifier;
-      }
+  const normalizedAttack = attackType.toLowerCase() as PokemonType;
+  const attackerChart = TYPE_CHART[normalizedAttack] ?? {};
+
+  let multiplier = 1;
+  for (const defType of defenderTypes) {
+    const normalizedDef = defType.toLowerCase() as PokemonType;
+    const mod = attackerChart[normalizedDef];
+    if (mod !== undefined) {
+      multiplier *= mod;
+      if (multiplier === 0) return 0;
     }
-    return multiplier;
-  },
+  }
+  return multiplier;
+}
+
+function getAllTypes(): readonly PokemonType[] {
+  return ALL_POKEMON_TYPES;
+}
+
+function getChart(): Readonly<
+  Record<PokemonType, Partial<Record<PokemonType, number>>>
+> {
+  return TYPE_CHART;
+}
+
+export const TypeEffectiveness = {
+  getMultiplier,
+  getAllTypes,
+  getChart,
 };

@@ -5,25 +5,36 @@ import { RecommendationEngine } from "@/domain/team/services/RecommendationEngin
 
 export class AnalyzeTeamUseCase {
   execute(team: PokemonTeam): TeamAnalysis {
-    // 1. Análisis Defensivo
+    if (!team) {
+      throw new Error("PokemonTeam es requerido. No puede ser nulo.");
+    }
+
+    if (team.isEmpty()) {
+      throw new Error(
+        "No se puede analizar un equipo vacío. Agrega al menos 1 Pokémon.",
+      );
+    }
+
     const defensiveCoverage = DefensiveAnalyzer.analyze(team);
 
-    // 2. Análisis de Velocidad (Reutilizando StatEngine indirectamente vía pre-cálculo)
     const members = team.getMembers();
     const averageSpeed =
       members.length > 0
-        ? members.reduce((sum, m) => sum + m.calculatedStats.speed, 0) /
-          members.length
+        ? members.reduce((sum, m) => {
+            const speed = m.calculatedStats?.speed ?? 0;
+            return sum + speed;
+          }, 0) / members.length
         : 0;
 
-    // 3. Motor de Recomendaciones (Explainability)
     const recommendations = RecommendationEngine.generate(defensiveCoverage);
 
-    // 4. Retornar Análisis completo para la UI
-    return {
+    const analysis: TeamAnalysis = {
       defensiveCoverage,
       averageSpeed,
       recommendations,
+      teamSize: members.length,
     };
+
+    return Object.freeze(analysis);
   }
 }
