@@ -16,6 +16,23 @@ const SPECIES_FALLBACK_MAP: Record<string, number> = {
   eternatus: 890,
   raichu: 26,
   cyclizar: 1005,
+  aerodactyl: 142,
+  luxray: 405,
+  venusaur: 3,
+  gyarados: 130,
+  dragonite: 149,
+  gengar: 94,
+  clefable: 36,
+  corviknight: 823,
+  rotom: 479,
+  tyranitar: 248,
+  ferrothorn: 598,
+  dragapult: 887,
+  heatran: 485,
+  toxapex: 748,
+  weavile: 461,
+  landorus: 645,
+  gholdengo: 1000,
 };
 
 export function resolvePokemonSprite(
