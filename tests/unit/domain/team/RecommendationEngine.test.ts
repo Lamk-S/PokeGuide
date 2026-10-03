@@ -12,7 +12,8 @@ describe("RecommendationEngine", () => {
     
     expect(recommendations.length).toBe(1);
     expect(recommendations[0].severity).toBe("Critical");
-    expect(recommendations[0].title).toContain("ICE");
+    expect(recommendations[0].title).toContain("HIELO");
+    expect(recommendations[0].attackingType).toBe("ice");
   });
 
   it("detects single point of failure (dependency)", () => {
@@ -24,5 +25,20 @@ describe("RecommendationEngine", () => {
     
     expect(recommendations[0].severity).toBe("High");
     expect(recommendations[0].type).toBe("Dependency");
+    expect(recommendations[0].title).toContain("TIERRA");
+  });
+
+  it("uses Spanish translations for all types", () => {
+    const coverage: Record<string, TypeExposure> = {
+      fire: { weak: 3, resist: 0, immune: 0, neutral: 3 },
+      water: { weak: 3, resist: 1, immune: 0, neutral: 2 }
+    };
+    
+    const recommendations = RecommendationEngine.generate(coverage);
+    
+    expect(recommendations[0].title).toContain("FUEGO");
+    expect(recommendations[1].title).toContain("AGUA");
+    expect(recommendations[0].title).not.toContain("FIRE");
+    expect(recommendations[0].title).not.toContain("WATER");
   });
 });
