@@ -5,6 +5,7 @@ import type {
 } from "../types/TeamTypes";
 import { SEVERITY_WEIGHT } from "../types/TeamTypes";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
+import { translateTypeToSpanish } from "@/features/team/constants/typeTranslations";
 
 interface RecommendationRule {
   readonly id: string;
@@ -25,14 +26,16 @@ class DefensiveGapRule implements RecommendationRule {
   ): TeamRecommendation | null {
     const defensiveAnswers = exposure.resist + exposure.immune;
     if (exposure.weak >= 3 && defensiveAnswers <= 1) {
+      const tipoEs = translateTypeToSpanish(attackingType);
+      const tipoEsUpper = tipoEs.toUpperCase();
       return {
         type: this.id,
         severity: this.severity,
         attackingType,
         affectedCount: exposure.weak,
-        title: `Vulnerabilidad crítica frente a ${attackingType.toUpperCase()}`,
-        reason: `${exposure.weak} miembros reciben daño súper-efectivo y solo ${defensiveAnswers} ofrece resistencia/inmunidad. En metagame actual, un atacante ${attackingType} con STAB puede hacer 6-0.`,
-        description: `Sustituye al menos uno de los débiles a ${attackingType} por un tipo que resista o sea inmune. Busca redundancia defensiva >=2.`,
+        title: `Vulnerabilidad crítica frente a ${tipoEsUpper}`,
+        reason: `${exposure.weak} miembros reciben daño súper-efectivo y solo ${defensiveAnswers} ofrece resistencia/inmunidad. En metajuego actual, un atacante ${tipoEs.toLowerCase()} con STAB puede hacer 6-0.`,
+        description: `Sustituye al menos uno de los débiles a ${tipoEs.toLowerCase()} por un tipo que resista o sea inmune. Busca redundancia defensiva >=2.`,
       };
     }
     return null;
@@ -48,14 +51,16 @@ class SinglePointOfFailureRule implements RecommendationRule {
     exposure: TypeExposure,
   ): TeamRecommendation | null {
     if (exposure.weak >= 2 && exposure.resist === 1 && exposure.immune === 0) {
+      const tipoEs = translateTypeToSpanish(attackingType);
+      const tipoEsUpper = tipoEs.toUpperCase();
       return {
         type: this.id,
         severity: this.severity,
         attackingType,
         affectedCount: exposure.weak,
-        title: `Dependencia defensiva frente a ${attackingType.toUpperCase()}`,
-        reason: `Tienes ${exposure.weak} debilidades a ${attackingType} y dependes de un único miembro que resiste. Si ese miembro es debilitado, todo el equipo queda expuesto.`,
-        description: `Añade un segundo resist a ${attackingType}. En VGC, esto se llama 'redundancia defensiva' y es clave para no perder por un solo matchup.`,
+        title: `Dependencia defensiva frente a ${tipoEsUpper}`,
+        reason: `Tienes ${exposure.weak} debilidades a ${tipoEs.toLowerCase()} y dependes de un único miembro que resiste. Si ese miembro cae debilitado, todo el equipo queda expuesto.`,
+        description: `Añade un segundo resistente a ${tipoEs.toLowerCase()}. En VGC, esto se llama 'redundancia defensiva' y es clave para no perder por un solo emparejamiento.`,
       };
     }
     return null;

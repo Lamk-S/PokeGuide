@@ -6,6 +6,7 @@ import { useTeamStore } from "../store/useTeamStore";
 import { TypeEffectiveness, ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import type { TeamMember } from "@/domain/team/types/TeamTypes";
+import { translateTypeToSpanish } from "../constants/typeTranslations";
 
 type MemberWithMeta = TeamMember & {
   readonly name?: string;
@@ -66,13 +67,13 @@ export function TypeExposureMatrix() {
             ruido.
           </p>
           <div className="mx-auto mt-4 grid max-w-70 grid-cols-3 gap-1.5 text-[10px]">
-            <div className="rounded-[8px] bg-white border border-[#EDE8E0] py-1.5">
+            <div className="rounded-[8px] border border-[#EDE8E0] bg-white py-1.5">
               Débil
             </div>
-            <div className="rounded-[8px] bg-white border border-[#EDE8E0] py-1.5">
+            <div className="rounded-[8px] border border-[#EDE8E0] bg-white py-1.5">
               Resiste
             </div>
-            <div className="rounded-[8px] bg-zinc-900 text-white py-1.5">
+            <div className="rounded-[8px] bg-zinc-900 py-1.5 text-white">
               Inmune
             </div>
           </div>
@@ -100,6 +101,8 @@ export function TypeExposureMatrix() {
     (a, b) => coverage[b].weak - coverage[a].weak,
   )[0];
   const mostWeakCount = mostWeak ? coverage[mostWeak].weak : 0;
+  const mostWeakMembers = mostWeak ? getWeakMembers(mostWeak) : [];
+  const mostWeakNames = mostWeakMembers.map((m) => getMemberName(m)).join(", ");
 
   return (
     <div className="overflow-hidden rounded-[16px] border border-[#EDE8E0] bg-white">
@@ -125,7 +128,7 @@ export function TypeExposureMatrix() {
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-[#F0EDE6] bg-[#FCFBF8] text-left text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              <th className="px-4 py-2.5 font-semibold">Tipo Ato</th>
+              <th className="px-4 py-2.5 font-semibold">Tipo Atq.</th>
               <th className="px-3 py-2.5 text-center font-semibold">Débil</th>
               <th className="px-3 py-2.5 text-center font-semibold">Resiste</th>
               <th className="px-3 py-2.5 text-center font-semibold">Inmune</th>
@@ -167,7 +170,7 @@ export function TypeExposureMatrix() {
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${isCritical ? "bg-red-100 text-red-700" : "bg-zinc-100 text-zinc-600"}`}
                       >
-                        {atk}
+                        {translateTypeToSpanish(atk)}
                       </span>
                     </div>
                   </td>
@@ -226,10 +229,11 @@ export function TypeExposureMatrix() {
           </div>
           <p className="text-[11px] leading-normal text-zinc-700">
             <span className="font-semibold">Nota táctica:</span> {mostWeakCount}{" "}
-            de {members.length} miembros comparten debilidad a{" "}
-            {mostWeak.charAt(0).toUpperCase() + mostWeak.slice(1)}. Considera
-            cambiar Gengar por un tipo Fantasma/Acero para cerrar el hueco sin
-            perder momentum.
+            de {members.length} miembros
+            {mostWeakNames ? ` (${mostWeakNames})` : ""} comparten debilidad a{" "}
+            {translateTypeToSpanish(mostWeak)}. Considera añadir un segundo
+            Pokémon que resista a {translateTypeToSpanish(mostWeak)} para
+            redundancia defensiva sin perder momentum.
           </p>
         </div>
       )}
@@ -243,7 +247,7 @@ export function TypeExposureMatrix() {
             style={{ left: tooltipPos.x + 12, top: tooltipPos.y + 12 }}
           >
             <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
-              {hoveredType} → débiles
+              {translateTypeToSpanish(hoveredType)} → débiles
             </div>
             <div className="mt-1 text-[12px] leading-normal text-white">
               {getWeakMembers(hoveredType).length === 0
