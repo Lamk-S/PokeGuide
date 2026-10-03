@@ -40,7 +40,7 @@ export default function TeamBuilderPage() {
 
   return (
     <main className="min-h-screen bg-[#F8F5F0] text-zinc-900">
-      <div className="sticky top-14 z-30 w-full border-b border-[#EDE8E0] bg-[#FFFEFB]/90 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+      <div className="sticky top-0 z-30 w-full border-b border-[#EDE8E0] bg-[#FFFEFB]/90 backdrop-blur-xl shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between lg:px-8">
           <div className="flex items-start gap-4">
             <h1 className="text-[11px] font-semibold uppercase tracking-widest text-zinc-900">
@@ -48,7 +48,7 @@ export default function TeamBuilderPage() {
               <br />
               Equipo
             </h1>
-            <p className="max-w-80 border-l border-zinc-200 pl-4 text-[11px] leading-[1.4] text-zinc-500">
+            <p className="max-w-80 border-l border-zinc-200 pl-4 text-[11px] leading-normal text-zinc-500">
               Herramienta Local-First, determinista y explicable. Sin RNG, sin
               caja negra. Basado en Battle Lab.
             </p>
@@ -60,7 +60,7 @@ export default function TeamBuilderPage() {
         {teamSize > 0 && teamSize < 6 && (
           <div className="h-0.5 w-full bg-[#F0EDE6]">
             <div
-              className="h-0.5 bg-[#111] transition-all duration-500"
+              className="h-0.5 bg-zinc-900 transition-all duration-500"
               style={{ width: `${(teamSize / 6) * 100}%` }}
             />
           </div>
@@ -77,55 +77,57 @@ export default function TeamBuilderPage() {
         <TeamBuilderGrid />
 
         <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1.35fr_0.9fr]">
-          <div>
+          <div className="min-w-0">
             <TypeExposureMatrix />
           </div>
-          <div className="flex flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-6">
             <RecommendationList />
-            <div className="rounded-[20px] border border-[#EDE8E0] bg-white p-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
-                  Resumen del Equipo
+
+            {/* Resumen único y elegante - no duplica Equipo equilibrado */}
+            <div className="overflow-hidden rounded-[20px] border border-[#EDE8E0] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">
+                  Resumen del equipo
                 </h4>
-                <span className="text-[10px] text-zinc-400">
+                <span className="shrink-0 text-[10px] text-zinc-400">
                   Determinista • Sin RNG
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <div className="rounded-[12px] border border-zinc-200 bg-[#FCFBF8] py-3 text-center">
-                  <div className="text-[18px] font-bold tabular-nums">
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <div className="rounded-[14px] border border-zinc-100 bg-[#FCFBF8] py-3.5 text-center">
+                  <div className="font-serif text-[22px] font-bold leading-none tabular-nums text-zinc-900">
                     {team.size}
                   </div>
-                  <div className="mt-0.5 text-[10px] uppercase tracking-wide text-zinc-500">
+                  <div className="mt-1.5 text-[10px] font-medium uppercase tracking-widest text-zinc-500">
                     Tamaño
                   </div>
                 </div>
-                <div className="rounded-[12px] border border-zinc-200 bg-[#FCFBF8] py-3 text-center">
-                  <div className="text-[18px] font-bold tabular-nums">
+                <div className="rounded-[14px] border border-zinc-100 bg-[#FCFBF8] py-3.5 text-center">
+                  <div className="font-serif text-[22px] font-bold leading-none tabular-nums text-zinc-900">
                     {analysis ? Math.round(analysis.averageSpeed) : "-"}
                   </div>
-                  <div className="mt-0.5 text-[10px] uppercase tracking-wide text-zinc-500">
-                    Vel. Promedio
+                  <div className="mt-1.5 text-[10px] font-medium uppercase tracking-widest text-zinc-500">
+                    Vel. promedio
                   </div>
                 </div>
                 <div
-                  className={`rounded-[12px] py-3 text-center ${risks > 2 ? "bg-[#D93B32] text-white" : risks > 0 ? "bg-amber-500 text-white" : "bg-zinc-900 text-white"}`}
+                  className={`rounded-[14px] py-3.5 text-center shadow-sm ${risks > 2 ? "bg-[#C2410C] text-white" : risks > 0 ? "bg-amber-500 text-white" : "bg-zinc-900 text-white"}`}
                 >
-                  <div className="text-[18px] font-bold tabular-nums">
+                  <div className="font-serif text-[22px] font-bold leading-none tabular-nums">
                     {risks}
                   </div>
-                  <div className="mt-0.5 text-[10px] uppercase tracking-wide opacity-80">
+                  <div className="mt-1.5 text-[10px] font-medium uppercase tracking-widest opacity-80">
                     Riesgos
                   </div>
                 </div>
               </div>
               {teamSize > 0 && (
-                <div className="mt-3 text-[11px] leading-[1.4] text-zinc-500">
+                <div className="mt-4 rounded-[12px] bg-[#F8F5F0] px-3 py-2.5 text-[11px] leading-relaxed text-zinc-600">
                   {teamSize < 6
-                    ? `Te faltan ${6 - teamSize} Pokémon para análisis completo. Añade muros y un closer para cerrar el equipo.`
+                    ? `Te faltan ${6 - teamSize} Pokémon para análisis completo. Añade muros y un cerrador para cerrar el equipo.`
                     : risks === 0
-                      ? "Equipo balanceado. Cobertura del 100% de tipos con redundancia."
-                      : `Hay ${risks} puntos débiles. Revisa el Motor de Explicabilidad para priorizar.`}
+                      ? "Equipo equilibrado. Cobertura del 100% de tipos con redundancia defensiva verificada."
+                      : `Hay ${risks} punto${risks === 1 ? "" : "s"} débil${risks === 1 ? "" : "es"}. Revisa el Motor de Explicabilidad para priorizar correcciones.`}
                 </div>
               )}
             </div>
