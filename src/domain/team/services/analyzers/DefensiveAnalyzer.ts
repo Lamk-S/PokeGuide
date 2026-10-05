@@ -6,14 +6,12 @@ import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 function analyze(team: PokemonTeam): Record<PokemonType, TypeExposure> {
   const coverage = {} as Record<PokemonType, TypeExposure>;
 
-  for (const atkType of ALL_POKEMON_TYPES) {
-    coverage[atkType] = { weak: 0, resist: 0, immune: 0, neutral: 0 };
+  for (const atk of ALL_POKEMON_TYPES) {
+    coverage[atk] = { weak: 0, resist: 0, immune: 0, neutral: 0 };
   }
 
   const members = team.getMembers();
-  if (members.length === 0) {
-    return coverage;
-  }
+  if (members.length === 0) return coverage;
 
   for (const attackingType of ALL_POKEMON_TYPES) {
     let weak = 0;
@@ -23,24 +21,19 @@ function analyze(team: PokemonTeam): Record<PokemonType, TypeExposure> {
 
     for (const member of members) {
       if (!member.types || member.types.length === 0) {
-        neutral++;
+        neutral += 1;
         continue;
       }
-
-      const multiplier = TypeEffectiveness.getMultiplier(
+      const mult = TypeEffectiveness.getMultiplier(
         attackingType,
         member.types,
+        member.abilityId ?? member.ability ?? null,
+        member.itemId ?? member.item ?? null,
       );
-
-      if (multiplier === 0) {
-        immune++;
-      } else if (multiplier > 1) {
-        weak++;
-      } else if (multiplier < 1) {
-        resist++;
-      } else {
-        neutral++;
-      }
+      if (mult === 0) immune += 1;
+      else if (mult > 1) weak += 1;
+      else if (mult < 1) resist += 1;
+      else neutral += 1;
     }
 
     coverage[attackingType] = { weak, resist, immune, neutral };
@@ -49,6 +42,4 @@ function analyze(team: PokemonTeam): Record<PokemonType, TypeExposure> {
   return coverage;
 }
 
-export const DefensiveAnalyzer = {
-  analyze,
-};
+export const DefensiveAnalyzer = Object.freeze({ analyze });
