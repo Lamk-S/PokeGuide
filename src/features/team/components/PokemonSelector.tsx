@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import type { TeamMember } from "@/domain/team/types/TeamTypes";
+import type { TeamMember, BaseStats } from "@/domain/team/types/TeamTypes";
 import type {
   Pokemon,
   PokemonType,
@@ -15,6 +15,8 @@ import { calculateStats } from "@/domain/stats/services/StatCalculator";
 import { NATURES } from "@/domain/stats/constants/natures";
 import { IV } from "@/domain/stats/value-objects/IV";
 import { EV } from "@/domain/stats/value-objects/EV";
+import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
+import { normalizeId } from "@/domain/shared/utils/normalizeId";
 
 interface Props {
   readonly open: boolean;
@@ -24,11 +26,11 @@ interface Props {
 }
 
 const ROW_HEIGHT = 56;
-const CONTAINER_HEIGHT = 420;
-const OVERSCAN = 10;
+const CONTAINER_HEIGHT = 440;
+const OVERSCAN = 12;
 
-function formatName(name: string): string {
-  return name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+function displayNameEs(rawName: string): string {
+  return rawName.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function getStat(
@@ -38,52 +40,118 @@ function getStat(
   return stats[name] ?? 0;
 }
 
-function pokemonToTeamMember(pokemon: Pokemon): TeamMember {
-  const neutralNature = NATURES.find((n) => n.name === "Hardy") ?? NATURES[0];
-  const baseStats = pokemon.baseStats as Record<StatName, number>;
+function pickNature(
+  highest: StatName,
+  second: StatName,
+  baseStats: Record<StatName, number>,
+) {
+  const speed = baseStats.speed;
+  const atk = baseStats.attack;
+  const spa = baseStats["special-attack"];
+  const find = (name: string) =>
+    NATURES.find((n) => n.name === name) ?? NATURES[0];
+  switch (highest) {
+    case "attack":
+      return speed >= 90 ? find("Jolly") : find("Adamant");
+    case "special-attack":
+      return speed >= 90 ? find("Timid") : find("Modest");
+    case "speed":
+      return atk > spa ? find("Jolly") : find("Timid");
+    case "defense":
+      return spa > atk ? find("Bold") : find("Impish");
+    case "special-defense":
+      return spa > atk ? find("Calm") : find("Careful");
+    case "hp":
+      if (second === "attack") return find("Adamant");
+      if (second === "special-attack") return find("Modest");
+      if (second === "speed") return find("Jolly");
+      return find("Hardy");
+    default:
+      return find("Hardy");
+  }
+}
 
-  const safeBase: Record<StatName, number> = {
-    hp: baseStats.hp ?? 80,
-    attack: baseStats.attack ?? 80,
-    defense: baseStats.defense ?? 80,
-    "special-attack": baseStats["special-attack"] ?? 80,
-    "special-defense": baseStats["special-defense"] ?? 80,
-    speed: baseStats.speed ?? 80,
+function toTeamMember(pokemon: Pokemon): TeamMember {
+  const baseRaw = pokemon.baseStats as Record<StatName, number>;
+  const safeBase: BaseStats = {
+    hp: baseRaw.hp ?? 80,
+    attack: baseRaw.attack ?? 80,
+    defense: baseRaw.defense ?? 80,
+    "special-attack": baseRaw["special-attack"] ?? 80,
+    "special-defense": baseRaw["special-defense"] ?? 80,
+    speed: baseRaw.speed ?? 80,
   };
 
+  const sorted = (Object.entries(safeBase) as [StatName, number][]).sort(
+    (a, b) => b[1] - a[1],
+  );
+  const highest = sorted[0][0];
+  const second = sorted[1][0];
+  const third = sorted[2][0];
+
+  const nature = pickNature(highest, second, safeBase);
+
+  const evsDist: Record<StatName, number> = {
+    hp: 0,
+    attack: 0,
+    defense: 0,
+    "special-attack": 0,
+    "special-defense": 0,
+    speed: 0,
+  };
+  evsDist[highest] = 252;
+  evsDist[second] = 252;
+  evsDist[third] = 4;
+
+  const ivs = IV.createPerfectSet();
+  const evs = EV.createSet(evsDist);
   const calculated = calculateStats({
     baseStats: safeBase,
-    ivs: IV.createPerfectSet(),
-    evs: EV.createEmptySet(),
-    level: 50,
-    nature: neutralNature,
-    generation: 9,
+    ivs,
+    evs,
+    level: DEFAULT_BATTLE_RULESET.level,
+    nature,
+    generation: DEFAULT_BATTLE_RULESET.generation,
   });
 
-  const hp = calculated.hp;
-  const atk = calculated.attack;
-  const def = calculated.defense;
-  const spa = calculated["special-attack"];
-  const spd = calculated["special-defense"];
-  const spe = calculated.speed;
+  const defaultAbility = pokemon.abilities?.[0]?.name ?? "";
 
   return {
     id: String(pokemon.id),
-    name: formatName(pokemon.name),
-    species: formatName(pokemon.name),
+    name: normalizeId(pokemon.name),
+    displayNameEs: displayNameEs(pokemon.name),
+    species: displayNameEs(pokemon.name),
     types: pokemon.types as readonly PokemonType[],
+    abilityId: defaultAbility ? normalizeId(defaultAbility) : null,
+    itemId: null,
+    ability: defaultAbility || null,
+    item: null,
+    nature,
+    level: DEFAULT_BATTLE_RULESET.level,
+    evs,
+    ivs,
     calculatedStats: {
-      hp,
-      attack: atk,
-      defense: def,
-      specialAttack: spa,
-      specialDefense: spd,
-      speed: spe,
-      spAttack: spa,
-      spDefense: spd,
+      hp: calculated.hp,
+      attack: calculated.attack,
+      defense: calculated.defense,
+      specialAttack: calculated["special-attack"],
+      specialDefense: calculated["special-defense"],
+      speed: calculated.speed,
     },
     baseStats: safeBase,
-  } as unknown as TeamMember;
+  };
+}
+
+interface SearchIndex {
+  readonly id: number;
+  readonly name: string;
+  readonly nameNorm: string;
+  readonly displayEs: string;
+  readonly displayNorm: string;
+  readonly numberStr: string;
+  readonly numberPadded: string;
+  readonly typesEn: string;
+  readonly typesEs: string;
 }
 
 export function PokemonSelector({
@@ -94,10 +162,8 @@ export function PokemonSelector({
 }: Props) {
   const [query, setQuery] = useState("");
   const [scrollTop, setScrollTop] = useState(0);
-
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-
   const { pokemonList, isLoading, error, loadPokemon } = usePokedexStore();
 
   useEffect(() => {
@@ -113,24 +179,46 @@ export function PokemonSelector({
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [open, loadPokemon]);
 
+  const searchIndex = useMemo<SearchIndex[]>(() => {
+    return pokemonList.map((p) => {
+      const nameNorm = normalizeId(p.name);
+      const display = displayNameEs(p.name);
+      return {
+        id: p.id,
+        name: p.name,
+        nameNorm,
+        displayEs: display,
+        displayNorm: normalizeId(display),
+        numberStr: String(p.id),
+        numberPadded: String(p.id).padStart(3, "0"),
+        typesEn: p.types.join(" ").toLowerCase(),
+        typesEs: p.types
+          .map((t) => translateTypeToSpanish(t).toLowerCase())
+          .join(" "),
+      };
+    });
+  }, [pokemonList]);
+
   const filtered = useMemo(() => {
     if (!query) return pokemonList;
-    const q = query.toLowerCase().trim();
+    const q = normalizeId(query.trim());
     if (!q) return pokemonList;
 
-    return pokemonList.filter((p) => {
-      const nameMatch = p.name.toLowerCase().includes(q);
-      const idMatch =
-        String(p.id) === q || String(p.id).padStart(3, "0").includes(q);
-      if (nameMatch || idMatch) return true;
-
-      const typesEn = p.types.join(" ").toLowerCase();
-      const typesEs = p.types
-        .map((t) => translateTypeToSpanish(t).toLowerCase())
-        .join(" ");
-      return typesEn.includes(q) || typesEs.includes(q);
-    });
-  }, [pokemonList, query]);
+    const matchedIds = new Set<number>();
+    for (const entry of searchIndex) {
+      if (
+        entry.nameNorm.includes(q) ||
+        entry.displayNorm.includes(q) ||
+        entry.numberStr === q ||
+        entry.numberPadded.includes(q) ||
+        entry.typesEn.includes(q) ||
+        entry.typesEs.includes(q)
+      ) {
+        matchedIds.add(entry.id);
+      }
+    }
+    return pokemonList.filter((p) => matchedIds.has(p.id));
+  }, [pokemonList, searchIndex, query]);
 
   const virtual = useMemo(() => {
     const total = filtered.length;
@@ -159,7 +247,7 @@ export function PokemonSelector({
 
   const handleSelect = useCallback(
     (pokemon: Pokemon) => {
-      const member = pokemonToTeamMember(pokemon);
+      const member = toTeamMember(pokemon);
       onSelect(member);
       onClose();
       setQuery("");
@@ -174,62 +262,56 @@ export function PokemonSelector({
   const hasData = pokemonList.length > 0;
 
   return createPortal(
-    <div className="fixed inset-0 z-100 flex items-end justify-center bg-zinc-950/20 backdrop-blur-[2px] sm:items-center sm:p-4">
-      <div className="flex max-h-[90vh] w-full max-w-120 flex-col overflow-hidden rounded-t-[20px] border border-zinc-200 bg-white shadow-[0_16px_64px_rgba(0,0,0,0.12)] sm:rounded-[16px]">
-        <div className="border-b border-zinc-100 p-5">
-          <div className="flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#111]/20 p-0 sm:items-center sm:p-6">
+      <div className="flex max-h-[92vh] w-full max-w-130 flex-col border border-[#EDE8E0] bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)]">
+        <div className="border-b border-[#EDE8E0] px-5 py-5">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="font-serif text-[18px] font-semibold tracking-[-0.02em] text-zinc-900">
+              <h2 className="font-serif text-[18px] font-semibold tracking-[-0.02em] text-[#111]">
                 {replacingIndex !== null
-                  ? `Cambiar espacio ${replacingIndex + 1}`
+                  ? `Cambiar posición ${replacingIndex + 1}`
                   : "Añadir Pokémon"}
               </h2>
-              <p className="mt-1 text-[11px] text-zinc-500">
+              <p className="mt-1 text-[11px] leading-normal text-zinc-600">
                 {isLoading
-                  ? "Cargando Pokédex..."
+                  ? "Cargando Pokédex local..."
                   : hasData
-                    ? `${filtered.length} de ${pokemonList.length} • NV.50`
+                    ? `${filtered.length} de ${pokemonList.length} · Nv. ${DEFAULT_BATTLE_RULESET.level} · 252/252/4 competitivo`
                     : "Sin datos"}
               </p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="flex size-8 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
-              aria-label="Cerrar"
+              className="border border-[#EDE8E0] bg-white px-2.5 py-1 text-[11px] text-zinc-600 hover:border-[#111] hover:text-[#111]"
+              aria-label="Cerrar selector"
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                aria-hidden="true"
-              >
-                <title>Cerrar</title>
-                <path
-                  d="M4 4L12 12M12 4L4 12"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                />
-              </svg>
+              Cerrar
             </button>
           </div>
 
           <div className="mt-4">
+            <label htmlFor="pokemon-search" className="sr-only">
+              Buscar Pokémon
+            </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-zinc-400">
+              <span
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
+                aria-hidden
+              >
                 ⌕
               </span>
               <input
+                id="pokemon-search"
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar por nombre, ID o tipo — ej. Gengar, 94, Fantasma"
-                className="w-full rounded-[10px] border border-zinc-200 bg-zinc-50 py-2.5 pl-9 pr-3.5 text-[13px] outline-none placeholder:text-zinc-400 focus:border-zinc-900 focus:bg-white"
+                placeholder="Buscar por nombre, número o tipo en español — ej. Gengar, 94, Fantasma"
+                className="w-full border border-[#EDE8E0] bg-[#F8F5F0] py-2.5 pl-9 pr-3 text-[13px] outline-none placeholder:text-zinc-400 focus:border-[#111] focus:bg-white"
               />
             </div>
             {error && (
-              <div className="mt-2 rounded-[8px] bg-red-50 px-2.5 py-1.5 text-[11px] text-red-700">
+              <div className="mt-2 border border-red-200 bg-[#FEF2F2] px-2.5 py-1.5 text-[11px] text-red-800">
                 {error}
               </div>
             )}
@@ -240,37 +322,32 @@ export function PokemonSelector({
           ref={scrollRef}
           onScroll={onScroll}
           className="relative flex-1 overflow-y-auto bg-white"
-          style={{ height: CONTAINER_HEIGHT, maxHeight: CONTAINER_HEIGHT }}
+          style={{ height: CONTAINER_HEIGHT }}
         >
           {isLoading ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 py-16">
-              <div className="size-6 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-900" />
+              <div className="h-5 w-5 animate-spin border-2 border-[#EDE8E0] border-t-[#111]" />
               <p className="text-[13px] text-zinc-600">
                 Cargando {pokemonList.length > 0 ? pokemonList.length : ""}{" "}
-                Pokémon desde dataset.json...
+                Pokémon...
               </p>
-              <p className="text-[11px] text-zinc-400">
-                Local-first • NV.50 • Stats reales con IV 31 • Sprites fallback
+              <p className="text-[11px] text-zinc-500">
+                Local-first · Nv.50 · 252/252/4 · Naturaleza favorable · 31 IVs
               </p>
             </div>
           ) : isEmpty ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 py-16 text-center">
-              <div className="flex size-10 items-center justify-center rounded-full bg-zinc-100 text-[16px]">
-                ◐
-              </div>
-              <p className="text-[13px] font-medium text-zinc-900">
+              <p className="text-[13px] font-medium text-[#111]">
                 Sin resultados para &quot;{query}&quot;
               </p>
-              <p className="max-w-72 text-[11px] leading-normal text-zinc-500">
-                Prueba con nombre, ID o tipo en español (Acero, Hada, Fantasma).
+              <p className="max-w-[32ch] text-[11px] leading-normal text-zinc-500">
+                Prueba con nombre, número o tipo en español. La búsqueda es
+                tolerante a mayúsculas y guiones.
               </p>
             </div>
           ) : !hasData ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 py-16 text-center">
               <p className="text-[13px] text-zinc-600">dataset.json vacío</p>
-              <p className="text-[11px] text-zinc-400">
-                Verifica data/pokemon/dataset.json y custom-forms.json
-              </p>
             </div>
           ) : (
             <div style={{ height: virtual.totalHeight, position: "relative" }}>
@@ -284,28 +361,31 @@ export function PokemonSelector({
                 }}
               >
                 {visibleSlice.map((pokemon) => {
-                  const displayName = formatName(pokemon.name);
-                  const speed = getStat(pokemon.baseStats, "speed") || 80;
+                  const display = displayNameEs(pokemon.name);
+                  const speed =
+                    getStat(
+                      pokemon.baseStats as Record<StatName, number>,
+                      "speed",
+                    ) || 80;
                   return (
                     <button
                       type="button"
                       key={pokemon.id}
                       onClick={() => handleSelect(pokemon)}
-                      className="group flex h-14 w-full items-center gap-3 border-b border-zinc-50 px-4 text-left transition-colors hover:bg-zinc-50"
+                      className="group flex h-14 w-full items-center gap-3 border-b border-[#F5F1E8] bg-white px-4 text-left hover:bg-[#FFFEFB]"
                     >
-                      <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-zinc-50 group-hover:bg-white">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#F8F5F0] group-hover:bg-white">
                         <PokemonSprite
                           pokemon={{ id: pokemon.id, name: pokemon.name }}
                           size={36}
                         />
                       </div>
-
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="truncate text-[13px] font-medium text-zinc-900">
-                            {displayName}
+                          <span className="truncate text-[13px] font-medium text-[#111]">
+                            {display}
                           </span>
-                          <span className="rounded bg-zinc-100 px-1 py-0.5 text-[10px] font-mono tabular-nums text-zinc-500">
+                          <span className="border border-[#EDE8E0] bg-[#F8F5F0] px-1 py-0.5 font-mono text-[10px] tabular-nums text-zinc-500">
                             #{String(pokemon.id).padStart(3, "0")}
                           </span>
                         </div>
@@ -313,20 +393,19 @@ export function PokemonSelector({
                           {pokemon.types.map((t) => (
                             <span
                               key={t}
-                              className="rounded-[6px] bg-zinc-100 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-zinc-600"
+                              className="border border-[#EDE8E0] px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-zinc-600"
                             >
                               {translateTypeToSpanish(t)}
                             </span>
                           ))}
                         </div>
                       </div>
-
                       <div className="flex items-center gap-2">
-                        <span className="hidden text-[11px] tabular-nums text-zinc-400 sm:block">
+                        <span className="hidden text-[11px] tabular-nums text-zinc-500 sm:block">
                           VEL {speed}
                         </span>
-                        <span className="flex size-6 items-center justify-center rounded-full bg-zinc-900 text-[12px] text-white opacity-0 transition-opacity group-hover:opacity-100">
-                          +
+                        <span className="border border-[#111] bg-[#111] px-2 py-1 text-[11px] text-white opacity-0 group-hover:opacity-100">
+                          Añadir
                         </span>
                       </div>
                     </button>
@@ -337,10 +416,10 @@ export function PokemonSelector({
           )}
         </div>
 
-        <div className="border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 text-[11px] leading-normal text-zinc-500">
-          <div className="flex items-center justify-between">
-            <span>{pokemonList.length} Pokémon • NV.50</span>
-          </div>
+        <div className="border-t border-[#EDE8E0] bg-[#F8F5F0] px-4 py-2.5 text-[11px] leading-normal text-zinc-600">
+          {pokemonList.length} Pokémon · Nv.{DEFAULT_BATTLE_RULESET.level} ·
+          Auto-set competitivo · 252/252/4 · Gen{" "}
+          {DEFAULT_BATTLE_RULESET.generation}
         </div>
       </div>
     </div>,

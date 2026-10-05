@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { createPortal } from "react-dom";
+import { useState, useMemo } from "react";
 import { useTeamStore } from "../store/useTeamStore";
 import { TypeEffectiveness, ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
@@ -9,6 +8,7 @@ import type { TeamMember } from "@/domain/team/types/TeamTypes";
 import { translateTypeToSpanish } from "../constants/typeTranslations";
 
 type MemberWithMeta = TeamMember & {
+  readonly displayNameEs?: string;
   readonly name?: string;
   readonly species?: string;
   readonly id?: string;
@@ -16,143 +16,167 @@ type MemberWithMeta = TeamMember & {
 
 function getMemberName(member: TeamMember): string {
   const meta = member as unknown as MemberWithMeta;
-  return meta.name ?? meta.species ?? meta.id ?? "Desconocido";
+  return (
+    meta.displayNameEs ?? meta.name ?? meta.species ?? meta.id ?? "Desconocido"
+  );
 }
-
-const TYPE_DOT: Record<string, string> = {
-  normal: "bg-[#A8A29E]",
-  fire: "bg-[#F97316]",
-  water: "bg-[#3B82F6]",
-  electric: "bg-[#EAB308]",
-  grass: "bg-[#22C55E]",
-  ice: "bg-[#06B6D4]",
-  fighting: "bg-[#EF4444]",
-  poison: "bg-[#A855F7]",
-  ground: "bg-[#D97706]",
-  flying: "bg-[#6366F1]",
-  psychic: "bg-[#EC4899]",
-  bug: "bg-[#84CC16]",
-  rock: "bg-[#A8A29E]",
-  ghost: "bg-[#8B5CF6]",
-  dragon: "bg-[#7C3AED]",
-  dark: "bg-[#57534E]",
-  steel: "bg-[#71717A]",
-  fairy: "bg-[#F472B6]",
-};
 
 export function TypeExposureMatrix() {
   const team = useTeamStore((s) => s.team);
   const analysis = useTeamStore((s) => s.analysis);
   const members = team.getMembers();
-
   const [hoveredType, setHoveredType] = useState<PokemonType | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(
     null,
   );
+  const [activeFilter, setActiveFilter] = useState<
+    "todos" | "criticos" | "debiles"
+  >("todos");
 
-  if (members.length === 0) {
-    return (
-      <div className="relative overflow-hidden rounded-[20px] border border-dashed border-[#D9D2C7] bg-[#FFFEFB] p-8 text-center">
-        <div className="absolute inset-0 bg-[radial-gradient(400px_at_50%_0%,rgba(217,59,50,0.06),transparent)]" />
-        <div className="relative">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-full border border-[#EDE8E0] bg-white text-[16px]">
-            ◑
-          </div>
-          <h3 className="mt-3 font-serif text-[14px] font-semibold text-zinc-900">
-            Matriz defensiva inactiva
-          </h3>
-          <p className="mx-auto mt-1.5 max-w-80 text-[11px] leading-normal text-zinc-500">
-            Añade al menos 1 Pokémon para ver cuántos miembros son débiles,
-            resisten o son inmunes a cada tipo. 18 filas, lectura rápida sin
-            ruido.
-          </p>
-          <div className="mx-auto mt-4 grid max-w-70 grid-cols-3 gap-1.5 text-[10px]">
-            <div className="rounded-[8px] border border-[#EDE8E0] bg-white py-1.5">
-              Débil
-            </div>
-            <div className="rounded-[8px] border border-[#EDE8E0] bg-white py-1.5">
-              Resiste
-            </div>
-            <div className="rounded-[8px] bg-zinc-900 py-1.5 text-white">
-              Inmune
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const coverage = analysis?.defensiveCoverage;
 
-  if (!analysis) return null;
+  const criticalTypes = useMemo(() => {
+    if (!coverage) return [];
+    return ALL_POKEMON_TYPES.filter((t) => {
+      const exp = coverage[t];
+      return exp.weak >= 3 && exp.resist + exp.immune <= 1;
+    });
+  }, [coverage]);
 
-  const coverage = analysis.defensiveCoverage;
-
-  const criticalTypes = ALL_POKEMON_TYPES.filter((t) => {
-    const exp = coverage[t];
-    return exp.weak >= 3 && exp.resist + exp.immune <= 1;
-  });
+  const sortedTypes = useMemo(() => {
+    if (!coverage) return [...ALL_POKEMON_TYPES];
+    const list = [...ALL_POKEMON_TYPES];
+    if (activeFilter === "criticos") {
+      return list
+        .filter((t) => coverage[t].weak >= 2)
+        .sort((a, b) => coverage[b].weak - coverage[a].weak);
+    }
+    if (activeFilter === "debiles") {
+      return list.sort((a, b) => coverage[b].weak - coverage[a].weak);
+    }
+    return list;
+  }, [coverage, activeFilter]);
 
   const getWeakMembers = (atk: PokemonType) => {
     return members.filter(
-      (m) => TypeEffectiveness.getMultiplier(atk, m.types) > 1,
+      (m) =>
+        TypeEffectiveness.getMultiplier(
+          atk,
+          m.types as readonly PokemonType[],
+          m.abilityId ?? m.ability ?? null,
+          m.itemId ?? m.item ?? null,
+        ) > 1,
     );
   };
 
-  const mostWeak = [...ALL_POKEMON_TYPES].sort(
-    (a, b) => coverage[b].weak - coverage[a].weak,
-  )[0];
-  const mostWeakCount = mostWeak ? coverage[mostWeak].weak : 0;
-  const mostWeakMembers = mostWeak ? getWeakMembers(mostWeak) : [];
-  const mostWeakNames = mostWeakMembers.map((m) => getMemberName(m)).join(", ");
+  if (members.length === 0) {
+    return (
+      <section
+        className="border border-dashed border-[#D9D2C7] bg-[#FFFEFB] p-8 text-center"
+        aria-labelledby="matriz-vacia"
+      >
+        <h3
+          id="matriz-vacia"
+          className="font-serif text-[14px] font-semibold text-[#111]"
+        >
+          Matriz defensiva inactiva
+        </h3>
+        <p className="mx-auto mt-2 max-w-[40ch] text-[12px] leading-normal text-zinc-600">
+          Añade al menos 1 Pokémon. Cada fila muestra cuántos miembros son
+          débiles, resisten o son inmunes a cada tipo atacante.
+        </p>
+        <div className="mt-4 inline-flex border border-[#EDE8E0] bg-white px-3 py-1.5 text-[11px] text-zinc-500">
+          Definición: cobertura = tipos donde al menos 1 miembro resiste o es
+          inmune.
+        </div>
+      </section>
+    );
+  }
+
+  if (!coverage) return null;
+
+  const totalTipos = ALL_POKEMON_TYPES.length;
+  const cubiertos = ALL_POKEMON_TYPES.filter(
+    (t) => coverage[t].resist + coverage[t].immune > 0,
+  ).length;
+  const porcentajeCobertura = Math.round((cubiertos / totalTipos) * 100);
 
   return (
-    <div className="overflow-hidden rounded-[16px] border border-[#EDE8E0] bg-white">
-      <div className="flex items-start justify-between border-b border-[#F0EDE6] px-5 py-4">
-        <div>
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-zinc-900">
-            Matriz de Exposición Defensiva
-          </h3>
-          <p className="mt-1 max-w-105 text-[11px] leading-normal text-zinc-500">
-            Densa y explicable. Cada celda muestra cuántos miembros son débiles,
-            resisten o son inmunes. Diseñada para lectura rápida sin ruido
-            visual.
-          </p>
+    <section
+      className="border border-[#EDE8E0] bg-white"
+      aria-labelledby="matriz-title"
+    >
+      <div className="border-b border-[#EDE8E0] px-5 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2
+              id="matriz-title"
+              className="text-[11px] font-semibold uppercase tracking-widest text-[#111]"
+            >
+              Matriz de exposición defensiva
+            </h2>
+            <p className="mt-1.5 max-w-[56ch] text-[11px] leading-normal text-zinc-600">
+              Cada fila = tipo atacante. Columnas = cuántos miembros son
+              débiles, resisten, inmunes o neutros. Considera habilidades con
+              inmunidad y Globo.
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            <div className="text-[10px] uppercase tracking-widest text-zinc-500">
+              Cobertura
+            </div>
+            <div className="font-serif text-[18px] font-semibold tabular-nums leading-none text-[#111]">
+              {porcentajeCobertura}%
+            </div>
+            <div className="mt-1 text-[10px] text-zinc-500">
+              {cubiertos}/{totalTipos} tipos cubiertos
+            </div>
+          </div>
         </div>
-        {criticalTypes.length > 0 && (
-          <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-medium text-zinc-600">
-            {criticalTypes.length} tipos críticos
-          </span>
-        )}
+
+        <div className="mt-4 flex gap-1 border-t border-[#F5F1E8] pt-3">
+          {[
+            { id: "todos", label: "Todos" },
+            { id: "debiles", label: "Más débiles primero" },
+            { id: "criticos", label: `Críticos (${criticalTypes.length})` },
+          ].map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setActiveFilter(f.id as typeof activeFilter)}
+              className={`border px-2.5 py-1 text-[11px] ${activeFilter === f.id ? "border-[#111] bg-[#111] text-white" : "border-[#EDE8E0] bg-white text-zinc-600 hover:border-zinc-400"}`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="border-b border-[#F0EDE6] bg-[#FCFBF8] text-left text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              <th className="px-4 py-2.5 font-semibold">Tipo Atq.</th>
-              <th className="px-3 py-2.5 text-center font-semibold">Débil</th>
-              <th className="px-3 py-2.5 text-center font-semibold">Resiste</th>
-              <th className="px-3 py-2.5 text-center font-semibold">Inmune</th>
-              <th className="px-3 py-2.5 text-center font-semibold">Neutro</th>
-              <th className="px-4 py-2.5 font-semibold">Cobertura</th>
+            <tr className="border-b border-[#EDE8E0] bg-[#F8F5F0] text-[10px] uppercase tracking-widest text-zinc-500">
+              <th className="px-4 py-2.5 font-medium">Tipo atacante</th>
+              <th className="px-3 py-2.5 text-center font-medium">Débil</th>
+              <th className="px-3 py-2.5 text-center font-medium">Resiste</th>
+              <th className="px-3 py-2.5 text-center font-medium">Inmune</th>
+              <th className="px-3 py-2.5 text-center font-medium">Neutro</th>
+              <th className="px-4 py-2.5 font-medium">Cobertura</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#F5F1E8]">
-            {ALL_POKEMON_TYPES.map((atk) => {
+            {sortedTypes.map((atk) => {
               const exp = coverage[atk];
               const isCritical = exp.weak >= 3 && exp.resist + exp.immune <= 1;
-              const coveragePct = Math.round(
+              const coberturaPct = Math.round(
                 ((exp.resist + exp.immune) / Math.max(1, members.length)) * 100,
               );
-              const dots = 5;
-              const filled = Math.min(
-                dots,
-                Math.max(0, exp.resist + exp.immune),
-              );
+              const weakMembers = getWeakMembers(atk);
 
               return (
                 <tr
                   key={atk}
-                  className={`group transition-colors hover:bg-[#FCFBF8] ${isCritical ? "bg-red-50/40" : ""}`}
+                  className={`group ${isCritical ? "bg-[#FEF2F2]" : "hover:bg-[#FCFBF8]"}`}
                   onMouseEnter={(e) => {
                     setHoveredType(atk);
                     setTooltipPos({ x: e.clientX, y: e.clientY });
@@ -161,58 +185,71 @@ export function TypeExposureMatrix() {
                     setTooltipPos({ x: e.clientX, y: e.clientY })
                   }
                   onMouseLeave={() => setHoveredType(null)}
+                  onFocus={(e) => {
+                    const rect = (
+                      e.currentTarget as HTMLElement
+                    ).getBoundingClientRect();
+                    setHoveredType(atk);
+                    setTooltipPos({ x: rect.right, y: rect.top });
+                  }}
+                  onBlur={() => setHoveredType(null)}
+                  tabIndex={0}
                 >
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`size-1.5 rounded-full ${TYPE_DOT[atk] ?? "bg-zinc-400"}`}
-                      />
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${isCritical ? "bg-red-100 text-red-700" : "bg-zinc-100 text-zinc-600"}`}
+                        className={`text-[11px] font-medium uppercase tracking-widest ${isCritical ? "text-[#991B1B]" : "text-[#111]"}`}
                       >
                         {translateTypeToSpanish(atk)}
                       </span>
+                      {isCritical && (
+                        <span
+                          className="h-1 w-1 rounded-full bg-[#D93B32]"
+                          aria-hidden
+                        />
+                      )}
                     </div>
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <span
-                      className={`inline-flex min-w-6 justify-center rounded-full px-1.5 py-0.5 text-[12px] tabular-nums ${exp.weak > 0 ? "bg-[#FEE2E2] font-bold text-[#991B1B]" : "text-zinc-300"}`}
+                      className={`inline-flex min-w-7 justify-center border px-1.5 py-0.5 text-[12px] tabular-nums ${exp.weak > 0 ? "border-red-200 bg-[#FEF2F2] font-semibold text-[#991B1B]" : "border-transparent text-zinc-300"}`}
                     >
                       {exp.weak}
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <span
-                      className={`inline-flex min-w-6 justify-center rounded-full px-1.5 py-0.5 text-[12px] tabular-nums ${exp.resist > 0 ? "bg-[#DCFCE7] font-semibold text-[#166534]" : "text-zinc-300"}`}
+                      className={`inline-flex min-w-7 justify-center border px-1.5 py-0.5 text-[12px] tabular-nums ${exp.resist > 0 ? "border-emerald-200 bg-[#F0FDF4] text-[#166534]" : "border-transparent text-zinc-300"}`}
                     >
                       {exp.resist}
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <span
-                      className={`inline-flex min-w-6 justify-center rounded-full px-1.5 py-0.5 text-[12px] tabular-nums ${exp.immune > 0 ? "bg-zinc-900 text-white" : "text-zinc-300"}`}
+                      className={`inline-flex min-w-7 justify-center border px-1.5 py-0.5 text-[12px] tabular-nums ${exp.immune > 0 ? "border-zinc-900 bg-[#111] text-white" : "border-transparent text-zinc-300"}`}
                     >
                       {exp.immune}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-center text-[12px] tabular-nums text-zinc-400">
+                  <td className="px-3 py-2.5 text-center text-[12px] tabular-nums text-zinc-500">
                     {exp.neutral}
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
-                      <div className="flex gap-0.5">
-                        {(["a", "b", "c", "d", "e"] as const)
-                          .slice(0, dots)
-                          .map((letter, idx) => (
-                            <div
-                              key={`${atk}-${letter}`}
-                              className={`size-1.5 rounded-full ${idx < filled ? "bg-zinc-900" : "bg-zinc-200"}`}
-                            />
-                          ))}
+                      <div className="h-1 w-12 bg-[#EDE8E0]">
+                        <div
+                          className={`h-1 ${isCritical ? "bg-[#D93B32]" : "bg-[#111]"}`}
+                          style={{ width: `${coberturaPct}%` }}
+                        />
                       </div>
-                      <span className="text-[11px] tabular-nums text-zinc-500">
-                        {coveragePct}% cubierto
+                      <span className="text-[11px] tabular-nums text-zinc-600">
+                        {coberturaPct}%
                       </span>
+                      {weakMembers.length > 0 && isCritical && (
+                        <span className="hidden text-[10px] text-zinc-500 lg:inline">
+                          · {weakMembers.length} débiles
+                        </span>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -222,43 +259,36 @@ export function TypeExposureMatrix() {
         </table>
       </div>
 
-      {mostWeakCount >= 3 && mostWeak && (
-        <div className="m-3 flex gap-2 rounded-[10px] bg-[#FFFBEB] p-3">
-          <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-amber-400 text-[11px] font-bold text-white">
-            !
+      <div className="border-t border-[#EDE8E0] bg-[#F8F5F0] px-5 py-3 text-[11px] leading-normal text-zinc-600">
+        Definición precisa:{" "}
+        <span className="font-medium text-[#111]">cobertura</span> = % de tipos
+        donde al menos 1 miembro resiste o es inmune. No es daño infligido.
+        Inmunidades por habilidad (Levitación → Tierra) y objeto (Globo →
+        Tierra) ya consideradas.
+      </div>
+
+      {hoveredType && tooltipPos && (
+        <div
+          className="pointer-events-none fixed z-50 max-w-70 border border-[#111] bg-[#111] px-3 py-2.5"
+          style={{ left: tooltipPos.x + 12, top: tooltipPos.y + 12 }}
+        >
+          <div className="text-[10px] uppercase tracking-widest text-zinc-400">
+            {translateTypeToSpanish(hoveredType)} · débiles
           </div>
-          <p className="text-[11px] leading-normal text-zinc-700">
-            <span className="font-semibold">Nota táctica:</span> {mostWeakCount}{" "}
-            de {members.length} miembros
-            {mostWeakNames ? ` (${mostWeakNames})` : ""} comparten debilidad a{" "}
-            {translateTypeToSpanish(mostWeak)}. Considera añadir un segundo
-            Pokémon que resista a {translateTypeToSpanish(mostWeak)} para
-            redundancia defensiva sin perder momentum.
-          </p>
+          <div className="mt-1 text-[12px] leading-normal text-white">
+            {getWeakMembers(hoveredType).length === 0
+              ? "Ningún miembro es débil a este tipo."
+              : getWeakMembers(hoveredType)
+                  .map((m) => getMemberName(m))
+                  .join(", ")}
+          </div>
+          <div className="mt-1.5 text-[10px] text-zinc-400">
+            {coverage[hoveredType].weak} débiles ·{" "}
+            {coverage[hoveredType].resist} resisten ·{" "}
+            {coverage[hoveredType].immune} inmunes
+          </div>
         </div>
       )}
-
-      {hoveredType &&
-        tooltipPos &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="pointer-events-none fixed z-50 max-w-60 rounded-[10px] border border-zinc-200 bg-zinc-900 px-3 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
-            style={{ left: tooltipPos.x + 12, top: tooltipPos.y + 12 }}
-          >
-            <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">
-              {translateTypeToSpanish(hoveredType)} → débiles
-            </div>
-            <div className="mt-1 text-[12px] leading-normal text-white">
-              {getWeakMembers(hoveredType).length === 0
-                ? "Ningún miembro es débil"
-                : getWeakMembers(hoveredType)
-                    .map((m) => getMemberName(m))
-                    .join(", ")}
-            </div>
-          </div>,
-          document.body,
-        )}
-    </div>
+    </section>
   );
 }
