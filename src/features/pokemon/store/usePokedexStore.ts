@@ -1,55 +1,35 @@
-"use client";
 import { create } from "zustand";
-import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 import { container } from "@/infrastructure/composition/container";
+import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 
 interface PokedexStore {
+  pokemons: Pokemon[];
   pokemonList: Pokemon[];
   isLoading: boolean;
   error: string | null;
+  load: () => Promise<void>;
   loadPokemon: () => Promise<void>;
 }
 
 export const usePokedexStore = create<PokedexStore>((set, get) => ({
+  pokemons: [],
   pokemonList: [],
   isLoading: false,
   error: null,
-
-  loadPokemon: async () => {
-    const { pokemonList, isLoading } = get();
-    if (pokemonList.length > 0) {
-      console.log("[usePokedexStore] Ya cargado:", pokemonList.length);
-      return;
-    }
-    if (isLoading) return;
-
+  load: async () => {
     set({ isLoading: true, error: null });
     try {
-      console.log(
-        "[usePokedexStore] Cargando Pokémon desde dataset.json + custom-forms.json...",
-      );
       const repo = container.getPokemonRepository();
       const all = await repo.getAll();
-      console.log("[usePokedexStore] Cargados:", all.length);
-
-      if (all.length === 0) {
-        console.warn(
-          "[usePokedexStore] getAll() devolvió 0. Revisa data/pokemon/dataset.json y custom-forms.json",
-        );
-        set({
-          error: "dataset.json + custom-forms.json vacíos o no encontrados",
-          isLoading: false,
-        });
-        return;
-      }
-
-      set({ pokemonList: all, isLoading: false });
+      set({ pokemons: all, pokemonList: all, isLoading: false });
     } catch (e) {
-      console.error("[usePokedexStore] Error:", e);
       set({
-        error: e instanceof Error ? e.message : "Error cargando",
+        error: e instanceof Error ? e.message : String(e),
         isLoading: false,
       });
     }
+  },
+  loadPokemon: async () => {
+    await get().load();
   },
 }));

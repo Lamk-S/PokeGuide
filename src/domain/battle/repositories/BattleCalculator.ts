@@ -1,6 +1,10 @@
-import type { BattleScenario } from "@/domain/battle/entities/BattleScenario";
-import type { BattleResult } from "@/domain/battle/types/BattleTypes";
+import type {
+  IResolvedBattleScenario,
+  BattleResult,
+} from "../types/BattleParticipant";
 
 export interface BattleCalculator {
-  calculate(scenario: BattleScenario): BattleResult;
+  calculate(
+    scenario: IResolvedBattleScenario,
+  ): BattleResult | Promise<BattleResult>;
 }

@@ -1,10 +1,13 @@
 "use client";
 import { BattleStatusEffectService } from "@/domain/battle/services/BattleStatusEffectService";
 import { memo, useMemo } from "react";
-import type { BattleResult } from "@/domain/battle/types/BattleTypes";
 import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
-import type { BattleScenario } from "@/domain/battle/entities/BattleScenario";
+import type {
+  BattleResult,
+  IBattleConditions,
+} from "@/domain/battle/types/BattleParticipant";
+
 import {
   TypeBadge,
   translateTypeUpper,
@@ -21,7 +24,7 @@ interface Props {
   defenderPokemon?: Pokemon;
   attackerInput?: BattleParticipantInput | null;
   defenderInput?: BattleParticipantInput | null;
-  conditions?: BattleScenario["conditions"];
+  conditions?: IBattleConditions;
   moveName?: string | undefined;
   moveType?: string | undefined;
   movePower?: number | null | undefined;
