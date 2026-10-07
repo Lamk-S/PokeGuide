@@ -1,11 +1,13 @@
 import { battleComposition } from "./battle.composition";
 
 export const container = {
-  getCalculateBattleScenarioUseCase: () =>
-    battleComposition.calculateBattleScenarioUseCase,
+  battle: battleComposition,
   getPokemonRepository: () => battleComposition.pokemonRepository,
-  getMoveRepository: () => battleComposition.moveRepository,
-  getItemRepository: () => battleComposition.itemRepository,
   getAbilityRepository: () => battleComposition.abilityRepository,
-  getCalculatorAdapter: () => battleComposition.calculatorAdapter,
+  getItemRepository: () => battleComposition.itemRepository,
+  getMoveRepository: () => battleComposition.moveRepository,
+  getBattleCalculator: () => battleComposition.calculator,
+  getBattleUseCase: () => battleComposition.calculateBattleScenarioUseCase,
 } as const;
+
+export type Container = typeof container;
