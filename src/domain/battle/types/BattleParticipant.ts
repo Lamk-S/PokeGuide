@@ -33,7 +33,6 @@ export interface IBattleParticipantInput {
   isCriticalHit?: boolean | undefined;
 }
 
-// ✅ Fix Observación 1: sin redundancia id vs pokemonId
 export interface IResolvedParticipant
   extends Omit<IBattleParticipantInput, "pokemonId"> {
   id: number;
