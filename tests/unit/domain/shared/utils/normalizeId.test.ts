@@ -1,26 +1,36 @@
 import { describe, it, expect } from "vitest";
-import { normalizeId } from "@/domain/shared/utils/normalizeId";
+import { normalizeId, normalizeAbilityId, normalizeItemId } from "@/domain/shared/utils/normalizeId";
 
-describe("normalizeId", () => {
-  it("debe manejar y normalizar strings correctamente", () => {
-    // Convierte a minúsculas
-    expect(normalizeId("Pikachu")).toBe("pikachu");
-    
-    // Reemplaza espacios por guiones
-    expect(normalizeId("Tapu Koko")).toBe("tapu-koko");
-    
-    // Mantiene los guiones y los pasa a minúsculas
-    expect(normalizeId("Ho-Oh")).toBe("ho-oh");
-    
-    // Reemplaza múltiples espacios o guiones bajos por un solo guión
-    expect(normalizeId("Mr. Mime")).toBe("mr.-mime");
-    expect(normalizeId("tapu_lele")).toBe("tapu-lele");
-    expect(normalizeId("multi   spaces")).toBe("multi-spaces");
+describe("Utils: normalizeId module", () => {
+  describe("normalizeId", () => {
+    it("normaliza strings correctamente eliminando espacios y guiones bajos", () => {
+      expect(normalizeId("Thunderbolt")).toBe("thunderbolt");
+      expect(normalizeId("Tapu Koko")).toBe("tapu-koko");
+      expect(normalizeId(" Ho-Oh ")).toBe("ho-oh");
+      expect(normalizeId("Porygon-Z")).toBe("porygon-z");
+      expect(normalizeId("heavy_duty_boots")).toBe("heavy-duty-boots");
+      expect(normalizeId("will  o   wisp")).toBe("will-o-wisp");
+      expect(normalizeId("will--o--wisp")).toBe("will-o-wisp");
+    });
+
+    it("maneja valores vacíos o falsy de forma segura", () => {
+      expect(normalizeId("")).toBe("");
+      expect(normalizeId(undefined)).toBe("");
+      expect(normalizeId(null)).toBe("");
+    });
   });
 
-  it("debe retornar string vacío si recibe un valor vacío, nulo o undefined", () => {
-    expect(normalizeId("")).toBe("");
-    expect(normalizeId(null)).toBe("");
-    expect(normalizeId(undefined)).toBe("");
+  describe("normalizeAbilityId", () => {
+    it("reutiliza la normalización para habilidades", () => {
+      expect(normalizeAbilityId("Mold Breaker")).toBe("mold-breaker");
+      expect(normalizeAbilityId(null)).toBe("");
+    });
+  });
+
+  describe("normalizeItemId", () => {
+    it("reutiliza la normalización para items", () => {
+      expect(normalizeItemId("Choice Specs")).toBe("choice-specs");
+      expect(normalizeItemId(undefined)).toBe("");
+    });
   });
 });
