@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCalculatorAdapter";
 import type { IResolvedBattleScenario, IResolvedParticipant, StatSet } from "@/domain/battle/types/BattleParticipant";
+import type { Nature } from "@/domain/stats/types/StatTypes";
+import type { StatusId } from "@/domain/battle/value-objects/BattleModifiers";
 
-const seriousNature = { name: "Serious", nameEs: "Seria", increasedStat: null, decreasedStat: null } as any;
+const seriousNature: Nature = { name: "Serious", nameEs: "Seria", increasedStat: null, decreasedStat: null };
 
 function createStatSet(value: number): StatSet {
   return { hp: value, attack: value, defense: value, "special-attack": value, "special-defense": value, speed: value };
@@ -41,7 +43,7 @@ describe("SmogonCalculatorAdapter", () => {
   it("calcula modificadores activos: clima, terreno, quemadura y crítico", () => {
     const scenario: IResolvedBattleScenario = {
       generation: 9,
-      attacker: { ...basePikachu, id: 6, name: "charizard", status: "burn", isCriticalHit: true },
+      attacker: { ...basePikachu, id: 6, name: "charizard", status: "burn" as StatusId, isCriticalHit: true },
       defender: { ...baseGarchomp, id: 3, name: "venusaur" },
       moveName: "Flare Blitz",
       moveId: "flare-blitz",
@@ -59,8 +61,8 @@ describe("SmogonCalculatorAdapter", () => {
   it("mapea correctamente otras condiciones de terreno, clima y estados", () => {
     const scenario: IResolvedBattleScenario = {
       generation: 9,
-      attacker: { ...basePikachu, id: 94, name: "gengar", status: "tox" as any },
-      defender: { ...baseGarchomp, id: 65, name: "alakazam", status: "par" as any },
+      attacker: { ...basePikachu, id: 94, name: "gengar", status: "tox" as StatusId },
+      defender: { ...baseGarchomp, id: 65, name: "alakazam", status: "par" as StatusId },
       moveName: "Shadow Ball",
       moveId: "shadow-ball",
       conditions: { weather: "rain", terrain: "psychic" }
