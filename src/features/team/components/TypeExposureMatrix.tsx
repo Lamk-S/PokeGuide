@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useTeamStore } from "../store/useTeamStore";
 import { TypeEffectiveness, ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
-import type { TeamMember } from "@/domain/team/types/TeamTypes";
+import type { TeamMember, TypeExposure } from "@/domain/team/types/TeamTypes";
 import { translateTypeToSpanish } from "../constants/typeTranslations";
 
 type MemberWithMeta = TeamMember & {
@@ -19,6 +19,22 @@ function getMemberName(member: TeamMember): string {
   return (
     meta.displayNameEs ?? meta.name ?? meta.species ?? meta.id ?? "Desconocido"
   );
+}
+
+const EMPTY_EXPOSURE: TypeExposure = {
+  weak: 0,
+  resist: 0,
+  immune: 0,
+  neutral: 0,
+};
+
+function getExposure(
+  coverage: Record<string, TypeExposure> | undefined,
+  type: PokemonType,
+  teamSize: number,
+): TypeExposure {
+  if (!coverage) return { ...EMPTY_EXPOSURE, neutral: teamSize };
+  return coverage[type] ?? { ...EMPTY_EXPOSURE, neutral: teamSize };
 }
 
 export function TypeExposureMatrix() {
@@ -38,24 +54,35 @@ export function TypeExposureMatrix() {
   const criticalTypes = useMemo(() => {
     if (!coverage) return [];
     return ALL_POKEMON_TYPES.filter((t) => {
-      const exp = coverage[t];
+      const exp = getExposure(coverage, t, members.length);
       return exp.weak >= 3 && exp.resist + exp.immune <= 1;
     });
-  }, [coverage]);
+  }, [coverage, members.length]);
 
   const sortedTypes = useMemo(() => {
     if (!coverage) return [...ALL_POKEMON_TYPES];
     const list = [...ALL_POKEMON_TYPES];
     if (activeFilter === "criticos") {
       return list
-        .filter((t) => coverage[t].weak >= 2)
-        .sort((a, b) => coverage[b].weak - coverage[a].weak);
+        .filter((t) => {
+          const exp = getExposure(coverage, t, members.length);
+          return exp.weak >= 2;
+        })
+        .sort((a, b) => {
+          const expA = getExposure(coverage, a, members.length);
+          const expB = getExposure(coverage, b, members.length);
+          return expB.weak - expA.weak;
+        });
     }
     if (activeFilter === "debiles") {
-      return list.sort((a, b) => coverage[b].weak - coverage[a].weak);
+      return list.sort((a, b) => {
+        const expA = getExposure(coverage, a, members.length);
+        const expB = getExposure(coverage, b, members.length);
+        return expB.weak - expA.weak;
+      });
     }
     return list;
-  }, [coverage, activeFilter]);
+  }, [coverage, activeFilter, members.length]);
 
   const getWeakMembers = (atk: PokemonType) => {
     return members.filter(
@@ -96,9 +123,10 @@ export function TypeExposureMatrix() {
   if (!coverage) return null;
 
   const totalTipos = ALL_POKEMON_TYPES.length;
-  const cubiertos = ALL_POKEMON_TYPES.filter(
-    (t) => coverage[t].resist + coverage[t].immune > 0,
-  ).length;
+  const cubiertos = ALL_POKEMON_TYPES.filter((t) => {
+    const exp = getExposure(coverage, t, members.length);
+    return exp.resist + exp.immune > 0;
+  }).length;
   const porcentajeCobertura = Math.round((cubiertos / totalTipos) * 100);
 
   return (
@@ -166,7 +194,7 @@ export function TypeExposureMatrix() {
           </thead>
           <tbody className="divide-y divide-[#F5F1E8]">
             {sortedTypes.map((atk) => {
-              const exp = coverage[atk];
+              const exp = getExposure(coverage, atk, members.length);
               const isCritical = exp.weak >= 3 && exp.resist + exp.immune <= 1;
               const coberturaPct = Math.round(
                 ((exp.resist + exp.immune) / Math.max(1, members.length)) * 100,
@@ -283,9 +311,10 @@ export function TypeExposureMatrix() {
                   .join(", ")}
           </div>
           <div className="mt-1.5 text-[10px] text-zinc-400">
-            {coverage[hoveredType].weak} débiles ·{" "}
-            {coverage[hoveredType].resist} resisten ·{" "}
-            {coverage[hoveredType].immune} inmunes
+            {(() => {
+              const exp = getExposure(coverage, hoveredType, members.length);
+              return `${exp.weak} débiles · ${exp.resist} resisten · ${exp.immune} inmunes`;
+            })()}
           </div>
         </div>
       )}

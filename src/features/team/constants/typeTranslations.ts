@@ -25,3 +25,10 @@ export function translateTypeToSpanish(type: string): string {
   const key = type.toLowerCase() as PokemonType;
   return TYPE_TRANSLATIONS_ES[key] ?? type;
 }
+
+export function translateTypeToSpanishUpper(type: string): string {
+  return translateTypeToSpanish(type).toUpperCase();
+}
+
+export const translateType = translateTypeToSpanish;
+export const translateTypeUpper = translateTypeToSpanishUpper;

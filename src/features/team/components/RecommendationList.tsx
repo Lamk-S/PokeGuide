@@ -6,6 +6,13 @@ import type { Severity, TeamMember } from "@/domain/team/types/TeamTypes";
 import { TypeEffectiveness } from "@/domain/types/TypeChart";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import { translateTypeToSpanish } from "../constants/typeTranslations";
+import {
+  SEVERITY_I18N,
+  CATEGORY_I18N,
+  getRecommendationTitle,
+  getRecommendationReason,
+  getRecommendationAction,
+} from "../constants/recommendationI18n";
 
 type MemberWithMeta = TeamMember & {
   readonly displayNameEs?: string;
@@ -17,15 +24,6 @@ function getMemberDisplayName(member: TeamMember): string {
   const meta = member as MemberWithMeta;
   return meta.displayNameEs ?? meta.name ?? meta.species ?? "Desconocido";
 }
-
-const SEVERITY_LABEL: Record<Severity, { label: string; descripcion: string }> =
-  {
-    Critical: { label: "Crítico", descripcion: "Corrige antes de competir" },
-    High: { label: "Alto", descripcion: "Atención prioritaria" },
-    Medium: { label: "Medio", descripcion: "Mejora recomendada" },
-    Low: { label: "Bajo", descripcion: "Informativo" },
-    Info: { label: "Info", descripcion: "Nota táctica" },
-  };
 
 export function RecommendationList() {
   const analysis = useTeamStore((s) => s.analysis);
@@ -106,8 +104,8 @@ export function RecommendationList() {
               Informe táctico
             </h2>
             <p className="mt-1 max-w-[42ch] text-[11px] leading-normal text-zinc-400">
-              Qué ocurre, por qué importa y cómo corregirlo. Sin jerga
-              innecesaria.
+              Qué ocurre, por qué importa y cómo corregirlo. Motor purificado:
+              IDs semánticos → UI traduce.
             </p>
           </div>
           <div className="shrink-0 self-start border border-white/20 px-2 py-1 text-[9px] uppercase tracking-widest sm:px-2.5 sm:text-[10px]">
@@ -119,7 +117,7 @@ export function RecommendationList() {
 
       <div className="divide-y divide-[#F5F1E8]">
         {sorted.map((rec) => {
-          const sev = SEVERITY_LABEL[rec.severity];
+          const sev = SEVERITY_I18N[rec.severity as Severity];
           const affected = members.filter((m) => {
             const mult = TypeEffectiveness.getMultiplier(
               rec.attackingType,
@@ -129,20 +127,29 @@ export function RecommendationList() {
             );
             return mult > 1;
           });
-          const tipoEs = translateTypeToSpanish(rec.attackingType);
+          const resistCount = rec.evidence.resist + rec.evidence.immune;
+          const tipoEs = translateTypeToSpanish(rec.targetType);
           const isExpanded = expandedId === rec.id;
-          const tipoLabel =
-            rec.type === "Defensive Gap"
-              ? "Sinergia defensiva"
-              : rec.type === "Dependency"
-                ? "Dependencia"
-                : "Velocidad";
+          const tipoLabel = CATEGORY_I18N[rec.category] ?? rec.category;
+          const title = getRecommendationTitle(
+            rec,
+            affected.length,
+            resistCount,
+          );
+          const reason = getRecommendationReason(rec);
+          const action = getRecommendationAction(rec);
 
           return (
             <article key={rec.id} className="px-5 py-5">
               <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-widest">
                 <span
-                  className={`border px-2 py-0.5 ${rec.severity === "Critical" ? "border-[#D93B32] bg-[#FEF2F2] text-[#991B1B]" : rec.severity === "High" ? "border-[#111] bg-[#111] text-white" : "border-[#EDE8E0] bg-white text-zinc-600"}`}
+                  className={`border px-2 py-0.5 ${
+                    rec.severity === "Critical"
+                      ? "border-[#D93B32] bg-[#FEF2F2] text-[#991B1B]"
+                      : rec.severity === "High"
+                        ? "border-[#111] bg-[#111] text-white"
+                        : "border-[#EDE8E0] bg-white text-zinc-600"
+                  }`}
                 >
                   {sev.label}
                 </span>
@@ -155,9 +162,7 @@ export function RecommendationList() {
               </div>
 
               <h3 className="mt-3 font-serif text-[15px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#111]">
-                {rec.attackingType === "normal"
-                  ? rec.title
-                  : `${affected.length} Pokémon son débiles a ${tipoEs} y solo ${rec.evidence ? (rec.evidence.resist as number) + (rec.evidence.immune as number) : "1"} ofrece resistencia.`}
+                {title}
               </h3>
 
               <div className="mt-3 grid grid-cols-1 gap-3 text-[12px] leading-[1.6]">
@@ -165,7 +170,7 @@ export function RecommendationList() {
                   <div className="text-[10px] uppercase tracking-widest text-zinc-500">
                     Por qué importa
                   </div>
-                  <p className="mt-1 text-zinc-700">{rec.reason}</p>
+                  <p className="mt-1 text-zinc-700">{reason}</p>
                 </div>
                 {affected.length > 0 && (
                   <div>
@@ -189,7 +194,7 @@ export function RecommendationList() {
                     Qué hacer
                   </div>
                   <p className="mt-1 text-[11px] leading-normal text-zinc-800">
-                    {rec.description}
+                    {action}
                   </p>
                 </div>
               </div>
@@ -206,7 +211,8 @@ export function RecommendationList() {
                 <div className="mt-3 border border-[#EDE8E0] bg-[#F8F5F0] px-3 py-2 text-[11px] tabular-nums text-zinc-600">
                   {Object.entries(rec.evidence)
                     .map(([k, v]) => `${k}: ${v}`)
-                    .join(" · ")}
+                    .join(" · ")}{" "}
+                  · code: {rec.issueCode} · target: {rec.targetType}
                 </div>
               )}
             </article>
@@ -216,9 +222,9 @@ export function RecommendationList() {
 
       <div className="border-t border-[#EDE8E0] bg-[#F8F5F0] px-5 py-3">
         <p className="text-[11px] leading-normal text-zinc-600">
-          El informe enseña estrategia: cada hallazgo incluye contexto
-          competitivo real, no frases genéricas. Revisa la matriz para validar
-          el impacto del cambio.
+          Arquitectura purificada: el Dominio evalúa con <code>fire</code> /{" "}
+          <code>ice</code> / <code>massive_weakness</code>. La UI traduce a
+          "FUEGO" y genera el mensaje final. Sin imports de i18n en domain/.
         </p>
       </div>
     </section>
