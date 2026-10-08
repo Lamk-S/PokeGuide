@@ -7,39 +7,41 @@ import {
 } from "@/domain/battle/services/BattleStatusEffectService";
 
 vi.mock("@/domain/battle/value-objects/MoveCategory", () => ({
-  isPhysicalCategory: (cat: any) => cat === "Physical"
+  isPhysicalCategory: (cat: string) => cat === "Physical"
 }));
 vi.mock("@/domain/battle/value-objects/AbilityId", () => ({
-  isGutsAbility: (id: any) => id === "guts"
+  isGutsAbility: (id: string) => id === "guts"
 }));
 vi.mock("@/domain/battle/value-objects/MoveId", () => ({
-  isFacadeMove: (id: any) => id === "facade"
+  isFacadeMove: (id: string) => id === "facade"
 }));
+
+type MockCategory = "Physical" | "Special" | "Status";
 
 describe("BattleStatusEffectService", () => {
   describe("evaluateBurn", () => {
     it("retorna multiplier 1.0 y applies false para movimientos no físicos", () => {
-      const result = evaluateBurn({ moveId: "surf", moveCategory: "Special" as any });
+      const result = evaluateBurn({ moveId: "surf", moveCategory: "Special" as MockCategory });
       expect(result.applies).toBe(false);
       expect(result.multiplier).toBe(1.0);
     });
 
     it("retorna multiplier 2.0 y aplica para el movimiento Facade", () => {
-      const result = evaluateBurn({ moveId: "facade", moveCategory: "Physical" as any });
+      const result = evaluateBurn({ moveId: "facade", moveCategory: "Physical" as MockCategory });
       expect(result.applies).toBe(true);
       expect(result.multiplier).toBe(2.0);
       expect(result.log).toContain("Facade x2.0");
     });
 
     it("retorna multiplier 1.0 ignorando penalización si la habilidad es Guts", () => {
-      const result = evaluateBurn({ moveId: "earthquake", moveCategory: "Physical" as any, abilityId: "guts" });
+      const result = evaluateBurn({ moveId: "earthquake", moveCategory: "Physical" as MockCategory, abilityId: "guts" });
       expect(result.applies).toBe(true);
       expect(result.multiplier).toBe(1.0);
       expect(result.log).toContain("Guts ignora quemadura");
     });
 
     it("retorna multiplier 0.5 para ataques físicos normales", () => {
-      const result = evaluateBurn({ moveId: "earthquake", moveCategory: "Physical" as any, abilityId: "intimidate" });
+      const result = evaluateBurn({ moveId: "earthquake", moveCategory: "Physical" as MockCategory, abilityId: "intimidate" });
       expect(result.applies).toBe(true);
       expect(result.multiplier).toBe(0.5);
       expect(result.log).toContain("0.5");

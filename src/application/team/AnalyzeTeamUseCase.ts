@@ -48,11 +48,7 @@ export class AnalyzeTeamUseCase {
           )
         : 0;
 
-    const recommendations = RecommendationEngine.generate(
-      defensiveCoverage,
-      members,
-      this.ruleset,
-    );
+    const recommendations = RecommendationEngine.generate(defensiveCoverage);
 
     return Object.freeze({
       defensiveCoverage,
