@@ -1,65 +1,96 @@
-import type { PokemonRepository } from "@/domain/pokemon/repositories/pokemon-repository";
-import type { Pokemon, PokemonId } from "@/domain/pokemon/types/pokemon";
-import dataset from "@/../data/pokemon/dataset.json";
-import customForms from "@/../data/pokemon/custom-forms.json";
+import type { Pokemon } from "@/domain/pokemon/types/pokemon";
+import datasetOptimized from "../../../../data/pokemon/dataset.optimized.json";
+import datasetEs from "../../../../data/pokemon/dataset.es.json";
 
-export class LocalPokemonRepository implements PokemonRepository {
-  private readonly byId: Map<PokemonId, Pokemon>;
-  private readonly byName: Map<string, Pokemon>;
-  private readonly all: Pokemon[];
+type PokemonOptimized = {
+  id: number;
+  name: string;
+  nameEs: string;
+  types: string[];
+  bst: number;
+  sprite: string;
+  isCustom: boolean;
+};
+
+type PokemonWithEs = Pokemon & {
+  nameEs?: string;
+  isCustom?: boolean;
+};
+
+export class LocalPokemonRepository {
+  private readonly pokemonOptimized: PokemonOptimized[];
+  private readonly pokemonFull: PokemonWithEs[];
+  private readonly byName: Map<string, PokemonWithEs>;
+  private readonly byId: Map<number, PokemonWithEs>;
 
   constructor() {
-    try {
-      const baseList = dataset as Pokemon[];
-      const formsList = customForms as Pokemon[];
-      const combined = [...baseList, ...formsList] as Pokemon[];
+    this.pokemonOptimized = datasetOptimized as PokemonOptimized[];
+    this.pokemonFull = datasetEs as PokemonWithEs[];
 
-      const seen = new Set<number>();
-      const list: Pokemon[] = [];
-      for (const p of combined) {
-        if (!seen.has(p.id)) {
-          seen.add(p.id);
-          list.push(p);
-        }
-      }
-
-      console.log(
-        "[LocalPokemonRepository] dataset loaded:",
-        baseList.length,
-        "base +",
-        formsList.length,
-        "custom =",
-        list.length,
-        "pokemons",
-      );
-      if (!Array.isArray(list) || list.length === 0) {
-        console.warn(
-          "[LocalPokemonRepository] dataset.json + custom-forms.json están vacíos o no son arrays",
-        );
-      }
-      this.all = list.sort((a, b) => a.id - b.id);
-      this.byId = new Map(list.map((p) => [p.id, p]));
-      this.byName = new Map(list.map((p) => [p.name.toLowerCase(), p]));
-    } catch (e) {
-      console.error("[LocalPokemonRepository] Error cargando dataset.json:", e);
-      console.error(
-        "Verifica que los archivos existen en /data/pokemon/dataset.json y custom-forms.json y que el alias @/../data resuelve bien con Turbopack",
-      );
-      this.all = [];
-      this.byId = new Map();
-      this.byName = new Map();
-    }
+    this.byName = new Map(
+      this.pokemonFull.map((p) => [p.name.toLowerCase(), p]),
+    );
+    this.byId = new Map(this.pokemonFull.map((p) => [p.id, p]));
   }
 
-  async getById(id: number): Promise<Pokemon | null> {
+  async getAllOptimized(): Promise<PokemonOptimized[]> {
+    return [...this.pokemonOptimized];
+  }
+
+  async searchOptimized(query: string): Promise<PokemonOptimized[]> {
+    const q = query.toLowerCase().trim();
+    if (!q) return [...this.pokemonOptimized];
+    return this.pokemonOptimized.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.nameEs.toLowerCase().includes(q) ||
+        p.types.some((t) => t.toLowerCase().includes(q)),
+    );
+  }
+
+  async getAll(): Promise<PokemonWithEs[]> {
+    return [...this.pokemonFull];
+  }
+
+  async getByName(name: string): Promise<PokemonWithEs | null> {
+    return this.byName.get(name.toLowerCase().trim()) ?? null;
+  }
+
+  async getById(id: number): Promise<PokemonWithEs | null> {
     return this.byId.get(id) ?? null;
   }
 
-  async getByName(name: string): Promise<Pokemon | null> {
-    return this.byName.get(name.toLowerCase()) ?? null;
+  async getByNameEs(nameEs: string): Promise<PokemonWithEs | null> {
+    const normalized = nameEs.toLowerCase().trim();
+    return (
+      this.pokemonFull.find((p) => p.nameEs?.toLowerCase() === normalized) ??
+      null
+    );
   }
 
-  async getAll(): Promise<Pokemon[]> {
-    return this.all;
+  async search(query: string): Promise<PokemonWithEs[]> {
+    const q = query.toLowerCase().trim();
+    if (!q) return [...this.pokemonFull];
+    return this.pokemonFull.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.nameEs?.toLowerCase().includes(q) ||
+        p.types.some((t) => t.toLowerCase().includes(q)),
+    );
+  }
+
+  async getByType(type: string): Promise<PokemonWithEs[]> {
+    const t = type.toLowerCase().trim();
+    return this.pokemonFull.filter((p) =>
+      p.types.some((ty) => ty.toLowerCase() === t),
+    );
+  }
+
+  async getCustomForms(): Promise<PokemonWithEs[]> {
+    return this.pokemonFull.filter((p) => p.isCustom === true);
+  }
+
+  async getByBstRange(min: number, max: number): Promise<PokemonOptimized[]> {
+    return this.pokemonOptimized.filter((p) => p.bst >= min && p.bst <= max);
   }
 }
