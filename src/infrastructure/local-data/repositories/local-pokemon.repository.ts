@@ -63,8 +63,9 @@ export class LocalPokemonRepository {
   async getByNameEs(nameEs: string): Promise<PokemonWithEs | null> {
     const normalized = nameEs.toLowerCase().trim();
     return (
-      this.pokemonFull.find((p) => p.nameEs?.toLowerCase() === normalized) ??
-      null
+      this.pokemonFull.find(
+        (p) => (p.nameEs || p.name).toLowerCase() === normalized,
+      ) ?? null
     );
   }
 
