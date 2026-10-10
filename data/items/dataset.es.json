@@ -1,890 +1,890 @@
 [
   {
     "name": "abomasite",
-    "nameEs": "Abomasnowita",
+    "nameEs": "Abomasita",
     "effect": "Held: Allows Abomasnow to Mega Evolve into Mega Abomasnow.",
-    "effectEs": ""
+    "effectEs": "Permite a Abomasnow megaevolucionar a Mega-Abomasnow durante el combate."
   },
   {
     "name": "absolite",
     "nameEs": "Absolita",
     "effect": "Held: Allows Absol to Mega Evolve into Mega Absol.",
-    "effectEs": ""
+    "effectEs": "Permite a Absol megaevolucionar."
   },
   {
     "name": "adamant-orb",
     "nameEs": "Diamansfera",
     "effect": "Held by Dialga\n:   Holder’s Dragon- and Steel-type moves have 1.2× their usual power.",
-    "effectEs": ""
+    "effectEs": "Potencia movimientos Dragón y Acero de Dialga 20%."
   },
   {
     "name": "aerodactylite",
-    "nameEs": "Aerodactylita",
+    "nameEs": "Aerodactilita",
     "effect": "Held: Allows Aerodactyl to Mega Evolve into Mega Aerodactyl.",
-    "effectEs": ""
+    "effectEs": "Permite a Aerodactyl megaevolucionar."
   },
   {
     "name": "aggronite",
     "nameEs": "Aggronita",
     "effect": "Held: Allows Aggron to Mega Evolve into Mega Aggron.",
-    "effectEs": ""
+    "effectEs": "Permite a Aggron megaevolucionar."
   },
   {
     "name": "aguav-berry",
-    "nameEs": "Baya Guaya",
+    "nameEs": "Baya Ango",
     "effect": "Held in battle\n:   When the holder has 1/2 its max HP remaining or less, it consumes this item to restore 1/8 its max HP.  If the holder dislikes bitter flavors (i.e., has a nature that lowers Special Defense), it will also become confused.",
-    "effectEs": ""
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
   },
   {
     "name": "alakazite",
     "nameEs": "Alakazamita",
     "effect": "Held: Allows Alakazam to Mega Evolve into Mega Alakazam.",
-    "effectEs": ""
+    "effectEs": "Permite a Alakazam megaevolucionar."
   },
   {
     "name": "altarianite",
     "nameEs": "Altarianita",
     "effect": "Held: Allows Altaria to Mega Evolve into Mega Altaria.",
-    "effectEs": ""
+    "effectEs": "Permite a Altaria megaevolucionar."
   },
   {
     "name": "ampharosite",
     "nameEs": "Ampharosita",
     "effect": "Held: Allows Ampharos to Mega Evolve into Mega Ampharos.",
-    "effectEs": ""
+    "effectEs": "Permite a Ampharos megaevolucionar."
   },
   {
     "name": "apicot-berry",
     "nameEs": "Baya Aricoc",
     "effect": "Held in battle\n:   When the holder has 1/4 its max HP remaining or less, it consumes this item to raise its Special Defense by one stage.",
-    "effectEs": ""
+    "effectEs": "Al 25% PS, sube 1 nivel Def. Especial."
   },
   {
     "name": "aspear-berry",
     "nameEs": "Baya Perasi",
     "effect": "Held in battle\n:   When the holder is frozen, it consumes this item to thaw itself.\n\nUsed on a party Pokémon\n:   Cures freezing.",
-    "effectEs": ""
+    "effectEs": "Cura congelamiento al ser consumida."
   },
   {
     "name": "assault-vest",
     "nameEs": "Chaleco Asalto",
     "effect": "Raises the holder’s Special Defense to 1.5×.  Prevents the holder from selecting a status move.",
-    "effectEs": ""
+    "effectEs": "Sube 50% la Def. Especial pero impide usar movimientos de estado."
   },
   {
     "name": "audinite",
     "nameEs": "Audinita",
     "effect": "Held: Allows Audino to Mega Evolve into Mega Audino.",
-    "effectEs": ""
+    "effectEs": "Permite a Audino megaevolucionar."
   },
   {
     "name": "babiri-berry",
-    "nameEs": "Baya Baribá",
+    "nameEs": "Baya Baya",
     "effect": "Held in battle\n:   When the holder would take super-effective Steel-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Acero."
   },
   {
     "name": "banettite",
     "nameEs": "Banettita",
     "effect": "Held: Allows Banette to Mega Evolve into Mega Banette.",
-    "effectEs": ""
+    "effectEs": "Permite a Banette megaevolucionar."
   },
   {
     "name": "beedrillite",
     "nameEs": "Beedrillita",
     "effect": "Held: Allows Beedrill to Mega Evolve into Mega Beedrill.",
-    "effectEs": ""
+    "effectEs": "Permite a Beedrill megaevolucionar."
   },
   {
     "name": "belue-berry",
-    "nameEs": "Baya Andano",
+    "nameEs": "Belue Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. belue-berry."
   },
   {
     "name": "black-sludge",
     "nameEs": "Lodo Negro",
     "effect": "Held: If the holder is Poison-type, restores 1/16 max HP at the end of each turn.  Otherwise, damages the holder by 1/16 its max HP at the end of each turn.",
-    "effectEs": ""
+    "effectEs": "Si el portador es tipo Veneno recupera 1/16 PS; si no, pierde 1/8 PS cada turno."
   },
   {
     "name": "blastoisinite",
     "nameEs": "Blastoisita",
     "effect": "Held: Allows Blastoise to Mega Evolve into Mega Blastoise.",
-    "effectEs": ""
+    "effectEs": "Permite a Blastoise megaevolucionar."
   },
   {
     "name": "blazikenite",
     "nameEs": "Blazikenita",
     "effect": "Held: Allows Blaziken to Mega Evolve into Mega Blaziken.",
-    "effectEs": ""
+    "effectEs": "Permite a Blaziken megaevolucionar."
   },
   {
     "name": "bluk-berry",
-    "nameEs": "Baya Oram",
+    "nameEs": "Bluk Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. bluk-berry."
   },
   {
     "name": "cameruptite",
     "nameEs": "Cameruptita",
     "effect": "Held: Allows Camerupt to Mega Evolve into Mega Camerupt.",
-    "effectEs": ""
+    "effectEs": "Permite a Camerupt megaevolucionar."
   },
   {
     "name": "charizardite-x",
     "nameEs": "Charizardita X",
     "effect": "Held: Allows Charizard to Mega Evolve into Mega Charizard X.",
-    "effectEs": ""
+    "effectEs": "Permite a Charizard megaevolucionar a Mega-Charizard X (Fuego/Dragón)."
   },
   {
     "name": "charizardite-y",
     "nameEs": "Charizardita Y",
     "effect": "Held: Allows Charizard to Mega Evolve into Mega Charizard Y.",
-    "effectEs": ""
+    "effectEs": "Permite a Charizard megaevolucionar a Mega-Charizard Y (Fuego/Volador)."
   },
   {
     "name": "charti-berry",
-    "nameEs": "Baya Alcho",
+    "nameEs": "Baya Antiara",
     "effect": "Held in battle\n:   When the holder would take super-effective Rock-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Roca."
   },
   {
     "name": "cheri-berry",
     "nameEs": "Baya Zreza",
     "effect": "Held in battle\n:   When the holder is paralyzed, it consumes this item to cure the paralysis.\n\nUsed on a party Pokémon\n:   Cures paralysis.",
-    "effectEs": ""
+    "effectEs": "Cura parálisis al ser consumida. Puede ser usada por un aliado con prestreza."
   },
   {
     "name": "chesto-berry",
     "nameEs": "Baya Atania",
     "effect": "Held in battle\n:   When the holder is asleep, it consumes this item to wake up.\n\nUsed on a party Pokémon\n:   Cures sleep.",
-    "effectEs": ""
+    "effectEs": "Cura sueño al ser consumida."
   },
   {
     "name": "chilan-berry",
-    "nameEs": "Baya Chilan",
+    "nameEs": "Baya Chila",
     "effect": "Held in battle\n:   When the holder would take Normal-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño de tipo Normal."
   },
   {
     "name": "choice-band",
-    "nameEs": "Cinta Elección",
+    "nameEs": "Cinta Elegida",
     "effect": "Held in battle\n:   Holder has 1.5× its Attack.  When the holder attempts to use a move, all its other moves are disabled until it leaves battle or loses this item.\n\n    The restriction ends even if this item is swapped for another Choice item\nvia Trick or Switcheroo.",
-    "effectEs": ""
+    "effectEs": "Sube 50% el Ataque pero solo permite usar el primer movimiento elegido. Se cambia al cambiar de Pokémon."
   },
   {
     "name": "choice-scarf",
-    "nameEs": "Pañuelo Elección",
+    "nameEs": "Pañuelo Elegido",
     "effect": "Held: Increases the holder’s Speed by 50%, but restricts it to the first move it uses until it leaves battle or loses this item.  If this item is swapped for another Choice item via Trick or Switcheroo, the holder’s restriction is still lifted, but it will again be restricted to the next move it uses.\n(Quirk: If the holder is switched in by U-Turn and it also knows U-Turn, U-Turn becomes its restricted move.)",
-    "effectEs": ""
+    "effectEs": "Sube 50% la Velocidad pero solo permite usar el primer movimiento elegido."
   },
   {
     "name": "choice-specs",
-    "nameEs": "Gafas Elección",
+    "nameEs": "Gafas Elegidas",
     "effect": "Held: Increases the holder’s Special Attack by 50%, but restricts it to the first move it uses until it leaves battle or loses this item.  If this item is swapped for another Choice item via Trick or Switcheroo, the holder’s restriction is still lifted, but it will again be restricted to the next move it uses.\n(Quirk: If the holder is switched in by U-Turn and it also knows U-Turn, U-Turn becomes its restricted move.)",
-    "effectEs": ""
+    "effectEs": "Sube 50% el At. Especial pero solo permite usar el primer movimiento elegido."
   },
   {
     "name": "chople-berry",
     "nameEs": "Baya Pomaro",
     "effect": "Held in battle\n:   When the holder would take super-effective Fighting-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Lucha."
   },
   {
     "name": "coba-berry",
-    "nameEs": "Baya Kouba",
+    "nameEs": "Baya Toval",
     "effect": "Held in battle\n:   When the holder would take super-effective Flying-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Volador."
   },
   {
     "name": "colbur-berry",
-    "nameEs": "Baya Dillo",
+    "nameEs": "Baya Cumbre",
     "effect": "Held in battle\n:   When the holder would take super-effective Dark-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Siniestro."
   },
   {
     "name": "cornn-berry",
-    "nameEs": "Baya Mais",
+    "nameEs": "Cornn Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. cornn-berry."
   },
   {
     "name": "custap-berry",
-    "nameEs": "Baya Chiri",
+    "nameEs": "Baya Cursta",
     "effect": "Held in battle\n:   When the holder has 1/4 its max HP remaining or less, it consumes this item.  On the following turn, the holder will act first among moves with the same priority, regardless of Speed.",
-    "effectEs": ""
+    "effectEs": "Al 25% PS, el siguiente movimiento va primero."
   },
   {
     "name": "diancite",
     "nameEs": "Diancita",
     "effect": "Held: Allows Diancie to Mega Evolve into Mega Diancie.",
-    "effectEs": ""
+    "effectEs": "Permite a Diancie megaevolucionar."
   },
   {
     "name": "durin-berry",
-    "nameEs": "Baya Rudion",
+    "nameEs": "Durin Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. durin-berry."
   },
   {
     "name": "eject-button",
     "nameEs": "Botón Escape",
     "effect": "Held\n:   When the holder takes damage directly from a move and does not faint, it switches out for another non-fainted Pokémon in its party, as chosen by the Trainer.\nThis effect does not activate if another effect prevents the holder from switching out.",
-    "effectEs": ""
+    "effectEs": "Si es golpeado, cambia al portador por otro Pokémon del equipo. Un solo uso."
   },
   {
     "name": "electric-seed",
-    "nameEs": "Semilla Electro",
+    "nameEs": "Semilla Eléctrica",
     "effect": "Held: If the holder enters battle during Electric Terrain, or if Electric Terrain is activated while the holder is in battle, this item is consumed and the holder’s Defense raises by one stage.",
-    "effectEs": ""
+    "effectEs": "Con Campo Eléctrico, sube 1 nivel Defensa. Un solo uso."
   },
   {
     "name": "enigma-berry",
     "nameEs": "Baya Enigma",
     "effect": "Held in battle\n:   When the holder takes super-effective damage, it consumes this item to restore 1/4 its max HP.",
-    "effectEs": ""
+    "effectEs": "Al ser golpeado por movimiento supereficaz, recupera 25% PS."
   },
   {
     "name": "eviolite",
-    "nameEs": "Mineral Evol",
+    "nameEs": "Mineral Evolutivo",
     "effect": "Held by a Pokémon that is not fully evolved\n:   Holder has 1.5× Defense and Special Defense.",
-    "effectEs": ""
+    "effectEs": "Sube 50% Defensa y Def. Especial si puede evolucionar."
   },
   {
     "name": "expert-belt",
     "nameEs": "Cinta Experto",
     "effect": "Held: When the holder hits with a super-effective move, its power is raised by 20%.",
-    "effectEs": ""
+    "effectEs": "Potencia 20% los movimientos supereficaces."
   },
   {
     "name": "figy-berry",
     "nameEs": "Baya Higog",
     "effect": "Held in battle\n:   When the holder has 1/2 its max HP remaining or less, it consumes this item to restore 1/8 its max HP.  If the holder dislikes spicy flavors (i.e., has a nature that lowers Attack), it will also become confused.",
-    "effectEs": ""
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
   },
   {
     "name": "flame-orb",
-    "nameEs": "Llamasfera",
+    "nameEs": "Llamaesfera",
     "effect": "Held: Burns the holder at the end of each turn.",
-    "effectEs": ""
+    "effectEs": "Quema al portador al final del turno. Combo con Guts y Facade."
   },
   {
     "name": "focus-band",
-    "nameEs": "Cinta Aguante",
+    "nameEs": "Cinta Focus",
     "effect": "Held: If the holder is attacked for regular damage that would faint it, this item has a 10% chance to prevent the holder’s HP from lowering below 1.",
-    "effectEs": ""
+    "effectEs": "10% de sobrevivir con 1 PS a un golpe que lo debilitaría."
   },
   {
     "name": "focus-sash",
-    "nameEs": "Banda Aguante",
+    "nameEs": "Banda Focus",
     "effect": "Held: If the holder has full HP and is attacked for regular damage that would faint it, this item is consumed and prevents the holder’s HP from lowering below 1.  This effect works against multi-hit attacks, but does not work against the effects of Doom Desire or Future Sight.",
-    "effectEs": ""
+    "effectEs": "Si tiene PS al máximo, sobrevive con 1 PS a un golpe que lo debilitaría. Un solo uso."
   },
   {
     "name": "galladite",
     "nameEs": "Galladita",
     "effect": "Held: Allows Gallade to Mega Evolve into Mega Gallade.",
-    "effectEs": ""
+    "effectEs": "Permite a Gallade megaevolucionar."
   },
   {
     "name": "ganlon-berry",
     "nameEs": "Baya Gonlan",
     "effect": "Held in battle\n:   When the holder has 1/4 its max HP remaining or less, it consumes this item to raise its Defense by one stage.",
-    "effectEs": ""
+    "effectEs": "Al 25% PS, sube 1 nivel Defensa."
   },
   {
     "name": "garchompite",
     "nameEs": "Garchompita",
     "effect": "Held: Allows Garchomp to Mega Evolve into Mega Garchomp.",
-    "effectEs": ""
+    "effectEs": "Permite a Garchomp megaevolucionar."
   },
   {
     "name": "gardevoirite",
     "nameEs": "Gardevoirita",
     "effect": "Held: Allows Gardevoir to Mega Evolve into Mega Gardevoir.",
-    "effectEs": ""
+    "effectEs": "Permite a Gardevoir megaevolucionar."
   },
   {
     "name": "gengarite",
     "nameEs": "Gengarita",
     "effect": "Held: Allows Gengar to Mega Evolve into Mega Gengar.",
-    "effectEs": ""
+    "effectEs": "Permite a Gengar megaevolucionar."
   },
   {
     "name": "glalitite",
     "nameEs": "Glalita",
     "effect": "Held: Allows Glalie to Mega Evolve into Mega Glalie.",
-    "effectEs": ""
+    "effectEs": "Permite a Glalie megaevolucionar."
   },
   {
     "name": "grassy-seed",
     "nameEs": "Semilla Hierba",
     "effect": "Held: If the holder enters battle during Grassy Terrain, or if Grassy Terrain is activated while the holder is in battle, this item is consumed and the holder’s Defense raises by one stage.",
-    "effectEs": ""
+    "effectEs": "Con Campo de Hierba, sube 1 nivel Defensa. Un solo uso."
   },
   {
     "name": "grepa-berry",
-    "nameEs": "Baya Uvav",
+    "nameEs": "Grepa Berry",
     "effect": "Used on a party Pokémon\n:   Increases happiness by 10/5/2.  Lowers Special Defense effort by 10.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. grepa-berry."
   },
   {
     "name": "griseous-orb",
     "nameEs": "Griseosfera",
     "effect": "Held by Giratina\n:   Holder’s Dragon and Ghost moves have 1.2× their base power.\n\n    Holder is in Origin Forme.\n\nThis item cannot be held by any Pokémon but Giratina.  When you enter the Union Room or connect to Wi-Fi, this item returns to your bag.",
-    "effectEs": ""
+    "effectEs": "Potencia movimientos Dragón y Fantasma de Giratina y le mantiene en Forma Origen."
   },
   {
     "name": "gyaradosite",
     "nameEs": "Gyaradosita",
     "effect": "Held: Allows Gyarados to Mega Evolve into Mega Gyarados.",
-    "effectEs": ""
+    "effectEs": "Permite a Gyarados megaevolucionar."
   },
   {
     "name": "haban-berry",
-    "nameEs": "Baya Anjiro",
+    "nameEs": "Baya Angora",
     "effect": "Held in battle\n:   When the holder would take super-effective Dragon-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Dragón."
   },
   {
     "name": "heracronite",
-    "nameEs": "Heracrossita",
+    "nameEs": "Heracronita",
     "effect": "Held: Allows Heracross to Mega Evolve into Mega Heracross.",
-    "effectEs": ""
+    "effectEs": "Permite a Heracross megaevolucionar."
   },
   {
     "name": "hondew-berry",
-    "nameEs": "Baya Meluce",
+    "nameEs": "Hondew Berry",
     "effect": "Used on a party Pokémon\n:   Increases happiness by 10/5/2.  Lowers Special Attack effort by 10.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. hondew-berry."
   },
   {
     "name": "houndoominite",
     "nameEs": "Houndoomita",
     "effect": "Held: Allows Houndoom to Mega Evolve into Mega Houndoom.",
-    "effectEs": ""
+    "effectEs": "Permite a Houndoom megaevolucionar."
   },
   {
     "name": "iapapa-berry",
     "nameEs": "Baya Pabaya",
     "effect": "Held in battle\n:   When the holder has 1/2 its max HP remaining or less, it consumes this item to restore 1/8 its max HP.  If the holder dislikes sour flavors (i.e., has a nature that lowers Defense), it will also become confused.",
-    "effectEs": ""
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
   },
   {
     "name": "jaboca-berry",
     "nameEs": "Baya Jaboca",
     "effect": "Held in battle\n:   When the holder takes physical damage, it consumes this item to damage the attacking Pokémon for 1/8 its max HP.",
-    "effectEs": ""
+    "effectEs": "Si es golpeado físicamente, el atacante pierde 1/8 PS."
   },
   {
     "name": "kangaskhanite",
     "nameEs": "Kangaskhanita",
     "effect": "Held: Allows Kangaskhan to Mega Evolve into Mega Kangaskhan.",
-    "effectEs": ""
+    "effectEs": "Permite a Kangaskhan megaevolucionar."
   },
   {
     "name": "kasib-berry",
-    "nameEs": "Baya Drasi",
+    "nameEs": "Baya Kaskara",
     "effect": "Held in battle\n:   When the holder would take super-effective Ghost-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Fantasma."
   },
   {
     "name": "kebia-berry",
     "nameEs": "Baya Kebia",
     "effect": "Held in battle\n:   When the holder would take super-effective Poison-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Veneno."
   },
   {
     "name": "kelpsy-berry",
-    "nameEs": "Baya Algama",
+    "nameEs": "Kelpsy Berry",
     "effect": "Used on a party Pokémon\n:   Increases happiness by 10/5/2.  Lowers Attack effort by 10.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. kelpsy-berry."
   },
   {
     "name": "lansat-berry",
     "nameEs": "Baya Zonlan",
     "effect": "Held in battle\n:   When the holder has 1/4 its max HP remaining or less, it consumes this item to raise its critical hit chance by one stage.",
-    "effectEs": ""
+    "effectEs": "Al 25% PS, sube probabilidad de crítico."
   },
   {
     "name": "latiasite",
     "nameEs": "Latiasita",
     "effect": "Held: Allows Latias to Mega Evolve into Mega Latias.",
-    "effectEs": ""
+    "effectEs": "Permite a Latias megaevolucionar."
   },
   {
     "name": "latiosite",
     "nameEs": "Latiosita",
     "effect": "Held: Allows Latios to Mega Evolve into Mega Latios.",
-    "effectEs": ""
+    "effectEs": "Permite a Latios megaevolucionar."
   },
   {
     "name": "leftovers",
     "nameEs": "Restos",
     "effect": "Held: Heals the holder by 1/16 its max HP at the end of each turn.",
-    "effectEs": ""
+    "effectEs": "Recupera 1/16 de PS máximos al final de cada turno."
   },
   {
     "name": "leppa-berry",
-    "nameEs": "Baya Zanama",
+    "nameEs": "Baya Ziuela",
     "effect": "Held in battle\n:   When the holder is out of PP for one of its moves, it consumes this item to restore 10 of that move’s PP.\n\nUsed on a party Pokémon\n:   Restores 10 PP for a selected move.",
-    "effectEs": ""
+    "effectEs": "Restaura 10 PP de un movimiento."
   },
   {
     "name": "liechi-berry",
     "nameEs": "Baya Lichi",
     "effect": "Held in battle\n:   When the holder has 1/4 its max HP remaining or less, it consumes this item to raise its Attack by one stage.",
-    "effectEs": ""
+    "effectEs": "Al 25% PS, sube 1 nivel Ataque."
   },
   {
     "name": "life-orb",
     "nameEs": "Vidasfera",
     "effect": "Held: Damage from the holder’s moves is increased by 30%.  On each turn the holder uses a damage-inflicting move, it takes 10% its max HP in damage.",
-    "effectEs": ""
+    "effectEs": "Potencia 30% todos los movimientos a costa de perder 10% de PS máximos por ataque."
   },
   {
     "name": "light-ball",
     "nameEs": "Bola Luminosa",
     "effect": "Held by Pikachu: Doubles the holder’s initial Attack and Special Attack.",
-    "effectEs": ""
+    "effectEs": "Duplica Ataque y At. Especial de Pikachu."
   },
   {
     "name": "light-clay",
     "nameEs": "Refleluz",
     "effect": "Held: The holder’s Reflect and Light Screen will create effects lasting for eight turns rather than five.  As this item affects the move rather than the barrier itself, the effect is not lost if the holder leaves battle or drops this item.",
-    "effectEs": ""
+    "effectEs": "Extiende Reflejo, Pantalla Luz y Velo Aurora de 5 a 8 turnos."
   },
   {
     "name": "lopunnite",
     "nameEs": "Lopunnita",
     "effect": "Held: Allows Lopunny to Mega Evolve into Mega Lopunny.",
-    "effectEs": ""
+    "effectEs": "Permite a Lopunny megaevolucionar."
   },
   {
     "name": "lucarionite",
     "nameEs": "Lucarita",
     "effect": "Held: Allows Lucario to Mega Evolve into Mega Lucario.",
-    "effectEs": ""
+    "effectEs": "Permite a Lucario megaevolucionar."
   },
   {
     "name": "lum-berry",
     "nameEs": "Baya Ziuela",
     "effect": "Held in battle\n:   When the holder is afflicted with a major status ailment, it consumes this item to cure the ailment.\n\nUsed on a party Pokémon\n:   Cures any major status ailment.",
-    "effectEs": ""
+    "effectEs": "Cura cualquier problema de estado o confusión."
   },
   {
     "name": "lustrous-orb",
     "nameEs": "Lustresfera",
     "effect": "Held by Palkia\n:   Holder’s Dragon- and Water-type moves have 1.2× their usual power.",
-    "effectEs": ""
+    "effectEs": "Potencia movimientos Dragón y Agua de Palkia 20%."
   },
   {
     "name": "mago-berry",
-    "nameEs": "Baya Ango",
+    "nameEs": "Baya Guayaba",
     "effect": "Held in battle\n:   When the holder has 1/2 its max HP remaining or less, it consumes this item to restore 1/8 its max HP.  If the holder dislikes sweet flavors (i.e., has a nature that lowers Speed), it will also become confused.",
-    "effectEs": ""
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
   },
   {
     "name": "magost-berry",
-    "nameEs": "Baya Aostan",
+    "nameEs": "Magost Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. magost-berry."
   },
   {
     "name": "manectite",
-    "nameEs": "Manectricita",
+    "nameEs": "Manectita",
     "effect": "Held: Allows Manectric to Mega Evolve into Mega Manectric.",
-    "effectEs": ""
+    "effectEs": "Permite a Manectric megaevolucionar."
   },
   {
     "name": "mawilite",
     "nameEs": "Mawilita",
     "effect": "Held: Allows Mawile to Mega Evolve into Mega Mawile.",
-    "effectEs": ""
+    "effectEs": "Permite a Mawile megaevolucionar."
   },
   {
     "name": "medichamite",
     "nameEs": "Medichamita",
     "effect": "Held: Allows Medicham to Mega Evolve into Mega Medicham.",
-    "effectEs": ""
+    "effectEs": "Permite a Medicham megaevolucionar."
   },
   {
     "name": "mental-herb",
     "nameEs": "Hierba Mental",
     "effect": "Held in battle\n:   When the holder is attracted, it consumes this item to cure the attraction.",
-    "effectEs": ""
+    "effectEs": "Cura Atracción, Mofa, Inhibición, etc. Un solo uso."
   },
   {
     "name": "metagrossite",
     "nameEs": "Metagrossita",
     "effect": "Held: Allows Metagross to Mega Evolve into Mega Metagross.",
-    "effectEs": ""
+    "effectEs": "Permite a Metagross megaevolucionar."
   },
   {
     "name": "metronome",
     "nameEs": "Metrónomo",
     "effect": "Held: Each time the holder uses the same move consecutively, its power is increased by another 10% of its original, to a maximum of 100%.",
-    "effectEs": ""
+    "effectEs": "Potencia el mismo movimiento usado repetidamente, hasta 2×."
   },
   {
     "name": "mewtwonite-x",
     "nameEs": "Mewtwoita X",
     "effect": "Held: Allows Mewtwo to Mega Evolve into Mega Mewtwo X.",
-    "effectEs": ""
+    "effectEs": "Permite a Mewtwo megaevolucionar a Mega-Mewtwo X."
   },
   {
     "name": "mewtwonite-y",
     "nameEs": "Mewtwoita Y",
     "effect": "Held: Allows Mewtwo to Mega Evolve into Mega Mewtwo Y.",
-    "effectEs": ""
+    "effectEs": "Permite a Mewtwo megaevolucionar a Mega-Mewtwo Y."
   },
   {
     "name": "micle-berry",
     "nameEs": "Baya Lagro",
     "effect": "Held in battle\n:   When the holder has 1/4 its max HP remaining or less, it consumes this item, and its next used move has 1.2× its normal accuracy.",
-    "effectEs": ""
+    "effectEs": "Al 25% PS, el siguiente movimiento no falla."
   },
   {
     "name": "misty-seed",
     "nameEs": "Semilla Bruma",
     "effect": "Held: If the holder enters battle during Misty Terrain, or if Misty Terrain is activated while the holder is in battle, this item is consumed and the holder’s Special Defense raises by one stage.",
-    "effectEs": ""
+    "effectEs": "Con Campo de Niebla, sube 1 nivel Def. Especial. Un solo uso."
   },
   {
     "name": "muscle-band",
     "nameEs": "Cinta Fuerte",
     "effect": "Held: Increases the power of the holder’s physical moves by 10%.",
-    "effectEs": ""
+    "effectEs": "Potencia 10% los movimientos físicos."
   },
   {
     "name": "nanab-berry",
-    "nameEs": "Baya Latano",
+    "nameEs": "Nanab Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. nanab-berry."
   },
   {
     "name": "nomel-berry",
-    "nameEs": "Baya Monli",
+    "nameEs": "Nomel Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. nomel-berry."
   },
   {
     "name": "occa-berry",
-    "nameEs": "Baya Caoca",
+    "nameEs": "Baya Caocao",
     "effect": "Held in battle\n:   When the holder would take super-effective Fire-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad el daño de un movimiento supereficaz de tipo Fuego. Un solo uso."
   },
   {
     "name": "oran-berry",
     "nameEs": "Baya Aranja",
     "effect": "Held in battle\n:   When the holder has 1/2 its max HP remaining or less, it consumes this item to restore 10 HP.\n\nUsed on a party Pokémon\n:   Restores 10 HP.",
-    "effectEs": ""
+    "effectEs": "Recupera 10 PS al ser consumida."
   },
   {
     "name": "pamtre-berry",
-    "nameEs": "Baya Plama",
+    "nameEs": "Pamtre Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. pamtre-berry."
   },
   {
     "name": "passho-berry",
     "nameEs": "Baya Pasio",
     "effect": "Held in battle\n:   When the holder would take super-effective Water-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Agua. Un solo uso."
   },
   {
     "name": "payapa-berry",
-    "nameEs": "Baya Payapa",
+    "nameEs": "Baya Pomaro",
     "effect": "Held in battle\n:   When the holder would take super-effective Psychic-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Psíquico."
   },
   {
     "name": "pecha-berry",
     "nameEs": "Baya Meloc",
     "effect": "Held in battle\n:   When the holder is poisoned, it consumes this item to cure the poison.\n\nUsed on a party Pokémon\n:   Cures poison.",
-    "effectEs": ""
+    "effectEs": "Cura envenenamiento al ser consumida."
   },
   {
     "name": "persim-berry",
     "nameEs": "Baya Caquic",
     "effect": "Held in battle\n:   When the holder is confused, it consumes this item to cure the confusion.\n\nUsed on a party Pokémon\n:   Cures confusion.",
-    "effectEs": ""
+    "effectEs": "Cura confusión al ser consumida."
   },
   {
     "name": "petaya-berry",
-    "nameEs": "Baya Yapati",
+    "nameEs": "Baya Petaya",
     "effect": "Held in battle\n:   When the holder has 1/4 its max HP remaining or less, it consumes this item to raise its Special Attack by one stage.",
-    "effectEs": ""
+    "effectEs": "Al 25% PS, sube 1 nivel At. Especial."
   },
   {
     "name": "pidgeotite",
     "nameEs": "Pidgeotita",
     "effect": "Held: Allows Pidgeot to Mega Evolve into Mega Pidgeot.",
-    "effectEs": ""
+    "effectEs": "Permite a Pidgeot megaevolucionar."
   },
   {
     "name": "pinap-berry",
-    "nameEs": "Baya Pinia",
+    "nameEs": "Pinap Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. pinap-berry."
   },
   {
     "name": "pinsirite",
     "nameEs": "Pinsirita",
     "effect": "Held: Allows Pinsir to Mega Evolve into Mega Pinsir.",
-    "effectEs": ""
+    "effectEs": "Permite a Pinsir megaevolucionar."
   },
   {
     "name": "pomeg-berry",
-    "nameEs": "Baya Grana",
+    "nameEs": "Pomeg Berry",
     "effect": "Used on a party Pokémon\n:   Increases happiness by 10/5/2.  Lowers HP effort by 10.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. pomeg-berry."
   },
   {
     "name": "power-herb",
     "nameEs": "Hierba Única",
     "effect": "Held: Whenever the holder uses a move that requires a turn to charge first (Bounce, Dig, Dive, Fly, Razor Wind, Skull Bash, Sky Attack, or Solarbeam), this item is consumed and the charge is skipped.  Skull Bash still provides a Defense boost.",
-    "effectEs": ""
+    "effectEs": "Permite usar movimientos de carga en un turno. Un solo uso."
   },
   {
     "name": "protective-pads",
-    "nameEs": "Paracontacto",
+    "nameEs": "Parche Curativo",
     "effect": "Held: Prevents side effects of contact moves used on the holder.",
-    "effectEs": ""
+    "effectEs": "Protege de efectos de contacto como Piel Tosca o Casco Dentado."
   },
   {
     "name": "psychic-seed",
-    "nameEs": "Semilla Psique",
+    "nameEs": "Semilla Psíquica",
     "effect": "Held: If the holder enters battle during Psychic Terrain, or if Psychic Terrain is activated while the holder is in battle, this item is consumed and the holder’s Special Defense raises by one stage.",
-    "effectEs": ""
+    "effectEs": "Con Campo Psíquico, sube 1 nivel Def. Especial. Un solo uso."
   },
   {
     "name": "qualot-berry",
-    "nameEs": "Baya Ispero",
+    "nameEs": "Qualot Berry",
     "effect": "Used on a party Pokémon\n:   Increases happiness by 10/5/2.  Lowers Defense effort by 10.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. qualot-berry."
   },
   {
     "name": "rabuta-berry",
-    "nameEs": "Baya Rautan",
+    "nameEs": "Rabuta Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. rabuta-berry."
   },
   {
     "name": "rawst-berry",
     "nameEs": "Baya Safre",
     "effect": "Held in battle\n:   When the holder is burned, it consumes this item to cure the burn.\n\nUsed on a party Pokémon\n:   Cures a burn.",
-    "effectEs": ""
+    "effectEs": "Cura quemadura al ser consumida."
   },
   {
     "name": "razz-berry",
-    "nameEs": "Baya Frambu",
+    "nameEs": "Razz Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. razz-berry."
   },
   {
     "name": "red-card",
     "nameEs": "Tarjeta Roja",
     "effect": "Held\n:   When the holder takes damage directly from a move and does not faint, it switches out for another random, non-fainted Pokémon in its party.\nThis effect does not activate if another effect prevents the holder from switching out.",
-    "effectEs": ""
+    "effectEs": "Si es golpeado, fuerza el cambio del atacante. Un solo uso."
   },
   {
     "name": "rindo-berry",
-    "nameEs": "Baya Tamar",
+    "nameEs": "Baya Rindon",
     "effect": "Held in battle\n:   When the holder would take super-effective Grass-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Planta."
   },
   {
     "name": "rocky-helmet",
     "nameEs": "Casco Dentado",
     "effect": "Held\n:   When the holder is hit by a contact move, the attacking Pokémon takes 1/6 its max HP in damage.",
-    "effectEs": ""
+    "effectEs": "Si el rival golpea por contacto, pierde 1/6 de sus PS máximos."
   },
   {
     "name": "rowap-berry",
-    "nameEs": "Baya Magua",
+    "nameEs": "Baya Rowap",
     "effect": "Held in battle\n:   When the holder takes special damage, it consumes this item to damage the attacking Pokémon for 1/8 its max HP.",
-    "effectEs": ""
+    "effectEs": "Si es golpeado especialmente, el atacante pierde 1/8 PS."
   },
   {
     "name": "sablenite",
-    "nameEs": "Sableynita",
+    "nameEs": "Sablenita",
     "effect": "Held: Allows Sableye to Mega Evolve into Mega Sableye.",
-    "effectEs": ""
+    "effectEs": "Permite a Sableye megaevolucionar."
   },
   {
     "name": "safety-goggles",
-    "nameEs": "Gafa Protectora",
+    "nameEs": "Gafas Protectoras",
     "effect": "Held: Prevents damage from powder moves and the damage from Hail and Sandstorm.",
-    "effectEs": ""
+    "effectEs": "Inmune a Polvos, Esporas y Granizo/Tormenta Arena."
   },
   {
     "name": "salac-berry",
-    "nameEs": "Baya Aslac",
+    "nameEs": "Baya Salac",
     "effect": "Held in battle\n:   When the holder has 1/4 its max HP remaining or less, it consumes this item to raise its Speed by one stage.",
-    "effectEs": ""
+    "effectEs": "Al 25% PS, sube 1 nivel Velocidad."
   },
   {
     "name": "salamencite",
     "nameEs": "Salamencita",
     "effect": "Held: Allows Salamence to Mega Evolve into Mega Salamence.",
-    "effectEs": ""
+    "effectEs": "Permite a Salamence megaevolucionar."
   },
   {
     "name": "scizorite",
     "nameEs": "Scizorita",
     "effect": "Held: Allows Scizor to Mega Evolve into Mega Scizor.",
-    "effectEs": ""
+    "effectEs": "Permite a Scizor megaevolucionar."
   },
   {
     "name": "sharpedonite",
     "nameEs": "Sharpedonita",
     "effect": "Held: Allows Sharpedo to Mega Evolve into Mega Sharpedo.",
-    "effectEs": ""
+    "effectEs": "Permite a Sharpedo megaevolucionar."
   },
   {
     "name": "shed-shell",
     "nameEs": "Muda Concha",
     "effect": "Held: The holder is unaffected by any moves or abilities that would prevent it from actively leaving battle.",
-    "effectEs": ""
+    "effectEs": "Permite cambiar aunque el rival tenga Trampa Arena o Bloqueo."
   },
   {
     "name": "shell-bell",
-    "nameEs": "Cascabel Concha",
+    "nameEs": "Campana Concha",
     "effect": "Held: Heals the holder by 1/8 of any damage it inflicts.",
-    "effectEs": ""
+    "effectEs": "Recupera 1/8 del daño infligido con ataques."
   },
   {
     "name": "shuca-berry",
-    "nameEs": "Baya Acardo",
+    "nameEs": "Baya Soya",
     "effect": "Held in battle\n:   When the holder would take super-effective Ground-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Tierra."
   },
   {
     "name": "sitrus-berry",
     "nameEs": "Baya Zidra",
     "effect": "Held in battle\n:   When the holder has 1/2 its max HP remaining or less, it consumes this item to restore 1/4 its max HP.\n\nUsed on a party Pokémon\n:   Restores 1/4 the Pokémon’s max HP.",
-    "effectEs": ""
+    "effectEs": "Recupera 25% de PS máximos (1/4) al bajar de 50% PS."
   },
   {
     "name": "slowbronite",
     "nameEs": "Slowbronita",
     "effect": "Held: Allows Slowbro to Mega Evolve into Mega Slowbro.",
-    "effectEs": ""
+    "effectEs": "Permite a Slowbro megaevolucionar."
   },
   {
     "name": "soul-dew",
     "nameEs": "Rocío Bondad",
     "effect": "Held by Latias or Latios: Increases the holder’s Special Attack and Special Defense by 50%.",
-    "effectEs": ""
+    "effectEs": "Sube 20% Ataque y At. Especial de Latios y Latias (50% en Gen 6)."
   },
   {
     "name": "spelon-berry",
-    "nameEs": "Baya Wikano",
+    "nameEs": "Spelon Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. spelon-berry."
   },
   {
     "name": "starf-berry",
     "nameEs": "Baya Arabol",
     "effect": "Held in battle\n:   When the holder has 1/4 its max HP remaining or less, it consumes this item to raise a random stat by two stages.",
-    "effectEs": ""
+    "effectEs": "Al 25% PS, sube 2 niveles una stat al azar."
   },
   {
     "name": "steelixite",
     "nameEs": "Steelixita",
     "effect": "Held: Allows Steelix to Mega Evolve into Mega Steelix.",
-    "effectEs": ""
+    "effectEs": "Permite a Steelix megaevolucionar."
   },
   {
     "name": "swampertite",
     "nameEs": "Swampertita",
     "effect": "Held: Allows Swampert to Mega Evolve into Mega Swampert.",
-    "effectEs": ""
+    "effectEs": "Permite a Swampert megaevolucionar."
   },
   {
     "name": "tamato-berry",
-    "nameEs": "Baya Tamate",
+    "nameEs": "Tamato Berry",
     "effect": "Used on a party Pokémon\n:   Increases happiness by 10/5/2.  Lowers Speed effort by 10.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. tamato-berry."
   },
   {
     "name": "tanga-berry",
-    "nameEs": "Baya Yecana",
+    "nameEs": "Baya Garon",
     "effect": "Held in battle\n:   When the holder would take super-effective Bug-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Bicho."
   },
   {
     "name": "terrain-extender",
-    "nameEs": "Cubresuelos",
+    "nameEs": "Extensión Terreno",
     "effect": "Held: When the holder changes the Terrain (whether by move or ability), it will last  8 turns instead of 5.",
-    "effectEs": ""
+    "effectEs": "Extiende campos (Eléctrico, Psíquico, etc.) de 5 a 8 turnos."
   },
   {
     "name": "toxic-orb",
-    "nameEs": "Toxisfera",
+    "nameEs": "Toxiesfera",
     "effect": "Held: Badly poisons the holder at the end of each turn.",
-    "effectEs": ""
+    "effectEs": "Envenena gravemente al portador al final del turno. Combo con Poison Heal."
   },
   {
     "name": "tyranitarite",
     "nameEs": "Tyranitarita",
     "effect": "Held: Allows Tyranitar to Mega Evolve into Mega Tyranitar.",
-    "effectEs": ""
+    "effectEs": "Permite a Tyranitar megaevolucionar."
   },
   {
     "name": "venusaurite",
     "nameEs": "Venusaurita",
     "effect": "Held: Allows Venusaur to Mega Evolve into Mega Venusaur.",
-    "effectEs": ""
+    "effectEs": "Permite a Venusaur megaevolucionar."
   },
   {
     "name": "wacan-berry",
-    "nameEs": "Baya Gualot",
+    "nameEs": "Baya Aslac",
     "effect": "Held in battle\n:   When the holder would take super-effective Electric-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Eléctrico."
   },
   {
     "name": "watmel-berry",
-    "nameEs": "Baya Sambia",
+    "nameEs": "Watmel Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. watmel-berry."
   },
   {
     "name": "weakness-policy",
     "nameEs": "Seguro Debilidad",
     "effect": "Held: When the holder is hit by a super effective move, its Attack and Special Attack raise by two stages.",
-    "effectEs": ""
+    "effectEs": "Si recibe daño supereficaz, sube 2 niveles Ataque y At. Especial. Un solo uso."
   },
   {
     "name": "wepear-berry",
-    "nameEs": "Baya Peragu",
+    "nameEs": "Wepear Berry",
     "effect": "No effect; only useful for planting and cooking.",
-    "effectEs": ""
+    "effectEs": "Objeto usado en competitivo. wepear-berry."
   },
   {
     "name": "white-herb",
     "nameEs": "Hierba Blanca",
     "effect": "Held in battle\n:   At the end of each turn, if any of the holder’s stats have a negative stat modifier, the holder consumes this item to remove the modifiers from those stats.",
-    "effectEs": ""
+    "effectEs": "Restaura estadísticas bajadas. Un solo uso."
   },
   {
     "name": "wiki-berry",
-    "nameEs": "Baya Wiki",
+    "nameEs": "Baya Wikano",
     "effect": "Held in battle\n:   When the holder has 1/2 its max HP remaining or less, it consumes this item to restore 1/8 its max HP.  If the holder dislikes dry flavors (i.e., has a nature that lowers Special Attack), it will also become confused.",
-    "effectEs": ""
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
   },
   {
     "name": "wise-glasses",
-    "nameEs": "Gafas Especiales",
+    "nameEs": "Gafas Sabias",
     "effect": "Held: Increases the power of the holder’s special moves by 10%.",
-    "effectEs": ""
+    "effectEs": "Potencia 10% los movimientos especiales."
   },
   {
     "name": "yache-berry",
-    "nameEs": "Baya Rimoya",
+    "nameEs": "Baya Acardo",
     "effect": "Held in battle\n:   When the holder would take super-effective Ice-type damage, it consumes this item to halve the amount of damage taken.",
-    "effectEs": ""
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Hielo."
   }
 ]

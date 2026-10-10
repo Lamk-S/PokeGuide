@@ -8,11 +8,11 @@
     ],
     "baseStats": {
       "hp": 65,
-      "attack": 154,
-      "defense": 60,
-      "special-attack": 75,
-      "special-defense": 60,
-      "speed": 151
+      "attack": 145,
+      "defense": 70,
+      "special-attack": 85,
+      "special-defense": 70,
+      "speed": 130
     },
     "height": 12,
     "weight": 490,
@@ -36,11 +36,11 @@
     ],
     "baseStats": {
       "hp": 85,
-      "attack": 140,
-      "defense": 100,
-      "special-attack": 60,
-      "special-defense": 90,
-      "speed": 110
+      "attack": 135,
+      "defense": 85,
+      "special-attack": 70,
+      "special-defense": 75,
+      "speed": 125
     },
     "height": 19,
     "weight": 500,
@@ -59,15 +59,16 @@
     "id": 10309,
     "name": "garchomp-mega-z",
     "types": [
-      "dragon"
+      "dragon",
+      "ground"
     ],
     "baseStats": {
       "hp": 108,
-      "attack": 130,
-      "defense": 85,
-      "special-attack": 141,
-      "special-defense": 85,
-      "speed": 151
+      "attack": 140,
+      "defense": 95,
+      "special-attack": 100,
+      "special-defense": 95,
+      "speed": 122
     },
     "height": 19,
     "weight": 990,
@@ -91,11 +92,11 @@
     ],
     "baseStats": {
       "hp": 70,
-      "attack": 100,
-      "defense": 70,
-      "special-attack": 164,
-      "special-defense": 70,
-      "speed": 151
+      "attack": 110,
+      "defense": 80,
+      "special-attack": 140,
+      "special-defense": 80,
+      "speed": 135
     },
     "height": 13,
     "weight": 494,

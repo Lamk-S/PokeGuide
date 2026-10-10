@@ -1,4 +1,7 @@
 {
+  "abomasnow-mega": {
+    "inheritMovesFrom": "abomasnow"
+  },
   "absol-mega": {
     "inheritMovesFrom": "absol"
   },
@@ -8,11 +11,32 @@
   "absol-mega-z": {
     "inheritMovesFrom": "absol"
   },
+  "aerodactyl-mega": {
+    "inheritMovesFrom": "aerodactyl"
+  },
+  "aggron-mega": {
+    "inheritMovesFrom": "aggron"
+  },
+  "alakazam-mega": {
+    "inheritMovesFrom": "alakazam"
+  },
   "alcremie-gmax": {
     "inheritMovesFrom": "alcremie"
   },
+  "altaria-mega": {
+    "inheritMovesFrom": "altaria"
+  },
+  "ampharos-mega": {
+    "inheritMovesFrom": "ampharos"
+  },
   "appletun-gmax": {
     "inheritMovesFrom": "appletun"
+  },
+  "audino-mega": {
+    "inheritMovesFrom": "audino"
+  },
+  "banette-mega": {
+    "inheritMovesFrom": "banette"
   },
   "barbaracle-mega": {
     "inheritMovesFrom": "barbaracle"
@@ -20,11 +44,23 @@
   "baxcalibur-mega": {
     "inheritMovesFrom": "baxcalibur"
   },
+  "beedrill-mega": {
+    "inheritMovesFrom": "beedrill"
+  },
   "blastoise-gmax": {
     "inheritMovesFrom": "blastoise"
   },
+  "blastoise-mega": {
+    "inheritMovesFrom": "blastoise"
+  },
+  "blaziken-mega": {
+    "inheritMovesFrom": "blaziken"
+  },
   "butterfree-gmax": {
     "inheritMovesFrom": "butterfree"
+  },
+  "camerupt-mega": {
+    "inheritMovesFrom": "camerupt"
   },
   "centiskorch-gmax": {
     "inheritMovesFrom": "centiskorch"
@@ -36,6 +72,12 @@
     "inheritMovesFrom": "charizard"
   },
   "charizard-gmax": {
+    "inheritMovesFrom": "charizard"
+  },
+  "charizard-mega-x": {
+    "inheritMovesFrom": "charizard"
+  },
+  "charizard-mega-y": {
     "inheritMovesFrom": "charizard"
   },
   "chesnaught-mega": {
@@ -67,6 +109,9 @@
   },
   "delphox-mega": {
     "inheritMovesFrom": "delphox"
+  },
+  "diancie-mega": {
+    "inheritMovesFrom": "diancie"
   },
   "dragalge-mega": {
     "inheritMovesFrom": "dragalge"
@@ -119,8 +164,17 @@
   "garchomp-mega-z": {
     "inheritMovesFrom": "garchomp"
   },
+  "gardevoir-mega": {
+    "inheritMovesFrom": "gardevoir"
+  },
   "gengar-gmax": {
     "inheritMovesFrom": "gengar"
+  },
+  "gengar-mega": {
+    "inheritMovesFrom": "gengar"
+  },
+  "glalie-mega": {
+    "inheritMovesFrom": "glalie"
   },
   "glimmora-mega": {
     "inheritMovesFrom": "glimmora"
@@ -137,6 +191,9 @@
   "grimmsnarl-gmax": {
     "inheritMovesFrom": "grimmsnarl"
   },
+  "gyarados-mega": {
+    "inheritMovesFrom": "gyarados"
+  },
   "hatterene-gmax": {
     "inheritMovesFrom": "hatterene"
   },
@@ -146,14 +203,32 @@
   "heatran-mega": {
     "inheritMovesFrom": "heatran"
   },
+  "heracross-mega": {
+    "inheritMovesFrom": "heracross"
+  },
+  "houndoom-mega": {
+    "inheritMovesFrom": "houndoom"
+  },
   "inteleon-gmax": {
     "inheritMovesFrom": "inteleon"
+  },
+  "kangaskhan-mega": {
+    "inheritMovesFrom": "kangaskhan"
   },
   "kingler-gmax": {
     "inheritMovesFrom": "kingler"
   },
   "lapras-gmax": {
     "inheritMovesFrom": "lapras"
+  },
+  "latias-mega": {
+    "inheritMovesFrom": "latias"
+  },
+  "latios-mega": {
+    "inheritMovesFrom": "latios"
+  },
+  "lopunny-mega": {
+    "inheritMovesFrom": "lopunny"
   },
   "lucario-mega": {
     "inheritMovesFrom": "lucario"
@@ -173,6 +248,15 @@
   "malamar-mega": {
     "inheritMovesFrom": "malamar"
   },
+  "manectric-mega": {
+    "inheritMovesFrom": "manectric"
+  },
+  "mawile-mega": {
+    "inheritMovesFrom": "mawile"
+  },
+  "medicham-mega": {
+    "inheritMovesFrom": "medicham"
+  },
   "meganium-mega": {
     "inheritMovesFrom": "meganium"
   },
@@ -188,6 +272,15 @@
   "meowth-gmax": {
     "inheritMovesFrom": "meowth"
   },
+  "metagross-mega": {
+    "inheritMovesFrom": "metagross"
+  },
+  "mewtwo-mega-x": {
+    "inheritMovesFrom": "mewtwo"
+  },
+  "mewtwo-mega-y": {
+    "inheritMovesFrom": "mewtwo"
+  },
   "orbeetle-gmax": {
     "inheritMovesFrom": "orbeetle"
   },
@@ -200,11 +293,17 @@
   "palafin-zero-base": {
     "inheritMovesFrom": "palafin"
   },
+  "pidgeot-mega": {
+    "inheritMovesFrom": "pidgeot"
+  },
   "pikachu-gigantamax": {
     "inheritMovesFrom": "pikachu"
   },
   "pikachu-gmax": {
     "inheritMovesFrom": "pikachu"
+  },
+  "pinsir-mega": {
+    "inheritMovesFrom": "pinsir"
   },
   "pyroar-mega": {
     "inheritMovesFrom": "pyroar-male"
@@ -218,8 +317,20 @@
   "rillaboom-gmax": {
     "inheritMovesFrom": "rillaboom"
   },
+  "sableye-mega": {
+    "inheritMovesFrom": "sableye"
+  },
+  "salamence-mega": {
+    "inheritMovesFrom": "salamence"
+  },
   "sandaconda-gmax": {
     "inheritMovesFrom": "sandaconda"
+  },
+  "sceptile-mega": {
+    "inheritMovesFrom": "sceptile"
+  },
+  "scizor-mega": {
+    "inheritMovesFrom": "scizor"
   },
   "scolipede-mega": {
     "inheritMovesFrom": "scolipede"
@@ -230,8 +341,14 @@
   "scrafty-mega": {
     "inheritMovesFrom": "scrafty"
   },
+  "sharpedo-mega": {
+    "inheritMovesFrom": "sharpedo"
+  },
   "skarmory-mega": {
     "inheritMovesFrom": "skarmory"
+  },
+  "slowbro-mega": {
+    "inheritMovesFrom": "slowbro"
   },
   "snorlax-gmax": {
     "inheritMovesFrom": "snorlax"
@@ -241,6 +358,12 @@
   },
   "starmie-mega": {
     "inheritMovesFrom": "starmie"
+  },
+  "steelix-mega": {
+    "inheritMovesFrom": "steelix"
+  },
+  "swampert-mega": {
+    "inheritMovesFrom": "swampert"
   },
   "tatsugiri-curly-mega": {
     "inheritMovesFrom": "tatsugiri-curly"
@@ -257,6 +380,9 @@
   "toxtricity-low-key-gmax": {
     "inheritMovesFrom": "toxtricity-low-key"
   },
+  "tyranitar-mega": {
+    "inheritMovesFrom": "tyranitar"
+  },
   "urshifu-rapid-strike-gigantamax": {
     "inheritMovesFrom": "urshifu-rapid-strike"
   },
@@ -270,6 +396,9 @@
     "inheritMovesFrom": "urshifu-single-strike"
   },
   "venusaur-gmax": {
+    "inheritMovesFrom": "venusaur"
+  },
+  "venusaur-mega": {
     "inheritMovesFrom": "venusaur"
   },
   "victreebel-mega": {
