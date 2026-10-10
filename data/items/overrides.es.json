@@ -1,52 +1,774 @@
 {
-  "life-orb": "Aumenta el daño x1.3 a cambio de perder 10% del PS máximo por cada golpe que haga daño.",
-  "leftovers": "Restaura 1/16 del PS máximo al final de cada turno.",
-  "black-sludge": "Si el portador es tipo Veneno, restaura 1/16 de PS por turno. Si no, le quita 1/8.",
-  "choice-scarf": "Aumenta la Velocidad x1.5 pero bloquea al Pokémon a usar solo el primer movimiento elegido.",
-  "choice-band": "Aumenta el Ataque x1.5 pero bloquea al Pokémon a usar solo el primer movimiento elegido.",
-  "choice-specs": "Aumenta el At. Especial x1.5 pero bloquea al Pokémon a usar solo el primer movimiento elegido.",
-  "heavy-duty-boots": "Evita todo el daño de trampas de entrada (Púas, Roca Afilada, Red Viscosa).",
-  "assault-vest": "Aumenta la Def. Especial x1.5 pero impide usar movimientos de estado.",
-  "eviolite": "Aumenta Defensa y Def. Especial x1.5 si el portador aún puede evolucionar.",
-  "focus-sash": "Si tiene el PS al 100%, sobrevive con 1 PS a un movimiento que lo debilitaría. Un solo uso.",
-  "rocky-helmet": "El atacante que haga contacto pierde 1/6 de su PS máximo.",
-  "safety-goggles": "Inmunidad a climas y a movimientos de polvos/esporas (Espora, Somnífero).",
-  "clear-amulet": "Evita que sus estadísticas sean reducidas por el rival.",
-  "covert-cloak": "Protege de los efectos secundarios de los movimientos del rival.",
-  "booster-energy": "Activa la habilidad Quark Drive o Paleosíntesis automáticamente. Un solo uso.",
-  "loaded-dice": "Los movimientos de golpes múltiples golpean 4-5 veces garantizado.",
-  "sitrus-berry": "Restaura 1/4 del PS máximo cuando el PS baja del 50%.",
-  "lum-berry": "Cura cualquier problema de estado o confusión al primer turno. Un solo uso.",
-  "mental-herb": "Evita una vez ser provocado, atraído, anulado, etc.",
-  "white-herb": "Restaura una vez todas las estadísticas bajadas a 0.",
-  "light-clay": "Alarga la duración de Pantalla de Luz y Reflejo de 5 a 8 turnos.",
-  "heat-rock": "Alarga la duración del Sol de 5 a 8 turnos.",
-  "damp-rock": "Alarga la duración de la Lluvia de 5 a 8 turnos.",
-  "icy-rock": "Alarga la duración de la Nieve de 5 a 8 turnos.",
-  "smooth-rock": "Alarga la duración de la Tormenta de Arena de 5 a 8 turnos.",
-  "terrain-extender": "Alarga la duración de los Campos (Eléctrico, Psíquico, etc) de 5 a 8 turnos.",
-  "weakness-policy": "Si es golpeado por un movimiento super efectivo, aumenta 2 niveles Ataque y At. Especial. Un solo uso.",
-  "expert-belt": "Aumenta x1.2 el daño de movimientos super efectivos.",
-  "muscle-band": "Aumenta x1.1 el daño de movimientos físicos.",
-  "wise-glasses": "Aumenta x1.1 el daño de movimientos especiales.",
-  "scope-lens": "Aumenta la probabilidad de golpe crítico.",
-  "razor-claw": "Aumenta la probabilidad de golpe crítico.",
-  "wide-lens": "Aumenta la precisión x1.1.",
-  "zoom-lens": "Aumenta la precisión x1.2 si se mueve después del rival.",
-  "kings-rock": "10% de probabilidad de hacer retroceder al rival por cada golpe de un movimiento de golpes múltiples.",
-  "metronome": "Aumenta progresivamente el daño si se usa el mismo movimiento seguido (hasta x2).",
-  "flame-orb": "Quema al portador al final del turno. Útil para activar Guts o Facade.",
-  "toxic-orb": "Envenena gravemente al portador al final del turno. Útil para activar Poison Heal o Toxic Boost.",
-  "light-ball": "Duplica Ataque y At. Especial si el portador es Pikachu.",
-  "thick-club": "Duplica el Ataque si el portador es Cubone o Marowak.",
-  "quick-claw": "20% de probabilidad de moverse primero dentro de su prioridad.",
-  "shed-shell": "Permite cambiar siempre, ignorando Trampa Arena, Sombra Trampa, etc.",
-  "eject-button": "Si es golpeado por un ataque, fuerza el cambio del portador. Un solo uso.",
-  "red-card": "Si es golpeado por un ataque, fuerza el cambio del rival. Un solo uso.",
-  "eject-pack": "Si una de sus estadísticas es reducida, fuerza el cambio del portador.",
-  "blunder-policy": "Si falla un movimiento, aumenta 2 niveles la Velocidad. Un solo uso.",
-  "throat-spray": "Si usa un movimiento de sonido, aumenta 1 nivel el At. Especial. Un solo uso.",
-  "adrenaline-orb": "Aumenta 1 nivel la Velocidad si un rival con Intimidación entra.",
-  "air-balloon": "Otorga inmunidad a tipo Tierra hasta que es golpeado.",
-  "protective-pads": "Protege del efecto de contacto (Casco Dentado, Baba, etc) al atacar."
+  "choice-band": {
+    "nameEs": "Cinta Elegida",
+    "effectEs": "Sube 50% el Ataque pero solo permite usar el primer movimiento elegido. Se cambia al cambiar de Pokémon."
+  },
+  "choice-scarf": {
+    "nameEs": "Pañuelo Elegido",
+    "effectEs": "Sube 50% la Velocidad pero solo permite usar el primer movimiento elegido."
+  },
+  "choice-specs": {
+    "nameEs": "Gafas Elegidas",
+    "effectEs": "Sube 50% el At. Especial pero solo permite usar el primer movimiento elegido."
+  },
+  "life-orb": {
+    "nameEs": "Vidasfera",
+    "effectEs": "Potencia 30% todos los movimientos a costa de perder 10% de PS máximos por ataque."
+  },
+  "leftovers": {
+    "nameEs": "Restos",
+    "effectEs": "Recupera 1/16 de PS máximos al final de cada turno."
+  },
+  "black-sludge": {
+    "nameEs": "Lodo Negro",
+    "effectEs": "Si el portador es tipo Veneno recupera 1/16 PS; si no, pierde 1/8 PS cada turno."
+  },
+  "heavy-duty-boots": {
+    "nameEs": "Botas Gruesas",
+    "effectEs": "Evita daño de Trampa Rocas, Púas, Púas Tóxicas y Red Viscosa al entrar."
+  },
+  "assault-vest": {
+    "nameEs": "Chaleco Asalto",
+    "effectEs": "Sube 50% la Def. Especial pero impide usar movimientos de estado."
+  },
+  "rocky-helmet": {
+    "nameEs": "Casco Dentado",
+    "effectEs": "Si el rival golpea por contacto, pierde 1/6 de sus PS máximos."
+  },
+  "expert-belt": {
+    "nameEs": "Cinta Experto",
+    "effectEs": "Potencia 20% los movimientos supereficaces."
+  },
+  "focus-sash": {
+    "nameEs": "Banda Focus",
+    "effectEs": "Si tiene PS al máximo, sobrevive con 1 PS a un golpe que lo debilitaría. Un solo uso."
+  },
+  "focus-band": {
+    "nameEs": "Cinta Focus",
+    "effectEs": "10% de sobrevivir con 1 PS a un golpe que lo debilitaría."
+  },
+  "muscle-band": {
+    "nameEs": "Cinta Fuerte",
+    "effectEs": "Potencia 10% los movimientos físicos."
+  },
+  "wise-glasses": {
+    "nameEs": "Gafas Sabias",
+    "effectEs": "Potencia 10% los movimientos especiales."
+  },
+  "metronome": {
+    "nameEs": "Metrónomo",
+    "effectEs": "Potencia el mismo movimiento usado repetidamente, hasta 2×."
+  },
+  "shell-bell": {
+    "nameEs": "Campana Concha",
+    "effectEs": "Recupera 1/8 del daño infligido con ataques."
+  },
+  "flame-orb": {
+    "nameEs": "Llamaesfera",
+    "effectEs": "Quema al portador al final del turno. Combo con Guts y Facade."
+  },
+  "toxic-orb": {
+    "nameEs": "Toxiesfera",
+    "effectEs": "Envenena gravemente al portador al final del turno. Combo con Poison Heal."
+  },
+  "light-clay": {
+    "nameEs": "Refleluz",
+    "effectEs": "Extiende Reflejo, Pantalla Luz y Velo Aurora de 5 a 8 turnos."
+  },
+  "mental-herb": {
+    "nameEs": "Hierba Mental",
+    "effectEs": "Cura Atracción, Mofa, Inhibición, etc. Un solo uso."
+  },
+  "white-herb": {
+    "nameEs": "Hierba Blanca",
+    "effectEs": "Restaura estadísticas bajadas. Un solo uso."
+  },
+  "power-herb": {
+    "nameEs": "Hierba Única",
+    "effectEs": "Permite usar movimientos de carga en un turno. Un solo uso."
+  },
+  "eject-button": {
+    "nameEs": "Botón Escape",
+    "effectEs": "Si es golpeado, cambia al portador por otro Pokémon del equipo. Un solo uso."
+  },
+  "eject-pack": {
+    "nameEs": "Mochila Escape",
+    "effectEs": "Si le bajan estadísticas, cambia de Pokémon automáticamente. Un solo uso."
+  },
+  "red-card": {
+    "nameEs": "Tarjeta Roja",
+    "effectEs": "Si es golpeado, fuerza el cambio del atacante. Un solo uso."
+  },
+  "shed-shell": {
+    "nameEs": "Muda Concha",
+    "effectEs": "Permite cambiar aunque el rival tenga Trampa Arena o Bloqueo."
+  },
+  "safety-goggles": {
+    "nameEs": "Gafas Protectoras",
+    "effectEs": "Inmune a Polvos, Esporas y Granizo/Tormenta Arena."
+  },
+  "protective-pads": {
+    "nameEs": "Parche Curativo",
+    "effectEs": "Protege de efectos de contacto como Piel Tosca o Casco Dentado."
+  },
+  "covert-cloak": {
+    "nameEs": "Capa Furtiva",
+    "effectEs": "Protege de efectos secundarios de movimientos del rival."
+  },
+  "loaded-dice": {
+    "nameEs": "Dado Trucado",
+    "effectEs": "Movimientos de golpes múltiples hacen 4-5 golpes siempre."
+  },
+  "clear-amulet": {
+    "nameEs": "Amuleto Purificador",
+    "effectEs": "Evita que le bajen estadísticas por movimientos o habilidades rivales."
+  },
+  "mirror-herb": {
+    "nameEs": "Hierba Copia",
+    "effectEs": "Copia subidas de estadísticas del rival."
+  },
+  "punching-glove": {
+    "nameEs": "Guante Púgil",
+    "effectEs": "Potencia 10% movimientos de puño y evita contacto."
+  },
+  "booster-energy": {
+    "nameEs": "Energía Potenciadora",
+    "effectEs": "Activa Protosíntesis o Carga Cuark al entrar. Un solo uso."
+  },
+  "cheri-berry": {
+    "nameEs": "Baya Zreza",
+    "effectEs": "Cura parálisis al ser consumida. Puede ser usada por un aliado con prestreza."
+  },
+  "chesto-berry": {
+    "nameEs": "Baya Atania",
+    "effectEs": "Cura sueño al ser consumida."
+  },
+  "pecha-berry": {
+    "nameEs": "Baya Meloc",
+    "effectEs": "Cura envenenamiento al ser consumida."
+  },
+  "rawst-berry": {
+    "nameEs": "Baya Safre",
+    "effectEs": "Cura quemadura al ser consumida."
+  },
+  "aspear-berry": {
+    "nameEs": "Baya Perasi",
+    "effectEs": "Cura congelamiento al ser consumida."
+  },
+  "leppa-berry": {
+    "nameEs": "Baya Ziuela",
+    "effectEs": "Restaura 10 PP de un movimiento."
+  },
+  "oran-berry": {
+    "nameEs": "Baya Aranja",
+    "effectEs": "Recupera 10 PS al ser consumida."
+  },
+  "persim-berry": {
+    "nameEs": "Baya Caquic",
+    "effectEs": "Cura confusión al ser consumida."
+  },
+  "lum-berry": {
+    "nameEs": "Baya Ziuela",
+    "effectEs": "Cura cualquier problema de estado o confusión."
+  },
+  "sitrus-berry": {
+    "nameEs": "Baya Zidra",
+    "effectEs": "Recupera 25% de PS máximos (1/4) al bajar de 50% PS."
+  },
+  "figy-berry": {
+    "nameEs": "Baya Higog",
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
+  },
+  "wiki-berry": {
+    "nameEs": "Baya Wikano",
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
+  },
+  "mago-berry": {
+    "nameEs": "Baya Guayaba",
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
+  },
+  "aguav-berry": {
+    "nameEs": "Baya Ango",
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
+  },
+  "iapapa-berry": {
+    "nameEs": "Baya Pabaya",
+    "effectEs": "Recupera 33% PS al 25% PS, puede confundir si no le gusta."
+  },
+  "razz-berry": {
+    "nameEs": "Razz Berry",
+    "effectEs": "Objeto usado en competitivo. razz-berry."
+  },
+  "bluk-berry": {
+    "nameEs": "Bluk Berry",
+    "effectEs": "Objeto usado en competitivo. bluk-berry."
+  },
+  "nanab-berry": {
+    "nameEs": "Nanab Berry",
+    "effectEs": "Objeto usado en competitivo. nanab-berry."
+  },
+  "wepear-berry": {
+    "nameEs": "Wepear Berry",
+    "effectEs": "Objeto usado en competitivo. wepear-berry."
+  },
+  "pinap-berry": {
+    "nameEs": "Pinap Berry",
+    "effectEs": "Objeto usado en competitivo. pinap-berry."
+  },
+  "pomeg-berry": {
+    "nameEs": "Pomeg Berry",
+    "effectEs": "Objeto usado en competitivo. pomeg-berry."
+  },
+  "kelpsy-berry": {
+    "nameEs": "Kelpsy Berry",
+    "effectEs": "Objeto usado en competitivo. kelpsy-berry."
+  },
+  "qualot-berry": {
+    "nameEs": "Qualot Berry",
+    "effectEs": "Objeto usado en competitivo. qualot-berry."
+  },
+  "hondew-berry": {
+    "nameEs": "Hondew Berry",
+    "effectEs": "Objeto usado en competitivo. hondew-berry."
+  },
+  "grepa-berry": {
+    "nameEs": "Grepa Berry",
+    "effectEs": "Objeto usado en competitivo. grepa-berry."
+  },
+  "tamato-berry": {
+    "nameEs": "Tamato Berry",
+    "effectEs": "Objeto usado en competitivo. tamato-berry."
+  },
+  "cornn-berry": {
+    "nameEs": "Cornn Berry",
+    "effectEs": "Objeto usado en competitivo. cornn-berry."
+  },
+  "magost-berry": {
+    "nameEs": "Magost Berry",
+    "effectEs": "Objeto usado en competitivo. magost-berry."
+  },
+  "rabuta-berry": {
+    "nameEs": "Rabuta Berry",
+    "effectEs": "Objeto usado en competitivo. rabuta-berry."
+  },
+  "nomel-berry": {
+    "nameEs": "Nomel Berry",
+    "effectEs": "Objeto usado en competitivo. nomel-berry."
+  },
+  "spelon-berry": {
+    "nameEs": "Spelon Berry",
+    "effectEs": "Objeto usado en competitivo. spelon-berry."
+  },
+  "pamtre-berry": {
+    "nameEs": "Pamtre Berry",
+    "effectEs": "Objeto usado en competitivo. pamtre-berry."
+  },
+  "watmel-berry": {
+    "nameEs": "Watmel Berry",
+    "effectEs": "Objeto usado en competitivo. watmel-berry."
+  },
+  "durin-berry": {
+    "nameEs": "Durin Berry",
+    "effectEs": "Objeto usado en competitivo. durin-berry."
+  },
+  "belue-berry": {
+    "nameEs": "Belue Berry",
+    "effectEs": "Objeto usado en competitivo. belue-berry."
+  },
+  "occa-berry": {
+    "nameEs": "Baya Caocao",
+    "effectEs": "Reduce a la mitad el daño de un movimiento supereficaz de tipo Fuego. Un solo uso."
+  },
+  "passho-berry": {
+    "nameEs": "Baya Pasio",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Agua. Un solo uso."
+  },
+  "wacan-berry": {
+    "nameEs": "Baya Aslac",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Eléctrico."
+  },
+  "rindo-berry": {
+    "nameEs": "Baya Rindon",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Planta."
+  },
+  "yache-berry": {
+    "nameEs": "Baya Acardo",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Hielo."
+  },
+  "chople-berry": {
+    "nameEs": "Baya Pomaro",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Lucha."
+  },
+  "kebia-berry": {
+    "nameEs": "Baya Kebia",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Veneno."
+  },
+  "shuca-berry": {
+    "nameEs": "Baya Soya",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Tierra."
+  },
+  "coba-berry": {
+    "nameEs": "Baya Toval",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Volador."
+  },
+  "payapa-berry": {
+    "nameEs": "Baya Pomaro",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Psíquico."
+  },
+  "tanga-berry": {
+    "nameEs": "Baya Garon",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Bicho."
+  },
+  "charti-berry": {
+    "nameEs": "Baya Antiara",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Roca."
+  },
+  "kasib-berry": {
+    "nameEs": "Baya Kaskara",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Fantasma."
+  },
+  "haban-berry": {
+    "nameEs": "Baya Angora",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Dragón."
+  },
+  "colbur-berry": {
+    "nameEs": "Baya Cumbre",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Siniestro."
+  },
+  "babiri-berry": {
+    "nameEs": "Baya Baya",
+    "effectEs": "Reduce a la mitad daño supereficaz tipo Acero."
+  },
+  "chilan-berry": {
+    "nameEs": "Baya Chila",
+    "effectEs": "Reduce a la mitad daño de tipo Normal."
+  },
+  "liechi-berry": {
+    "nameEs": "Baya Lichi",
+    "effectEs": "Al 25% PS, sube 1 nivel Ataque."
+  },
+  "ganlon-berry": {
+    "nameEs": "Baya Gonlan",
+    "effectEs": "Al 25% PS, sube 1 nivel Defensa."
+  },
+  "salac-berry": {
+    "nameEs": "Baya Salac",
+    "effectEs": "Al 25% PS, sube 1 nivel Velocidad."
+  },
+  "petaya-berry": {
+    "nameEs": "Baya Petaya",
+    "effectEs": "Al 25% PS, sube 1 nivel At. Especial."
+  },
+  "apicot-berry": {
+    "nameEs": "Baya Aricoc",
+    "effectEs": "Al 25% PS, sube 1 nivel Def. Especial."
+  },
+  "lansat-berry": {
+    "nameEs": "Baya Zonlan",
+    "effectEs": "Al 25% PS, sube probabilidad de crítico."
+  },
+  "starf-berry": {
+    "nameEs": "Baya Arabol",
+    "effectEs": "Al 25% PS, sube 2 niveles una stat al azar."
+  },
+  "enigma-berry": {
+    "nameEs": "Baya Enigma",
+    "effectEs": "Al ser golpeado por movimiento supereficaz, recupera 25% PS."
+  },
+  "micle-berry": {
+    "nameEs": "Baya Lagro",
+    "effectEs": "Al 25% PS, el siguiente movimiento no falla."
+  },
+  "custap-berry": {
+    "nameEs": "Baya Cursta",
+    "effectEs": "Al 25% PS, el siguiente movimiento va primero."
+  },
+  "jaboca-berry": {
+    "nameEs": "Baya Jaboca",
+    "effectEs": "Si es golpeado físicamente, el atacante pierde 1/8 PS."
+  },
+  "rowap-berry": {
+    "nameEs": "Baya Rowap",
+    "effectEs": "Si es golpeado especialmente, el atacante pierde 1/8 PS."
+  },
+  "abomasite": {
+    "nameEs": "Abomasita",
+    "effectEs": "Permite a Abomasnow megaevolucionar a Mega-Abomasnow durante el combate."
+  },
+  "absolite": {
+    "nameEs": "Absolita",
+    "effectEs": "Permite a Absol megaevolucionar."
+  },
+  "aerodactylite": {
+    "nameEs": "Aerodactilita",
+    "effectEs": "Permite a Aerodactyl megaevolucionar."
+  },
+  "aggronite": {
+    "nameEs": "Aggronita",
+    "effectEs": "Permite a Aggron megaevolucionar."
+  },
+  "alakazite": {
+    "nameEs": "Alakazamita",
+    "effectEs": "Permite a Alakazam megaevolucionar."
+  },
+  "altarianite": {
+    "nameEs": "Altarianita",
+    "effectEs": "Permite a Altaria megaevolucionar."
+  },
+  "ampharosite": {
+    "nameEs": "Ampharosita",
+    "effectEs": "Permite a Ampharos megaevolucionar."
+  },
+  "audinite": {
+    "nameEs": "Audinita",
+    "effectEs": "Permite a Audino megaevolucionar."
+  },
+  "banettite": {
+    "nameEs": "Banettita",
+    "effectEs": "Permite a Banette megaevolucionar."
+  },
+  "beedrillite": {
+    "nameEs": "Beedrillita",
+    "effectEs": "Permite a Beedrill megaevolucionar."
+  },
+  "blastoisinite": {
+    "nameEs": "Blastoisita",
+    "effectEs": "Permite a Blastoise megaevolucionar."
+  },
+  "blazikenite": {
+    "nameEs": "Blazikenita",
+    "effectEs": "Permite a Blaziken megaevolucionar."
+  },
+  "cameruptite": {
+    "nameEs": "Cameruptita",
+    "effectEs": "Permite a Camerupt megaevolucionar."
+  },
+  "charizardite-x": {
+    "nameEs": "Charizardita X",
+    "effectEs": "Permite a Charizard megaevolucionar a Mega-Charizard X (Fuego/Dragón)."
+  },
+  "charizardite-y": {
+    "nameEs": "Charizardita Y",
+    "effectEs": "Permite a Charizard megaevolucionar a Mega-Charizard Y (Fuego/Volador)."
+  },
+  "diancite": {
+    "nameEs": "Diancita",
+    "effectEs": "Permite a Diancie megaevolucionar."
+  },
+  "galladite": {
+    "nameEs": "Galladita",
+    "effectEs": "Permite a Gallade megaevolucionar."
+  },
+  "garchompite": {
+    "nameEs": "Garchompita",
+    "effectEs": "Permite a Garchomp megaevolucionar."
+  },
+  "gardevoirite": {
+    "nameEs": "Gardevoirita",
+    "effectEs": "Permite a Gardevoir megaevolucionar."
+  },
+  "gengarite": {
+    "nameEs": "Gengarita",
+    "effectEs": "Permite a Gengar megaevolucionar."
+  },
+  "glalitite": {
+    "nameEs": "Glalita",
+    "effectEs": "Permite a Glalie megaevolucionar."
+  },
+  "gyaradosite": {
+    "nameEs": "Gyaradosita",
+    "effectEs": "Permite a Gyarados megaevolucionar."
+  },
+  "heracronite": {
+    "nameEs": "Heracronita",
+    "effectEs": "Permite a Heracross megaevolucionar."
+  },
+  "houndoominite": {
+    "nameEs": "Houndoomita",
+    "effectEs": "Permite a Houndoom megaevolucionar."
+  },
+  "kangaskhanite": {
+    "nameEs": "Kangaskhanita",
+    "effectEs": "Permite a Kangaskhan megaevolucionar."
+  },
+  "latiasite": {
+    "nameEs": "Latiasita",
+    "effectEs": "Permite a Latias megaevolucionar."
+  },
+  "latiosite": {
+    "nameEs": "Latiosita",
+    "effectEs": "Permite a Latios megaevolucionar."
+  },
+  "lopunnite": {
+    "nameEs": "Lopunnita",
+    "effectEs": "Permite a Lopunny megaevolucionar."
+  },
+  "lucarionite": {
+    "nameEs": "Lucarita",
+    "effectEs": "Permite a Lucario megaevolucionar."
+  },
+  "manectite": {
+    "nameEs": "Manectita",
+    "effectEs": "Permite a Manectric megaevolucionar."
+  },
+  "mawilite": {
+    "nameEs": "Mawilita",
+    "effectEs": "Permite a Mawile megaevolucionar."
+  },
+  "medichamite": {
+    "nameEs": "Medichamita",
+    "effectEs": "Permite a Medicham megaevolucionar."
+  },
+  "metagrossite": {
+    "nameEs": "Metagrossita",
+    "effectEs": "Permite a Metagross megaevolucionar."
+  },
+  "mewtwonite-x": {
+    "nameEs": "Mewtwoita X",
+    "effectEs": "Permite a Mewtwo megaevolucionar a Mega-Mewtwo X."
+  },
+  "mewtwonite-y": {
+    "nameEs": "Mewtwoita Y",
+    "effectEs": "Permite a Mewtwo megaevolucionar a Mega-Mewtwo Y."
+  },
+  "pidgeotite": {
+    "nameEs": "Pidgeotita",
+    "effectEs": "Permite a Pidgeot megaevolucionar."
+  },
+  "pinsirite": {
+    "nameEs": "Pinsirita",
+    "effectEs": "Permite a Pinsir megaevolucionar."
+  },
+  "sablenite": {
+    "nameEs": "Sablenita",
+    "effectEs": "Permite a Sableye megaevolucionar."
+  },
+  "salamencite": {
+    "nameEs": "Salamencita",
+    "effectEs": "Permite a Salamence megaevolucionar."
+  },
+  "scizorite": {
+    "nameEs": "Scizorita",
+    "effectEs": "Permite a Scizor megaevolucionar."
+  },
+  "sharpedonite": {
+    "nameEs": "Sharpedonita",
+    "effectEs": "Permite a Sharpedo megaevolucionar."
+  },
+  "slowbronite": {
+    "nameEs": "Slowbronita",
+    "effectEs": "Permite a Slowbro megaevolucionar."
+  },
+  "steelixite": {
+    "nameEs": "Steelixita",
+    "effectEs": "Permite a Steelix megaevolucionar."
+  },
+  "swampertite": {
+    "nameEs": "Swampertita",
+    "effectEs": "Permite a Swampert megaevolucionar."
+  },
+  "tyranitarite": {
+    "nameEs": "Tyranitarita",
+    "effectEs": "Permite a Tyranitar megaevolucionar."
+  },
+  "venusaurite": {
+    "nameEs": "Venusaurita",
+    "effectEs": "Permite a Venusaur megaevolucionar."
+  },
+  "normalium-z": {
+    "nameEs": "Normastal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Normal si conoce un movimiento Normal."
+  },
+  "firium-z": {
+    "nameEs": "Pirostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Fuego."
+  },
+  "waterium-z": {
+    "nameEs": "Hidrostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Agua."
+  },
+  "electrium-z": {
+    "nameEs": "Electrotal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Eléctrico."
+  },
+  "grassium-z": {
+    "nameEs": "Fitostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Planta."
+  },
+  "icium-z": {
+    "nameEs": "Criostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Hielo."
+  },
+  "fightinium-z": {
+    "nameEs": "Lizastal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Lucha."
+  },
+  "poisonium-z": {
+    "nameEs": "Toxistal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Veneno."
+  },
+  "groundium-z": {
+    "nameEs": "Geostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Tierra."
+  },
+  "flyinium-z": {
+    "nameEs": "Aerostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Volador."
+  },
+  "psychium-z": {
+    "nameEs": "Psicostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Psíquico."
+  },
+  "buginium-z": {
+    "nameEs": "Insectostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Bicho."
+  },
+  "rockium-z": {
+    "nameEs": "Litostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Roca."
+  },
+  "ghostium-z": {
+    "nameEs": "Espectrostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Fantasma."
+  },
+  "dragonium-z": {
+    "nameEs": "Dracostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Dragón."
+  },
+  "darkinium-z": {
+    "nameEs": "Siniestral Z",
+    "effectEs": "Permite usar movimiento Z de tipo Siniestro."
+  },
+  "steelium-z": {
+    "nameEs": "Metalostal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Acero."
+  },
+  "fairium-z": {
+    "nameEs": "Feeristal Z",
+    "effectEs": "Permite usar movimiento Z de tipo Hada."
+  },
+  "pikanium-z": {
+    "nameEs": "Pikastal Z",
+    "effectEs": "Permite a Pikachu usar Cataclismo Volt Crujidor."
+  },
+  "aloraichium-z": {
+    "nameEs": "Ash-Pikastal Z",
+    "effectEs": "Permite a Raichu Alola usar su movimiento Z exclusivo."
+  },
+  "decidium-z": {
+    "nameEs": "Decidastal Z",
+    "effectEs": "Permite a Decidueye usar su movimiento Z exclusivo."
+  },
+  "incinium-z": {
+    "nameEs": "Incistal Z",
+    "effectEs": "Permite a Incineroar usar su movimiento Z exclusivo."
+  },
+  "primarium-z": {
+    "nameEs": "Primastal Z",
+    "effectEs": "Permite a Primarina usar su movimiento Z exclusivo."
+  },
+  "tapunium-z": {
+    "nameEs": "Tapistal Z",
+    "effectEs": "Permite a los Tapus usar su movimiento Z exclusivo."
+  },
+  "lycanium-z": {
+    "nameEs": "Lycanrostal Z",
+    "effectEs": "Permite a Lycanroc usar su movimiento Z exclusivo."
+  },
+  "mimikium-z": {
+    "nameEs": "Mimikium Z",
+    "effectEs": "Permite a Mimikyu usar su movimiento Z exclusivo."
+  },
+  "kommonium-z": {
+    "nameEs": "Kommostal Z",
+    "effectEs": "Permite a Kommo-o usar su movimiento Z exclusivo."
+  },
+  "ultranecrozium-z": {
+    "nameEs": "Ultranecrostal Z",
+    "effectEs": "Permite a Ultra-Necrozma usar Fotodestrucción Apocalíptica."
+  },
+  "lunalium-z": {
+    "nameEs": "Lunalium Z",
+    "effectEs": "Permite a Lunala usar su movimiento Z exclusivo."
+  },
+  "solganium-z": {
+    "nameEs": "Solganium Z",
+    "effectEs": "Permite a Solgaleo usar su movimiento Z exclusivo."
+  },
+  "marshadium-z": {
+    "nameEs": "Marshastal Z",
+    "effectEs": "Permite a Marshadow usar su movimiento Z exclusivo."
+  },
+  "light-ball": {
+    "nameEs": "Bola Luminosa",
+    "effectEs": "Duplica Ataque y At. Especial de Pikachu."
+  },
+  "eviolite": {
+    "nameEs": "Mineral Evolutivo",
+    "effectEs": "Sube 50% Defensa y Def. Especial si puede evolucionar."
+  },
+  "weakness-policy": {
+    "nameEs": "Seguro Debilidad",
+    "effectEs": "Si recibe daño supereficaz, sube 2 niveles Ataque y At. Especial. Un solo uso."
+  },
+  "throat-spray": {
+    "nameEs": "Spray Bucal",
+    "effectEs": "Si usa movimiento de sonido, sube 1 nivel At. Especial. Un solo uso."
+  },
+  "blunder-policy": {
+    "nameEs": "Seguro Fallo",
+    "effectEs": "Si falla un movimiento, sube 2 niveles Velocidad. Un solo uso."
+  },
+  "room-service": {
+    "nameEs": "Servicio Raro",
+    "effectEs": "Si hay Espacio Raro, baja 1 nivel Velocidad. Un solo uso."
+  },
+  "terrain-extender": {
+    "nameEs": "Extensión Terreno",
+    "effectEs": "Extiende campos (Eléctrico, Psíquico, etc.) de 5 a 8 turnos."
+  },
+  "grassy-seed": {
+    "nameEs": "Semilla Hierba",
+    "effectEs": "Con Campo de Hierba, sube 1 nivel Defensa. Un solo uso."
+  },
+  "electric-seed": {
+    "nameEs": "Semilla Eléctrica",
+    "effectEs": "Con Campo Eléctrico, sube 1 nivel Defensa. Un solo uso."
+  },
+  "psychic-seed": {
+    "nameEs": "Semilla Psíquica",
+    "effectEs": "Con Campo Psíquico, sube 1 nivel Def. Especial. Un solo uso."
+  },
+  "misty-seed": {
+    "nameEs": "Semilla Bruma",
+    "effectEs": "Con Campo de Niebla, sube 1 nivel Def. Especial. Un solo uso."
+  },
+  "adamant-orb": {
+    "nameEs": "Diamansfera",
+    "effectEs": "Potencia movimientos Dragón y Acero de Dialga 20%."
+  },
+  "lustrous-orb": {
+    "nameEs": "Lustresfera",
+    "effectEs": "Potencia movimientos Dragón y Agua de Palkia 20%."
+  },
+  "griseous-orb": {
+    "nameEs": "Griseosfera",
+    "effectEs": "Potencia movimientos Dragón y Fantasma de Giratina y le mantiene en Forma Origen."
+  },
+  "soul-dew": {
+    "nameEs": "Rocío Bondad",
+    "effectEs": "Sube 20% Ataque y At. Especial de Latios y Latias (50% en Gen 6)."
+  },
+  "adamant-crystal": {
+    "nameEs": "Adamant Crystal",
+    "effectEs": "Objeto usado en competitivo. adamant-crystal."
+  },
+  "lustrous-globe": {
+    "nameEs": "Lustrous Globe",
+    "effectEs": "Objeto usado en competitivo. lustrous-globe."
+  },
+  "griseous-core": {
+    "nameEs": "Griseous Core",
+    "effectEs": "Objeto usado en competitivo. griseous-core."
+  }
 }
