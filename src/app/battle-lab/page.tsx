@@ -1,12 +1,4 @@
-import type { Metadata } from "next";
-import { BattleLabView } from "@/features/battle/components/BattleLabView";
-
-export const metadata: Metadata = {
-  title: "Laboratorio de Batalla",
-  description:
-    "Simulador avanzado de daño y análisis de combate Pokémon con motor Smogon — herramienta de precisión para VGC y competitivo.",
-};
-
+import { BattleLabContainer } from "@/features/battle/components/BattleLabContainer";
 export default function BattleLabPage() {
-  return <BattleLabView />;
+  return <BattleLabContainer />;
 }
