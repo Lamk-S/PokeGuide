@@ -1,36 +1,38 @@
 import { describe, it, expect } from "vitest";
-import { CalculateBattleScenarioUseCase } from "@/application/battle/CalculateBattleScenarioUseCase";
-import type { IPokemonBaseProvider, StatSet } from "@/domain/battle/types/BattleParticipant";
-import type { Nature } from "@/domain/stats/types/StatTypes";
-import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCalculatorAdapter";
-import { PokemonBaseProviderAdapter } from "@/infrastructure/battle/PokemonBaseProviderAdapter";
 import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
+import { PokemonBaseProviderAdapter } from "@/infrastructure/battle/PokemonBaseProviderAdapter";
+import { CalculateBattleScenarioUseCase } from "@/application/battle/CalculateBattleScenarioUseCase";
+import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCalculatorAdapter";
 
-function createStatSet(hp: number, attack: number, defense: number, specialAttack: number, specialDefense: number, speed: number): StatSet {
-  return {
-    hp,
-    attack,
-    defense,
-    "special-attack": specialAttack,
-    "special-defense": specialDefense,
-    speed,
-  };
-}
-
-const bold: Nature = { name: "Bold", nameEs: "Osada", increasedStat: "defense", decreasedStat: "attack" };
-const timid: Nature = { name: "Timid", nameEs: "Miedosa", increasedStat: "speed", decreasedStat: "attack" };
-
-describe("CalculateBattleScenarioUseCase - integration", () => {
-  it("calcula con repos reales", async () => {
+describe("CalculateBattleScenarioUseCase", () => {
+  it("calculates damage", async () => {
     const repo = new LocalPokemonRepository();
-    const provider: IPokemonBaseProvider = new PokemonBaseProviderAdapter(repo);
-    const calc = new SmogonCalculatorAdapter();
-    const useCase = new CalculateBattleScenarioUseCase(provider, calc);
+    await repo.init();
+    
+    const provider = new PokemonBaseProviderAdapter(repo as never);
+    const calculator = new SmogonCalculatorAdapter();
+    const useCase = new CalculateBattleScenarioUseCase(provider as never, calculator as never);
 
-    const attacker = { pokemonId: 25, level: 50, nature: timid, ivs: createStatSet(31,31,31,31,31,31), evs: createStatSet(0,0,0,252,0,252) };
-    const defender = { pokemonId: 445, level: 50, nature: bold, ivs: createStatSet(31,31,31,31,31,31), evs: createStatSet(252,0,252,0,4,0) };
+    const result = await useCase.execute(
+      9,
+      {
+        pokemonId: 25,
+        level: 50,
+        nature: { name: "Timid", nameEs: "Miedosa", increasedStat: "speed", decreasedStat: "attack" } as never,
+        evs: { hp: 0, attack: 0, defense: 0, "special-attack": 252, "special-defense": 4, speed: 252 } as never,
+        ivs: { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 } as never,
+      },
+      {
+        pokemonId: 6,
+        level: 50,
+        nature: { name: "Modest", nameEs: "Modesta", increasedStat: "special-attack", decreasedStat: "attack" } as never,
+        evs: { hp: 0, attack: 0, defense: 0, "special-attack": 0, "special-defense": 0, speed: 0 } as never,
+        ivs: { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 } as never,
+      },
+      "Thunderbolt",
+      { weather: "none", terrain: "none" }
+    );
 
-    const result = await useCase.execute(9, attacker, defender, "Thunderbolt");
-    expect(result.damage).toBeDefined();
-  });
+    expect(result.damage.maxDamage).toBeGreaterThan(0);
+  }, 15000);
 });
