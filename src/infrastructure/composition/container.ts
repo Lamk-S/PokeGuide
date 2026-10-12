@@ -1,13 +1,13 @@
-import { battleComposition } from "./battle.composition";
+import { LocalPokemonRepository } from "../local-data/repositories/local-pokemon.repository";
+import { LocalMoveRepository } from "../local-data/repositories/local-move.repository";
+import { LocalItemRepository } from "../local-data/repositories/local-item.repository";
+import { LocalAbilityRepository } from "../local-data/repositories/local-ability.repository";
 
 export const container = {
-  battle: battleComposition,
-  getPokemonRepository: () => battleComposition.pokemonRepository,
-  getAbilityRepository: () => battleComposition.abilityRepository,
-  getItemRepository: () => battleComposition.itemRepository,
-  getMoveRepository: () => battleComposition.moveRepository,
-  getBattleCalculator: () => battleComposition.calculator,
-  getBattleUseCase: () => battleComposition.calculateBattleScenarioUseCase,
-} as const;
+  pokemon: new LocalPokemonRepository(),
+  moves: new LocalMoveRepository(),
+  items: new LocalItemRepository(),
+  abilities: new LocalAbilityRepository(),
+};
 
-export type Container = typeof container;
+export { container as default };

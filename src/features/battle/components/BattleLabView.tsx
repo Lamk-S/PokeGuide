@@ -1,10 +1,4 @@
 "use client";
-import { useEffect, useMemo, useState, useRef } from "react";
-import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
-import { useMoveStore } from "@/features/moves/store/useMoveStore";
-import { useItemStore } from "@/features/items/store/useItemStore";
-import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
-import { useBattleStore } from "@/features/battle/store/useBattleStore";
 import { ParticipantCard } from "./ParticipantCard";
 import { BattleFieldControls } from "./BattleFieldControls";
 import { BattleSummary } from "./BattleSummary";
@@ -12,23 +6,16 @@ import { BattleResultCard, ResultEmptyState } from "./BattleResultCard";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/ui/combobox";
-import type { PokemonType } from "@/domain/pokemon/types/pokemon";
-import { TypeEffectiveness } from "@/domain/types/TypeChart";
-import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
-import { resolvePokemonForm } from "@/domain/pokemon/services/PokemonFormResolver";
-import { resolvePokemonMovesSync } from "@/domain/pokemon/services/PokemonMoveResolver";
-import {
-  validateBattleState,
-  type BattleValidationError,
-} from "@/domain/battle/services/BattleValidation";
-import { SmogonSpeciesMapper } from "@/infrastructure/battle/smogon/SmogonSpeciesMapper";
-import {
-  getStatNumber,
-  extractTypeName,
-  type StatValue,
-  type PokemonTypeRef,
-} from "@/domain/pokemon/utils/pokemonHelpers";
-import { translateType } from "@/components/ui/TypeBadge";
+import type { BattleValidationError } from "@/domain/battle/services/BattleValidation";
+import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
+import type {
+  BattleResult,
+  IBattleConditions,
+} from "@/domain/battle/types/BattleParticipant";
+import type {
+  WeatherId,
+  TerrainId,
+} from "@/domain/battle/value-objects/BattleModifiers";
 
 type MoveOptionRich = {
   value: string;
@@ -50,10 +37,10 @@ type MoveDetail = {
 type PokemonListItem = {
   id: number;
   name: string;
-  types?: PokemonTypeRef[];
+  types?: unknown[];
   baseStats?: Record<string, number>;
   stats?: Record<string, number>;
-  abilities?: Array<{ name: string }>;
+  abilities?: Array<{ name: string } | string>;
   moves?: Array<string | { name: string }>;
 };
 
@@ -66,7 +53,6 @@ const GEN_OPTIONS = [
   { value: "8", label: "Gen 8 · Espada/Escudo" },
   { value: "9", label: "Gen 9 · Escarlata/Violeta" },
 ];
-
 const BADGE_LABELS: Record<BattleValidationError, string> = {
   MISSING_ATTACKER: "Falta atacante",
   MISSING_DEFENDER: "Falta defensor",
@@ -78,309 +64,68 @@ const BADGE_LABELS: Record<BattleValidationError, string> = {
   UNSUPPORTED_FORM_FOR_GENERATION: "No disponible en esta gen",
 };
 
-export function BattleLabView() {
-  const pokemonList = usePokedexStore(
-    (s) => s.pokemonList,
-  ) as unknown as PokemonListItem[];
-  const loadPokemon = usePokedexStore((s) => s.loadPokemon);
-  const moveList = useMoveStore((s) => s.moveList) as unknown as Record<
-    string,
-    MoveDetail
-  >;
-  const loadMoves = useMoveStore((s) => s.loadMoves);
-  const loadItems = useItemStore((s) => s.loadItems);
-  const loadAbilities = useAbilityStore((s) => s.loadAbilities);
-  const attackerInput = useBattleStore((s) => s.attackerInput);
-  const defenderInput = useBattleStore((s) => s.defenderInput);
-  const moveName = useBattleStore((s) => s.moveName);
-  const result = useBattleStore((s) => s.result);
-  const conditions = useBattleStore((s) => s.conditions);
-  const isCalculating = useBattleStore((s) => s.isCalculating);
-  const setAttacker = useBattleStore((s) => s.setAttacker);
-  const setDefender = useBattleStore((s) => s.setDefender);
-  const setMoveName = useBattleStore((s) => s.setMoveName);
-  const calculateResult = useBattleStore((s) => s.calculateResult);
-  const generation = useBattleStore((s) => s.generation);
-  const setGeneration = useBattleStore((s) => s.setGeneration);
-  const [localError, setLocalError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabId>("attacker");
-  const prevDefenderIdRef = useRef<number | null>(null);
-  const prevAttackerIdRef = useRef<number | null>(null);
-  const userHasManuallySelectedMove = useRef(false);
+interface Props {
+  pokemonList: PokemonListItem[];
+  moveList: Record<string, MoveDetail>;
+  attackerInput: BattleParticipantInput | null;
+  defenderInput: BattleParticipantInput | null;
+  attackerPokemon: PokemonListItem | null;
+  defenderPokemon: PokemonListItem | null;
+  defenderTypes: string[];
+  availableMoves: MoveOptionRich[];
+  moveName: string;
+  result: BattleResult | null;
+  conditions: IBattleConditions;
+  isCalculating: boolean;
+  generation: number;
+  validationState: { valid: boolean; errors: BattleValidationError[] };
+  evTotalAtk: number;
+  evTotalDef: number;
+  localError: string | null;
+  activeTab: TabId;
+  onActiveTabChange: (tab: TabId) => void;
+  onAttackerChange: (input: BattleParticipantInput | null) => void;
+  onDefenderChange: (input: BattleParticipantInput | null) => void;
+  onMoveChange: (moveName: string) => void;
+  onCalculate: () => void;
+  onGenerationChange: (gen: number) => void;
+  onWeatherChange: (weather: WeatherId) => void;
+  onTerrainChange: (terrain: TerrainId) => void;
+}
 
-  useEffect(() => {
-    loadPokemon();
-    loadMoves();
-    loadItems();
-    loadAbilities();
-  }, [loadPokemon, loadMoves, loadItems, loadAbilities]);
-
-  useEffect(() => {
-    if (attackerInput?.pokemonId !== prevAttackerIdRef.current) {
-      userHasManuallySelectedMove.current = false;
-      prevAttackerIdRef.current = attackerInput?.pokemonId ?? null;
-    }
-  }, [attackerInput?.pokemonId]);
-
-  const attackerIdentity = useMemo(() => {
-    if (!attackerInput?.pokemonId) return null;
-    const raw = pokemonList.find((p) => p.id === attackerInput.pokemonId);
-    return raw ? parsePokemonIdentity({ id: raw.id, name: raw.name }) : null;
-  }, [attackerInput?.pokemonId, pokemonList]);
-
-  const defenderIdentity = useMemo(() => {
-    if (!defenderInput?.pokemonId) return null;
-    const raw = pokemonList.find((p) => p.id === defenderInput.pokemonId);
-    return raw ? parsePokemonIdentity({ id: raw.id, name: raw.name }) : null;
-  }, [defenderInput?.pokemonId, pokemonList]);
-
-  const attackerResolvedForm = useMemo(
-    () =>
-      attackerIdentity
-        ? resolvePokemonForm(
-            attackerIdentity,
-            pokemonList as unknown as Array<{ id: number; name: string }>,
-          )
-        : null,
-    [attackerIdentity, pokemonList],
-  );
-  const defenderResolvedForm = useMemo(
-    () =>
-      defenderIdentity
-        ? resolvePokemonForm(
-            defenderIdentity,
-            pokemonList as unknown as Array<{ id: number; name: string }>,
-          )
-        : null,
-    [defenderIdentity, pokemonList],
-  );
-
-  const attackerPokemon = useMemo(() => {
-    if (!attackerIdentity) return undefined;
-    const original = pokemonList.find(
-      (p) => p.id === attackerIdentity.numericId,
-    );
-    if (original) return original;
-    return (attackerResolvedForm?.formPokemon ||
-      attackerResolvedForm?.basePokemon ||
-      null) as unknown as PokemonListItem | null;
-  }, [attackerIdentity, attackerResolvedForm, pokemonList]);
-
-  const defenderPokemon = useMemo(() => {
-    if (!defenderIdentity) return undefined;
-    const original = pokemonList.find(
-      (p) => p.id === defenderIdentity.numericId,
-    );
-    if (original) return original;
-    return (defenderResolvedForm?.formPokemon ||
-      defenderResolvedForm?.basePokemon ||
-      null) as unknown as PokemonListItem | null;
-  }, [defenderIdentity, defenderResolvedForm, pokemonList]);
-
-  const defenderTypes = useMemo(() => {
-    if (!defenderPokemon?.types) return [] as string[];
-    return defenderPokemon.types
-      .map((t) => extractTypeName(t))
-      .filter(Boolean) as string[];
-  }, [defenderPokemon]);
-
-  const resolvedAttackerMoves = useMemo(() => {
-    if (!attackerIdentity)
-      return { moves: [] as string[], source: "fallback" as const };
-    return resolvePokemonMovesSync(
-      attackerIdentity,
-      pokemonList as unknown as Array<{ id: number; name: string }>,
-    );
-  }, [attackerIdentity, pokemonList]);
-
-  const availableMovesRich = useMemo((): MoveOptionRich[] => {
-    if (!attackerInput || resolvedAttackerMoves.moves.length === 0) return [];
-    return resolvedAttackerMoves.moves.map((mName: string) => {
-      const fm = moveList[mName];
-      const typeEs = fm?.type ? translateType(fm.type) : "Normal";
-      const rawCat = (fm as { category?: string } | undefined)?.category;
-      const cat =
-        rawCat === "special"
-          ? "Especial"
-          : rawCat === "status"
-            ? "Estado"
-            : "Físico";
-      return {
-        value: mName,
-        label: fm?.nameEs || fm?.name || mName,
-        type: fm?.type || "normal",
-        power: fm?.power ?? null,
-        accuracy: fm?.accuracy ?? null,
-        description: `${typeEs.toUpperCase()} • ${fm?.power || 0} pot. · Precisión ${fm?.accuracy ?? 100}% · ${cat}`,
-      };
-    });
-  }, [attackerInput, resolvedAttackerMoves, moveList]);
-
-  const validationState = useMemo(() => {
-    const attackerData = attackerPokemon
-      ? {
-          id: attackerPokemon.id,
-          name: attackerPokemon.name,
-          stats: (attackerPokemon as { stats?: Record<string, number> }).stats,
-          baseStats: (attackerPokemon as { baseStats?: Record<string, number> })
-            .baseStats,
-          level: attackerInput?.level,
-        }
-      : null;
-    const defenderData = defenderPokemon
-      ? {
-          id: defenderPokemon.id,
-          name: defenderPokemon.name,
-          stats: (defenderPokemon as { stats?: Record<string, number> }).stats,
-          baseStats: (defenderPokemon as { baseStats?: Record<string, number> })
-            .baseStats,
-          level: defenderInput?.level,
-        }
-      : null;
-    const moveDetail = moveName ? moveList[moveName] : null;
-    const moveData = moveName
-      ? {
-          name: moveName,
-          power: moveDetail?.power ?? null,
-          type: moveDetail?.type,
-        }
-      : null;
-    const base = validateBattleState({
-      attacker: attackerData as never,
-      defender: defenderData as never,
-      move: moveData as never,
-      generation,
-    });
-
-    const genErrors: BattleValidationError[] = [];
-    if (attackerPokemon) {
-      const res = SmogonSpeciesMapper.resolve(
-        { id: attackerPokemon.id, name: attackerPokemon.name },
-        generation,
-      );
-      if (!res.supported && !res.isFallbackToBase) {
-        genErrors.push(
-          "UNSUPPORTED_FORM_FOR_GENERATION" as BattleValidationError,
-        );
-      }
-    }
-    if (defenderPokemon) {
-      const res = SmogonSpeciesMapper.resolve(
-        { id: defenderPokemon.id, name: defenderPokemon.name },
-        generation,
-      );
-      if (!res.supported && !res.isFallbackToBase) {
-        genErrors.push(
-          "UNSUPPORTED_FORM_FOR_GENERATION" as BattleValidationError,
-        );
-      }
-    }
-
-    const allErrors = [...base.errors, ...genErrors];
-    const filtered = allErrors.filter(
-      (e) => !(e === "INVALID_BATTLE_CONTEXT" && generation === 9),
-    );
-    const uniqueErrors = Array.from(new Set(filtered));
-    return { ...base, errors: uniqueErrors, valid: uniqueErrors.length === 0 };
-  }, [
-    attackerPokemon,
-    defenderPokemon,
-    attackerInput,
-    defenderInput,
-    moveName,
-    moveList,
-    generation,
-  ]);
-
-  useEffect(() => {
-    if (!attackerInput || availableMovesRich.length === 0) return;
-    const defenderChanged =
-      defenderInput?.pokemonId !== prevDefenderIdRef.current;
-    if (defenderInput) prevDefenderIdRef.current = defenderInput.pokemonId;
-    if (!moveName) {
-      let best: MoveOptionRich | null = null;
-      let bestScore = -1;
-      for (const mv of availableMovesRich) {
-        const eff = defenderTypes.length
-          ? TypeEffectiveness.getMultiplier(
-              mv.type as PokemonType,
-              defenderTypes as never,
-            )
-          : 1;
-        const score = (mv.power || 0) * eff;
-        if (score > bestScore) {
-          bestScore = score;
-          best = mv;
-        }
-      }
-      if (best) {
-        setMoveName(best.value);
-        userHasManuallySelectedMove.current = false;
-      }
-    } else if (defenderChanged && !userHasManuallySelectedMove.current) {
-      let best: MoveOptionRich | null = null;
-      let bestScore = -1;
-      for (const mv of availableMovesRich) {
-        const eff = defenderTypes.length
-          ? TypeEffectiveness.getMultiplier(
-              mv.type as PokemonType,
-              defenderTypes as never,
-            )
-          : 1;
-        const score = (mv.power || 0) * eff;
-        if (score > bestScore) {
-          bestScore = score;
-          best = mv;
-        }
-      }
-      if (best && best.value !== moveName) setMoveName(best.value);
-    }
-  }, [
-    attackerInput,
-    defenderInput,
-    defenderTypes,
-    availableMovesRich,
-    moveName,
-    setMoveName,
-  ]);
-
-  const handleMoveChange = (val: string) => {
-    userHasManuallySelectedMove.current = true;
-    setMoveName(val);
-  };
-  const handleCalculate = async () => {
-    setLocalError(null);
-    if (!validationState.valid) {
-      setLocalError("Faltan datos para calcular");
-      return;
-    }
-    try {
-      await calculateResult();
-      setActiveTab("result");
-    } catch (e) {
-      setLocalError(e instanceof Error ? e.message : String(e));
-    }
-  };
-
+export function BattleLabView({
+  pokemonList,
+  moveList,
+  attackerInput,
+  defenderInput,
+  attackerPokemon,
+  defenderPokemon,
+  defenderTypes,
+  availableMoves,
+  moveName,
+  result,
+  isCalculating,
+  generation,
+  conditions,
+  validationState,
+  evTotalAtk,
+  evTotalDef,
+  localError,
+  activeTab,
+  onActiveTabChange,
+  onAttackerChange,
+  onDefenderChange,
+  onMoveChange,
+  onCalculate,
+  onGenerationChange,
+  onWeatherChange,
+  onTerrainChange,
+}: Props) {
   const canCalculate = validationState.valid && !isCalculating;
   const missing: string[] = [];
   if (!attackerInput) missing.push("atacante");
   if (!defenderInput) missing.push("defensor");
   if (!moveName) missing.push("movimiento");
-
-  const evTotalAtk = useMemo(() => {
-    if (!attackerInput) return 0;
-    return Object.values(
-      attackerInput.evs as unknown as Record<string, StatValue>,
-    ).reduce<number>((s, v) => s + getStatNumber(v), 0);
-  }, [attackerInput]);
-  const evTotalDef = useMemo(() => {
-    if (!defenderInput) return 0;
-    return Object.values(
-      defenderInput.evs as unknown as Record<string, StatValue>,
-    ).reduce<number>((s, v) => s + getStatNumber(v), 0);
-  }, [defenderInput]);
-
   const resolvedMoveName =
     moveList[moveName]?.nameEs || moveList[moveName]?.name || moveName;
   const tabs = [
@@ -391,9 +136,7 @@ export function BattleLabView() {
 
   return (
     <div className="min-h-screen bg-[#F8F5F0] text-[#1A1A1A] -mx-4 md:-mx-6 lg:-mx-8 -my-6 md:-my-8">
-      {/* Sticky context bar - meta + VS */}
       <div className="sticky top-14 z-30 w-full bg-[#FFFEFB] border-b border-[#EDE8E0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-        {/* Top meta bar */}
         <div className="max-w-[1600px] mx-auto px-4 lg:px-6 py-2.5 flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between gap-3 w-full lg:w-auto min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -406,7 +149,6 @@ export function BattleLabView() {
                 IVs, EVs, objeto, habilidad, estado, clima y terreno.
               </p>
             </div>
-            {/* Mobile badge - muestra texto completo */}
             <span
               className={`lg:hidden inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full border text-[10px] font-mono font-medium shrink-0 max-w-[40%] truncate ${result ? "bg-[#111] border-[#111] text-white" : canCalculate ? "bg-[#E8F5E9] border-[#C8E6C9] text-[#2D5A27]" : "bg-[#FFF3E0] border-[#FFE0B2] text-[#7A3D00]"}`}
             >
@@ -424,7 +166,6 @@ export function BattleLabView() {
               </span>
             </span>
           </div>
-          {/* Controles Generación / Clima / Campo */}
           <div className="flex flex-col sm:flex-row sm:items-end gap-2.5 w-full lg:w-auto lg:justify-end">
             <div className="flex items-end gap-2 w-full sm:w-auto">
               <div className="flex flex-col gap-1 flex-1 min-w-0 sm:w-56">
@@ -435,14 +176,21 @@ export function BattleLabView() {
                   <Combobox
                     options={GEN_OPTIONS}
                     value={generation.toString()}
-                    onValueChange={(v) => setGeneration(parseInt(v, 10))}
+                    onValueChange={(v) =>
+                      onGenerationChange(Number.parseInt(v, 10))
+                    }
                     placeholder="Gen 9 · Escarlata/Violeta"
                   />
                 </div>
               </div>
-              {/* Clima y Campo - 2 columnas en móvil */}
               <div className="flex-1 sm:flex-none">
-                <BattleFieldControls variant="compact" />
+                <BattleFieldControls
+                  variant="compact"
+                  weather={conditions.weather as WeatherId}
+                  terrain={conditions.terrain as TerrainId}
+                  onWeatherChange={onWeatherChange}
+                  onTerrainChange={onTerrainChange}
+                />
               </div>
             </div>
             <span
@@ -463,29 +211,29 @@ export function BattleLabView() {
             </span>
           </div>
         </div>
-
         <BattleSummary
-          attackerPokemon={attackerPokemon as never}
-          defenderPokemon={defenderPokemon as never}
+          attackerPokemon={attackerPokemon ?? undefined}
+          defenderPokemon={defenderPokemon ?? undefined}
           attackerLevel={attackerInput?.level}
           defenderLevel={defenderInput?.level}
           generation={generation}
           moveName={resolvedMoveName}
           moveType={moveName ? moveList[moveName]?.type : undefined}
           movePower={
-            moveName ? ((moveList[moveName]?.power as number) ?? null) : null
+            moveName
+              ? ((moveList[moveName]?.power as number) ?? null)
+              : undefined
           }
         />
       </div>
 
-      {/* Mobile tabs - sticky debajo del VS bar */}
       <div className="lg:hidden sticky top-28 z-20 bg-[#F8F5F0] px-4 pt-3 pb-2 border-b border-[#EDE8E0]">
         <div className="flex p-1 rounded-xl bg-[#EDE8E0] gap-1">
           {tabs.map((t) => (
             <button
               key={t.id}
               type="button"
-              onClick={() => setActiveTab(t.id)}
+              onClick={() => onActiveTabChange(t.id)}
               className={`flex-1 h-8 rounded-lg text-[12px] font-medium transition-colors ${activeTab === t.id ? "bg-white shadow-sm text-[#111]" : "text-[#7A7570]"}`}
             >
               {t.label}
@@ -495,7 +243,6 @@ export function BattleLabView() {
       </div>
 
       <main className="max-w-[1600px] mx-auto px-4 lg:px-6 py-5 pb-24 lg:pb-6">
-        {/* 3 columns - desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           <section
             className={`${activeTab !== "attacker" ? "hidden lg:block" : "block"} lg:col-span-4 xl:col-span-4 self-start`}
@@ -504,17 +251,16 @@ export function BattleLabView() {
               label="Atacante"
               pokemonList={pokemonList as never}
               input={attackerInput}
-              onChange={setAttacker}
+              onChange={onAttackerChange}
               facing="left"
               generation={generation}
               isAttacker
               moveName={moveName}
-              onMoveChange={handleMoveChange}
-              availableMoves={availableMovesRich}
+              onMoveChange={onMoveChange}
+              availableMoves={availableMoves}
               defenderTypes={defenderTypes}
             />
           </section>
-
           <section
             className={`${activeTab !== "result" ? "hidden lg:block" : "block"} lg:col-span-4 xl:col-span-4 self-start`}
           >
@@ -528,12 +274,12 @@ export function BattleLabView() {
                 conditions={conditions}
                 moveName={resolvedMoveName}
                 generation={generation}
-                {...(moveList[moveName]?.type
-                  ? { moveType: moveList[moveName]?.type }
-                  : {})}
-                {...(typeof moveList[moveName]?.power === "number"
-                  ? { movePower: moveList[moveName]?.power as number }
-                  : {})}
+                moveType={moveName ? moveList[moveName]?.type : undefined}
+                movePower={
+                  moveName
+                    ? ((moveList[moveName]?.power as number) ?? null)
+                    : undefined
+                }
               />
             ) : (
               <ResultEmptyState missing={missing} />
@@ -544,7 +290,6 @@ export function BattleLabView() {
               </p>
             )}
           </section>
-
           <section
             className={`${activeTab !== "defender" ? "hidden lg:block" : "block"} lg:col-span-4 xl:col-span-4 self-start`}
           >
@@ -552,7 +297,7 @@ export function BattleLabView() {
               label="Defensor"
               pokemonList={pokemonList as never}
               input={defenderInput}
-              onChange={setDefender}
+              onChange={onDefenderChange}
               facing="right"
               generation={generation}
             />
@@ -586,15 +331,15 @@ export function BattleLabView() {
                 if (attackerInput && defenderInput) {
                   const newAttacker = { ...defenderInput };
                   const newDefender = { ...attackerInput };
-                  setAttacker(newAttacker);
-                  setDefender(newDefender);
+                  onAttackerChange(newAttacker);
+                  onDefenderChange(newDefender);
                 }
               }}
             >
               Intercambiar
             </Button>
             <Button
-              onClick={handleCalculate}
+              onClick={onCalculate}
               disabled={!canCalculate}
               className={`flex-1 md:flex-none h-9 px-5 rounded-full text-[12px] font-semibold ${!canCalculate ? "bg-[#F0EDE6] text-[#9A9590] cursor-not-allowed" : "bg-[#111] text-white hover:bg-black"}`}
             >

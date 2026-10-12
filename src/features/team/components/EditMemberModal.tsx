@@ -20,10 +20,12 @@ import {
 import {
   COMPETITIVE_ABILITIES,
   translateAbilityToSpanish,
+  type CompetitiveAbility,
 } from "../constants/competitiveAbilities";
 import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
 import { normalizeId } from "@/domain/shared/utils/normalizeId";
 import type { StatName } from "@/domain/pokemon/types/pokemon";
+import type { CompetitiveItem } from "../constants/competitiveItems";
 
 interface Props {
   readonly open: boolean;
@@ -54,7 +56,6 @@ const EV_LABELS: Record<EVKey, string> = {
 function clampEV(value: number): number {
   return Math.max(0, Math.min(252, Math.floor(value)));
 }
-
 function totalEVs(evs: EVSet): number {
   return Object.values(evs).reduce((a, b) => a + b, 0);
 }
@@ -105,12 +106,9 @@ export function EditMemberModal({
 
   const handleSave = () => {
     if (!member || index === null) return;
-
     const baseStats: BaseStats = member.baseStats;
-
     const ivs = IV.createPerfectSet();
     const evSet = EV.createSet(evs);
-
     const calculated = calculateStats({
       baseStats: baseStats as unknown as Record<StatName, number>,
       ivs,
@@ -119,7 +117,6 @@ export function EditMemberModal({
       nature,
       generation: DEFAULT_BATTLE_RULESET.generation,
     });
-
     const updated: TeamMember = {
       ...member,
       abilityId: abilityId || null,
@@ -140,7 +137,6 @@ export function EditMemberModal({
       },
       baseStats,
     };
-
     onSave(index, updated);
     onClose();
   };
@@ -194,7 +190,6 @@ export function EditMemberModal({
             <h3 className="text-[11px] font-semibold uppercase tracking-widest text-[#111]">
               Configuración competitiva
             </h3>
-
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label
@@ -209,7 +204,7 @@ export function EditMemberModal({
                   onChange={(e) => setItemId(normalizeId(e.target.value))}
                   className="mt-1.5 w-full border border-[#EDE8E0] bg-white px-3 py-2.5 text-[13px] outline-none focus:border-[#111]"
                 >
-                  {COMPETITIVE_ITEMS.map((it) => (
+                  {COMPETITIVE_ITEMS.map((it: CompetitiveItem) => (
                     <option key={it.id} value={it.id}>
                       {it.nameEs} · {it.descriptionEs}
                     </option>
@@ -219,7 +214,6 @@ export function EditMemberModal({
                   {translateItemToSpanish(itemId) || "Sin objeto"}
                 </p>
               </div>
-
               <div>
                 <label
                   htmlFor="edit-ability"
@@ -233,7 +227,7 @@ export function EditMemberModal({
                   onChange={(e) => setAbilityId(normalizeId(e.target.value))}
                   className="mt-1.5 w-full border border-[#EDE8E0] bg-white px-3 py-2.5 text-[13px] outline-none focus:border-[#111]"
                 >
-                  {COMPETITIVE_ABILITIES.map((ab) => (
+                  {COMPETITIVE_ABILITIES.map((ab: CompetitiveAbility) => (
                     <option key={ab.id} value={ab.id}>
                       {ab.nameEs} · {ab.descriptionEs}
                     </option>
@@ -283,7 +277,6 @@ export function EditMemberModal({
                   · Afecta cálculo final
                 </p>
               </div>
-
               <div>
                 <label
                   htmlFor="edit-level"
@@ -331,7 +324,6 @@ export function EditMemberModal({
                 Resetear
               </button>
             </div>
-
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {EV_KEYS.map((key) => (
                 <div key={key} className="border border-[#EDE8E0] bg-white p-3">
@@ -370,7 +362,6 @@ export function EditMemberModal({
                 </div>
               ))}
             </div>
-
             <div
               className={`mt-4 border px-3 py-2 text-[11px] ${isInvalid ? "border-[#D93B32] bg-[#FEF2F2] text-[#991B1B]" : "border-[#111] bg-[#111] text-white"}`}
             >

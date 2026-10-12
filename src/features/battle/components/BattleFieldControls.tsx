@@ -5,7 +5,6 @@ import {
   type WeatherId,
   type TerrainId,
 } from "@/domain/battle/value-objects/BattleModifiers";
-import { useBattleStore } from "../store/useBattleStore";
 import { Combobox } from "@/components/ui/combobox";
 
 const WEATHER_ES: Record<string, string> = {
@@ -19,7 +18,6 @@ const WEATHER_ES: Record<string, string> = {
   heavy_rain: "Lluvia intensa",
   strong_winds: "Vientos fuertes",
 };
-
 const TERRAIN_ES: Record<string, string> = {
   none: "Ninguno",
   electric: "Eléctrico",
@@ -44,16 +42,21 @@ const terrainOptions = Object.values(Terrain).map((t) => {
   };
 });
 
-type Props = {
-  variant?: "default" | "compact";
-};
+interface Props {
+  variant?: "default" | "compact" | undefined;
+  weather?: WeatherId | undefined;
+  terrain?: TerrainId | undefined;
+  onWeatherChange?: ((w: WeatherId) => void) | undefined;
+  onTerrainChange?: ((t: TerrainId) => void) | undefined;
+}
 
-export function BattleFieldControls({ variant = "default" }: Props) {
-  const weather = useBattleStore((s) => s.conditions.weather ?? "none");
-  const terrain = useBattleStore((s) => s.conditions.terrain ?? "none");
-  const setWeather = useBattleStore((s) => s.setWeather);
-  const setTerrain = useBattleStore((s) => s.setTerrain);
-
+export function BattleFieldControls({
+  variant = "default",
+  weather = "none",
+  terrain = "none",
+  onWeatherChange,
+  onTerrainChange,
+}: Props) {
   if (variant === "compact") {
     return (
       <div className="flex items-center gap-2 flex-1 lg:flex-none">
@@ -65,7 +68,7 @@ export function BattleFieldControls({ variant = "default" }: Props) {
             <Combobox
               options={weatherOptions}
               value={weather}
-              onValueChange={(v) => setWeather(v as WeatherId)}
+              onValueChange={(v) => onWeatherChange?.(v as WeatherId)}
               placeholder="Ninguno"
             />
           </div>
@@ -78,7 +81,7 @@ export function BattleFieldControls({ variant = "default" }: Props) {
             <Combobox
               options={terrainOptions}
               value={terrain}
-              onValueChange={(v) => setTerrain(v as TerrainId)}
+              onValueChange={(v) => onTerrainChange?.(v as TerrainId)}
               placeholder="Ninguno"
             />
           </div>
@@ -86,7 +89,6 @@ export function BattleFieldControls({ variant = "default" }: Props) {
       </div>
     );
   }
-
   return (
     <div className="grid grid-cols-2 gap-2.5">
       <div className="flex flex-col gap-1">
@@ -96,7 +98,7 @@ export function BattleFieldControls({ variant = "default" }: Props) {
         <Combobox
           options={weatherOptions}
           value={weather}
-          onValueChange={(v) => setWeather(v as WeatherId)}
+          onValueChange={(v) => onWeatherChange?.(v as WeatherId)}
           placeholder="—"
         />
       </div>
@@ -107,7 +109,7 @@ export function BattleFieldControls({ variant = "default" }: Props) {
         <Combobox
           options={terrainOptions}
           value={terrain}
-          onValueChange={(v) => setTerrain(v as TerrainId)}
+          onValueChange={(v) => onTerrainChange?.(v as TerrainId)}
           placeholder="—"
         />
       </div>

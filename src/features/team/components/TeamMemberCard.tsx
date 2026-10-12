@@ -1,8 +1,10 @@
 "use client";
-
 import { useState, useMemo } from "react";
 import type { TeamMember } from "@/domain/team/types/TeamTypes";
-import { resolvePokemonNumericId } from "@/domain/pokemon/mappers/PokemonIdMapper";
+import {
+  resolvePokemonNumericId,
+  resolveBaseName,
+} from "@/domain/pokemon/mappers/PokemonIdMapper";
 import { translateTypeToSpanish } from "@/features/team/constants/typeTranslations";
 import { translateItemToSpanish } from "@/features/team/constants/competitiveItems";
 import { translateAbilityToSpanish } from "@/features/team/constants/competitiveAbilities";
@@ -11,6 +13,7 @@ import { PokemonSprite } from "@/components/ui/PokemonSprite";
 import { TypeEffectiveness, ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
 import { useTeamStore } from "../store/useTeamStore";
 import { EditMemberModal } from "./EditMemberModal";
+import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 
 type MemberWithMeta = TeamMember & {
   readonly id?: string;
@@ -18,7 +21,6 @@ type MemberWithMeta = TeamMember & {
   readonly displayNameEs?: string;
   readonly species?: string;
 };
-
 interface Props {
   readonly member: TeamMember;
   readonly index: number;
@@ -26,16 +28,23 @@ interface Props {
   readonly onReplace: (index: number) => void;
 }
 
+const BEST_LABEL_ES: Record<string, string> = {
+  hp: "PS",
+  attack: "ATQ",
+  defense: "DEF",
+  specialAttack: "AT. ESP.",
+  specialDefense: "DEF. ESP.",
+  speed: "VEL",
+};
+
 function getDisplayName(member: TeamMember): string {
   const meta = member as MemberWithMeta;
   return meta.displayNameEs ?? meta.name ?? meta.species ?? "Desconocido";
 }
-
 function getRawName(member: TeamMember): string {
   const meta = member as MemberWithMeta;
   return (meta.name ?? meta.species ?? "unknown").toLowerCase();
 }
-
 function useDefensiveMetrics(member: TeamMember) {
   return useMemo(() => {
     let resistCount = 0;
@@ -55,22 +64,21 @@ function useDefensiveMetrics(member: TeamMember) {
     return { resistCount, immuneCount, cobertura };
   }, [member]);
 }
-
 function useTeamCoverage(members: readonly TeamMember[], upToIndex: number) {
   return useMemo(() => {
     const slice = members.slice(0, upToIndex + 1);
     if (slice.length === 0) return 0;
     let covered = 0;
     for (const atk of ALL_POKEMON_TYPES) {
-      const hasResist = slice.some((m) => {
-        const mult = TypeEffectiveness.getMultiplier(
-          atk,
-          m.types as readonly PokemonType[],
-          m.abilityId ?? m.ability ?? null,
-          m.itemId ?? m.item ?? null,
-        );
-        return mult < 1;
-      });
+      const hasResist = slice.some(
+        (m) =>
+          TypeEffectiveness.getMultiplier(
+            atk,
+            m.types as readonly PokemonType[],
+            m.abilityId ?? m.ability ?? null,
+            m.itemId ?? m.item ?? null,
+          ) < 1,
+      );
       if (hasResist) covered += 1;
     }
     return Math.round((covered / ALL_POKEMON_TYPES.length) * 100);
@@ -80,7 +88,21 @@ function useTeamCoverage(members: readonly TeamMember[], upToIndex: number) {
 export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
   const displayName = getDisplayName(member);
   const rawName = getRawName(member);
-  const numericId = resolvePokemonNumericId(member);
+  const baseName = resolveBaseName(rawName);
+  const pokemonList = usePokedexStore((s) => s.pokemonList);
+
+  const baseEntry = useMemo(
+    () => pokemonList.find((p) => p.name === baseName),
+    [pokemonList, baseName],
+  );
+  const dexId = baseEntry?.id ?? resolvePokemonNumericId(member);
+
+  // FIX GMAX: no usar formId 10114, usar dexId + nombre gmax para el sprite
+  const spritePayload = useMemo(
+    () => ({ id: dexId, name: rawName }),
+    [dexId, rawName],
+  );
+
   const team = useTeamStore((s) => s.team);
   const members = team.getMembers();
   const replaceMember = useTeamStore((s) => s.replaceMember);
@@ -88,7 +110,6 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
 
   const { cobertura, resistCount, immuneCount } = useDefensiveMetrics(member);
   const teamCoverage = useTeamCoverage(members, index);
-
   const stats = member.calculatedStats;
   const bestStat: keyof typeof stats = useMemo(() => {
     const entries: [keyof typeof stats, number][] = [
@@ -121,20 +142,15 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
   return (
     <>
       <div className="flex h-full w-full flex-col bg-white p-4 sm:p-5">
-        {/* Identidad */}
         <div className="flex items-start gap-3">
           <div className="relative shrink-0">
             <div className="flex h-14 w-14 items-center justify-center bg-[#F8F5F0] sm:h-16 sm:w-16">
-              <PokemonSprite
-                pokemon={{ id: numericId, name: rawName }}
-                size={44}
-              />
+              <PokemonSprite pokemon={spritePayload} size={48} />
             </div>
             <div className="absolute -bottom-1.5 -right-1.5 border border-[#EDE8E0] bg-white px-1 py-0.5 font-mono text-[9px] tabular-nums text-zinc-600">
-              #{String(numericId).padStart(3, "0")}
+              #{String(dexId).padStart(3, "0")}
             </div>
           </div>
-
           <div className="min-w-0 flex-1">
             <h3 className="truncate font-serif text-[15px] font-semibold leading-tight tracking-[-0.02em] text-[#111] sm:text-[16px]">
               {displayName}
@@ -157,28 +173,23 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
               </span>
             </div>
           </div>
-
           <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
             <button
               type="button"
               onClick={() => setEditOpen(true)}
-              className="border border-[#EDE8E0] bg-white px-2 py-1 text-[10px] text-zinc-600 hover:border-[#111] hover:text-[#111] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111]"
-              aria-label={`Ajustar ${displayName}`}
+              className="border border-[#EDE8E0] bg-white px-2 py-1 text-[10px] text-zinc-600 hover:border-[#111] hover:text-[#111]"
             >
               Ajustar
             </button>
             <button
               type="button"
               onClick={() => onRemove(index)}
-              className="px-2 py-1 text-[10px] text-zinc-400 hover:text-[#111] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111]"
-              aria-label={`Quitar ${displayName}`}
+              className="px-2 py-1 text-[10px] text-zinc-400 hover:text-[#111]"
             >
               Quitar
             </button>
           </div>
         </div>
-
-        {/* Configuración */}
         <div className="mt-4 min-h-13 border-t border-[#F5F1E8] pt-3">
           <div className="flex items-center justify-between">
             <div className="text-[9px] uppercase tracking-widest text-zinc-500">
@@ -191,10 +202,7 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
           <div className="mt-2 flex flex-wrap gap-1">
             {member.abilityId || member.ability ? (
               <span className="inline-flex max-w-27.5 truncate items-center gap-1 border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[10px] text-violet-800">
-                <span
-                  className="h-1 w-1 shrink-0 rounded-full bg-violet-600"
-                  aria-hidden
-                />
+                <span className="h-1 w-1 shrink-0 rounded-full bg-violet-600" />
                 <span className="truncate">
                   {translateAbilityToSpanish(
                     member.abilityId ?? member.ability ?? "",
@@ -208,10 +216,7 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             )}
             {member.itemId || member.item ? (
               <span className="inline-flex max-w-27.5 truncate items-center gap-1 border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-900">
-                <span
-                  className="h-1 w-1 shrink-0 rounded-full bg-amber-600"
-                  aria-hidden
-                />
+                <span className="h-1 w-1 shrink-0 rounded-full bg-amber-600" />
                 <span className="truncate">
                   {translateItemToSpanish(member.itemId ?? member.item ?? "")}
                 </span>
@@ -223,8 +228,6 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             )}
           </div>
         </div>
-
-        {/* Estadísticas */}
         <div className="mt-3 flex-1">
           <div className="text-[9px] uppercase tracking-widest text-zinc-500">
             Estadísticas · Nv. {member.level}
@@ -250,7 +253,7 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
               return (
                 <div
                   key={cell.k}
-                  className={`flex min-h-11 flex-col justify-center bg-white px-2 py-1.5 ${isBest ? "bg-[#111]! text-white!" : ""}`}
+                  className={`flex min-h-11 flex-col justify-center px-2 py-1.5 ${isBest ? "bg-[#111] text-white" : "bg-white"}`}
                 >
                   <div
                     className={`text-[8px] uppercase tracking-widest ${isBest ? "text-zinc-400" : "text-zinc-500"}`}
@@ -267,7 +270,9 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             })}
           </div>
           <div className="mt-1.5 flex items-center justify-between text-[9px] text-zinc-500">
-            <span className="truncate">Mejor: {bestStat}</span>
+            <span className="truncate">
+              Mejor: {BEST_LABEL_ES[bestStat] ?? bestStat}
+            </span>
             {(member.itemId?.includes("scarf") ||
               member.item?.includes("scarf")) && (
               <span className="shrink-0 bg-[#111] px-1 py-0.5 text-[8px] text-white">
@@ -276,8 +281,6 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             )}
           </div>
         </div>
-
-        {/* Footer */}
         <div className="mt-3 border-t border-[#F5F1E8] pt-2.5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
@@ -305,7 +308,6 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
           </div>
         </div>
       </div>
-
       <EditMemberModal
         open={editOpen}
         onClose={() => setEditOpen(false)}

@@ -1,53 +1,62 @@
 "use client";
-import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
-import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
-import { resolvePokemonSprite } from "@/domain/pokemon/services/PokemonSpriteResolver";
+import { useState, useMemo } from "react";
 
 interface Props {
-  pokemon: { id: number; name: string };
-  facing?: "left" | "right";
-  size?: number;
+  readonly pokemon: { id: number; name: string };
+  readonly size?: number;
+  readonly facing?: "left" | "right";
+  readonly className?: string;
 }
 
-export function PokemonSprite({ pokemon, facing = "left", size = 44 }: Props) {
-  const [idx, setIdx] = useState(0);
+function pad4(id: number) {
+  return String(Math.abs(id)).padStart(4, "0");
+}
 
-  const identity = useMemo(
-    () => parsePokemonIdentity({ id: pokemon.id, name: pokemon.name }),
-    [pokemon.id, pokemon.name],
-  );
+function isGmaxName(name: string) {
+  const n = name.toLowerCase();
+  return n.includes("gmax") || n.includes("gigantamax");
+}
 
-  const resolution = useMemo(() => resolvePokemonSprite(identity), [identity]);
+export function PokemonSprite({
+  pokemon,
+  size = 56,
+  facing = "left",
+  className,
+}: Props) {
+  const [failed, setFailed] = useState(false);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset sprite on identity change
-  useEffect(() => {
-    setIdx(0);
-  }, [identity.debugKey]);
+  const dexId = useMemo(() => {
+    if (pokemon.id < 10000) return pokemon.id;
+    return pokemon.id % 1000;
+  }, [pokemon.id]);
 
-  const src = useMemo(() => {
-    return resolution.chain[Math.min(idx, resolution.chain.length - 1)];
-  }, [resolution.chain, idx]);
+  const nameLower = pokemon.name.toLowerCase();
+  const isGmax = isGmaxName(nameLower);
+
+  const primaryUrl = useMemo(() => {
+    const padded = pad4(dexId);
+    if (isGmax)
+      return `https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${padded}-Gmax.png`;
+    return `https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${padded}.png`;
+  }, [dexId, isGmax]);
+
+  const fallbackUrl = useMemo(() => {
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dexId}.png`;
+  }, [dexId]);
+
+  const url = failed ? fallbackUrl : primaryUrl;
 
   return (
-    <span
+    <Image
+      src={url}
+      alt={pokemon.name}
+      width={size}
+      height={size}
+      unoptimized
+      onError={() => setFailed(true)}
+      className={`${facing === "right" ? "scale-x-[-1]" : ""} object-contain ${className ?? ""}`}
       style={{ width: size, height: size }}
-      className="relative inline-flex items-center justify-center shrink-0"
-    >
-      <Image
-        src={src}
-        alt={pokemon.name}
-        width={size}
-        height={size}
-        style={{
-          objectFit: "contain",
-          transform: facing === "right" ? "scaleX(-1)" : undefined,
-        }}
-        onError={() =>
-          setIdx((i) => Math.min(i + 1, resolution.chain.length - 1))
-        }
-        unoptimized
-      />
-    </span>
+    />
   );
 }
