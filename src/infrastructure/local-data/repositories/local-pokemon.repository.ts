@@ -1,97 +1,166 @@
-import type { Pokemon } from "@/domain/pokemon/types/pokemon";
-import datasetOptimized from "../../../../data/pokemon/dataset.optimized.json";
-import datasetEs from "../../../../data/pokemon/dataset.es.json";
-
-type PokemonOptimized = {
+type PokemonFull = {
+  id: number;
+  name: string;
+  nameEs?: string;
+  types: string[];
+  baseStats: Record<string, number>;
+  bst?: number;
+  [k: string]: unknown;
+};
+type OptimizedPokemon = {
   id: number;
   name: string;
   nameEs: string;
   types: string[];
   bst: number;
   sprite: string;
-  isCustom: boolean;
+  [k: string]: unknown;
+};
+type CustomForm = {
+  id: number;
+  name: string;
+  types: string[];
+  baseStats: Record<string, number>;
+  [k: string]: unknown;
 };
 
-type PokemonWithEs = Pokemon & {
-  nameEs?: string;
-  isCustom?: boolean;
-};
+let fullDataCache: PokemonFull[] | null = null;
+let optimizedCache: OptimizedPokemon[] | null = null;
+let customFormsCache: CustomForm[] | null = null;
+let fullPromise: Promise<PokemonFull[]> | null = null;
+let optimizedPromise: Promise<OptimizedPokemon[]> | null = null;
+let customPromise: Promise<CustomForm[]> | null = null;
+let idMap: Map<number, PokemonFull> | null = null;
+let nameMap: Map<string, PokemonFull> | null = null;
+let nameEsMap: Map<string, PokemonFull> | null = null;
+
+function extractDefault<T>(mod: unknown): T {
+  const withDefault = mod as { default?: T };
+  return withDefault.default ?? (mod as T);
+}
+function normalizeQuery(q: string): string {
+  return q.trim().toLowerCase();
+}
+
+async function loadFullDataset(): Promise<PokemonFull[]> {
+  if (fullDataCache) return fullDataCache;
+  if (fullPromise) return fullPromise;
+  fullPromise = (async () => {
+    const mod = await import("../../../../data/pokemon/dataset.es.json");
+    const data = extractDefault<PokemonFull[]>(mod);
+    fullDataCache = data;
+    idMap = new Map();
+    nameMap = new Map();
+    nameEsMap = new Map();
+    for (const p of fullDataCache) {
+      idMap.set(p.id, p);
+      nameMap.set(p.name.toLowerCase(), p);
+      if (p.nameEs) nameEsMap.set(String(p.nameEs).toLowerCase(), p);
+      nameEsMap.set(p.name.toLowerCase(), p);
+    }
+    return fullDataCache;
+  })();
+  return fullPromise;
+}
+async function loadOptimizedDataset(): Promise<OptimizedPokemon[]> {
+  if (optimizedCache) return optimizedCache;
+  if (optimizedPromise) return optimizedPromise;
+  optimizedPromise = (async () => {
+    const mod = await import("../../../../data/pokemon/dataset.optimized.json");
+    optimizedCache = extractDefault<OptimizedPokemon[]>(mod);
+    return optimizedCache;
+  })();
+  return optimizedPromise;
+}
+async function loadCustomForms(): Promise<CustomForm[]> {
+  if (customFormsCache) return customFormsCache;
+  if (customPromise) return customPromise;
+  customPromise = (async () => {
+    const mod = await import("../../../../data/pokemon/custom-forms.json");
+    customFormsCache = extractDefault<CustomForm[]>(mod);
+    return customFormsCache;
+  })();
+  return customPromise;
+}
 
 export class LocalPokemonRepository {
-  private readonly pokemonOptimized: PokemonOptimized[];
-  private readonly pokemonFull: PokemonWithEs[];
-  private readonly byName: Map<string, PokemonWithEs>;
-  private readonly byId: Map<number, PokemonWithEs>;
-
-  constructor() {
-    this.pokemonOptimized = datasetOptimized as PokemonOptimized[];
-    this.pokemonFull = datasetEs as PokemonWithEs[];
-
-    this.byName = new Map(
-      this.pokemonFull.map((p) => [p.name.toLowerCase(), p]),
-    );
-    this.byId = new Map(this.pokemonFull.map((p) => [p.id, p]));
+  async init(): Promise<void> {
+    await Promise.all([loadFullDataset(), loadOptimizedDataset()]);
   }
-
-  async getAllOptimized(): Promise<PokemonOptimized[]> {
-    return [...this.pokemonOptimized];
+  async getAll(): Promise<PokemonFull[]> {
+    return loadFullDataset();
   }
-
-  async searchOptimized(query: string): Promise<PokemonOptimized[]> {
-    const q = query.toLowerCase().trim();
-    if (!q) return [...this.pokemonOptimized];
-    return this.pokemonOptimized.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.nameEs.toLowerCase().includes(q) ||
-        p.types.some((t) => t.toLowerCase().includes(q)),
-    );
+  async getAllOptimized(): Promise<OptimizedPokemon[]> {
+    return loadOptimizedDataset();
   }
-
-  async getAll(): Promise<PokemonWithEs[]> {
-    return [...this.pokemonFull];
+  async getById(id: number): Promise<PokemonFull | null> {
+    const data = await loadFullDataset();
+    if (idMap) return idMap.get(id) ?? null;
+    return data.find((p) => p.id === id) ?? null;
   }
-
-  async getByName(name: string): Promise<PokemonWithEs | null> {
-    return this.byName.get(name.toLowerCase().trim()) ?? null;
+  async getByName(name: string): Promise<PokemonFull | null> {
+    const q = normalizeQuery(name);
+    if (!q) return null;
+    await loadFullDataset();
+    if (nameMap) return nameMap.get(q) ?? null;
+    return fullDataCache?.find((p) => p.name.toLowerCase() === q) ?? null;
   }
-
-  async getById(id: number): Promise<PokemonWithEs | null> {
-    return this.byId.get(id) ?? null;
-  }
-
-  async getByNameEs(nameEs: string): Promise<PokemonWithEs | null> {
-    const normalized = nameEs.toLowerCase().trim();
+  async getByNameEs(nameEs: string): Promise<PokemonFull | null> {
+    const q = normalizeQuery(nameEs);
+    if (!q) return null;
+    await loadFullDataset();
+    if (nameEsMap) return nameEsMap.get(q) ?? nameMap?.get(q) ?? null;
     return (
-      this.pokemonFull.find(
-        (p) => (p.nameEs || p.name).toLowerCase() === normalized,
+      fullDataCache?.find(
+        (p) =>
+          (p.nameEs && String(p.nameEs).toLowerCase() === q) ||
+          p.name.toLowerCase() === q,
       ) ?? null
     );
   }
-
-  async search(query: string): Promise<PokemonWithEs[]> {
-    const q = query.toLowerCase().trim();
-    if (!q) return [...this.pokemonFull];
-    return this.pokemonFull.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.nameEs?.toLowerCase().includes(q) ||
-        p.types.some((t) => t.toLowerCase().includes(q)),
+  async search(query: string): Promise<PokemonFull[]> {
+    const q = normalizeQuery(query);
+    const data = await loadFullDataset();
+    if (!q) return data;
+    return data.filter((p) => {
+      const name = p.name.toLowerCase();
+      const nameEs = String(p.nameEs ?? "").toLowerCase();
+      const types = (p.types ?? []).join(" ").toLowerCase();
+      return name.includes(q) || nameEs.includes(q) || types.includes(q);
+    });
+  }
+  async searchOptimized(query: string): Promise<OptimizedPokemon[]> {
+    const q = normalizeQuery(query);
+    const data = await loadOptimizedDataset();
+    if (!q) return data;
+    return data.filter((p) => {
+      const name = p.name.toLowerCase();
+      const nameEs = String(p.nameEs ?? "").toLowerCase();
+      const types = (p.types ?? []).join(" ").toLowerCase();
+      return name.includes(q) || nameEs.includes(q) || types.includes(q);
+    });
+  }
+  async getByType(type: string): Promise<PokemonFull[]> {
+    const q = normalizeQuery(type);
+    if (!q) return [];
+    const data = await loadFullDataset();
+    return data.filter((p) =>
+      (p.types ?? []).some((t) => String(t).toLowerCase() === q),
     );
   }
-
-  async getByType(type: string): Promise<PokemonWithEs[]> {
-    const t = type.toLowerCase().trim();
-    return this.pokemonFull.filter((p) =>
-      p.types.some((ty) => ty.toLowerCase() === t),
-    );
+  async getCustomForms(): Promise<CustomForm[]> {
+    return loadCustomForms();
   }
-
-  async getCustomForms(): Promise<PokemonWithEs[]> {
-    return this.pokemonFull.filter((p) => p.isCustom === true);
+  async getByBstRange(min: number, max: number): Promise<OptimizedPokemon[]> {
+    const data = await loadOptimizedDataset();
+    return data.filter((p) => {
+      const bst = p.bst ?? 0;
+      return bst >= min && bst <= max;
+    });
   }
-
-  async getByBstRange(min: number, max: number): Promise<PokemonOptimized[]> {
-    return this.pokemonOptimized.filter((p) => p.bst >= min && p.bst <= max);
+  async getBaseDataById(id: number) {
+    const p = await this.getById(id);
+    if (!p) return null;
+    return { id: p.id, name: p.name, baseStats: p.baseStats };
   }
 }

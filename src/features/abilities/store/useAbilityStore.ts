@@ -1,24 +1,20 @@
+"use client";
 import { create } from "zustand";
-import { abilityRepository } from "@/infrastructure/composition/battle.composition";
-import type { Ability } from "@/domain/abilities/types/ability";
-
-interface AbilityStore {
+import { LocalAbilityRepository } from "@/infrastructure/local-data/repositories/local-ability.repository";
+type Ability = { name: string; nameEs?: string };
+interface State {
   abilityList: Ability[];
-  isLoading: boolean;
+  loading: boolean;
   loadAbilities: () => Promise<void>;
 }
-
-export const useAbilityStore = create<AbilityStore>((set, get) => ({
+const repo = new LocalAbilityRepository();
+export const useAbilityStore = create<State>((set) => ({
   abilityList: [],
-  isLoading: false,
+  loading: false,
   loadAbilities: async () => {
-    if (get().abilityList.length > 0 || get().isLoading) return;
-    set({ isLoading: true });
-    try {
-      const list = await abilityRepository.getAll();
-      set({ abilityList: list, isLoading: false });
-    } catch {
-      set({ isLoading: false });
-    }
+    set({ loading: true });
+    await repo.init();
+    const list = (await repo.getAll()) as unknown as Ability[];
+    set({ abilityList: list, loading: false });
   },
 }));

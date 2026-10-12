@@ -1,36 +1,37 @@
+"use client";
 import { create } from "zustand";
-import { moveRepository } from "@/infrastructure/composition/battle.composition";
-import type { Move } from "@/domain/moves/types/move";
+import { container } from "@/infrastructure/composition/container";
 
-interface MoveStore {
-  moves: Move[];
+type Move = {
+  name: string;
+  nameEs?: string;
+  type: string;
+  power?: number | null;
+  accuracy?: number | null;
+  category?: string;
+};
+interface State {
   moveList: Record<string, Move>;
-  groupedByType: Record<string, Move[]>;
-  isLoading: boolean;
+  grouped: Record<string, Move[]>;
+  loading: boolean;
   loadMoves: () => Promise<void>;
 }
 
-export const useMoveStore = create<MoveStore>((set) => ({
-  moves: [],
+export const useMoveStore = create<State>((set) => ({
   moveList: {},
-  groupedByType: {},
-  isLoading: false,
+  grouped: {},
+  loading: false,
   loadMoves: async () => {
-    set({ isLoading: true });
-    const moves = await moveRepository.getAll();
-
-    const grouped = moves.reduce<Record<string, Move[]>>((acc, move) => {
-      const key = move.type;
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(move);
-      return acc;
-    }, {});
-
-    const map = moves.reduce<Record<string, Move>>((acc, move) => {
-      acc[move.name] = move;
-      return acc;
-    }, {});
-
-    set({ moves, moveList: map, groupedByType: grouped, isLoading: false });
+    set({ loading: true });
+    await container.moves.init();
+    const all = (await container.moves.getAll()) as unknown as Move[];
+    const map: Record<string, Move> = {};
+    for (const m of all) map[m.name] = m;
+    const grouped =
+      (await container.moves.getGroupedByType()) as unknown as Record<
+        string,
+        Move[]
+      >;
+    set({ moveList: map, grouped, loading: false });
   },
 }));

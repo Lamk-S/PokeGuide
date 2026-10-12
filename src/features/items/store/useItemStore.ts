@@ -1,24 +1,25 @@
+"use client";
 import { create } from "zustand";
-import { itemRepository } from "@/infrastructure/composition/battle.composition";
-import type { Item } from "@/domain/items/types/item";
-
-interface ItemStore {
+import { LocalItemRepository } from "@/infrastructure/local-data/repositories/local-item.repository";
+type Item = {
+  name: string;
+  nameEs?: string;
+  effect?: string;
+  effectEs?: string;
+};
+interface State {
   itemList: Item[];
-  isLoading: boolean;
+  loading: boolean;
   loadItems: () => Promise<void>;
 }
-
-export const useItemStore = create<ItemStore>((set, get) => ({
+const repo = new LocalItemRepository();
+export const useItemStore = create<State>((set) => ({
   itemList: [],
-  isLoading: false,
+  loading: false,
   loadItems: async () => {
-    if (get().itemList.length > 0 || get().isLoading) return;
-    set({ isLoading: true });
-    try {
-      const list = await itemRepository.getAll();
-      set({ itemList: list, isLoading: false });
-    } catch {
-      set({ isLoading: false });
-    }
+    set({ loading: true });
+    await repo.init();
+    const list = (await repo.getCompetitive()) as unknown as Item[];
+    set({ itemList: list, loading: false });
   },
 }));

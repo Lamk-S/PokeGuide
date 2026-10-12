@@ -1,61 +1,76 @@
-import type { Move } from "@/domain/moves/types/move";
-import datasetEs from "../../../../data/moves/dataset.es.json";
-
-type MoveWithEs = Move & {
-  id?: number;
+type Move = {
+  name: string;
   nameEs?: string;
-  type?: string;
-  damageClass?: string;
+  type: string;
   power?: number | null;
-  accuracy?: number | null;
-  pp?: number | null;
+  [k: string]: unknown;
 };
+let cache: Move[] | null = null;
+let promise: Promise<Move[]> | null = null;
+let nameMap: Map<string, Move> | null = null;
+let groupedCache: Record<string, Move[]> | null = null;
+
+function extractDefault<T>(mod: unknown): T {
+  const withDefault = mod as { default?: T };
+  return withDefault.default ?? (mod as T);
+}
+
+async function loadDataset(): Promise<Move[]> {
+  if (cache) return cache;
+  if (promise) return promise;
+  promise = (async () => {
+    const mod = await import("../../../../data/moves/dataset.es.json");
+    const data = extractDefault<Move[]>(mod);
+    cache = data;
+    nameMap = new Map();
+    groupedCache = {};
+    for (const mv of cache) {
+      nameMap.set(mv.name.toLowerCase(), mv);
+      if (mv.nameEs) nameMap.set(String(mv.nameEs).toLowerCase(), mv);
+      const key = mv.type ?? "unknown";
+      if (!groupedCache[key]) groupedCache[key] = [];
+      groupedCache[key].push(mv);
+    }
+    return cache;
+  })();
+  return promise;
+}
 
 export class LocalMoveRepository {
-  private readonly moves: MoveWithEs[];
-  private readonly byName: Map<string, MoveWithEs>;
-  private readonly byId: Map<number, MoveWithEs>;
-
-  constructor() {
-    this.moves = datasetEs as MoveWithEs[];
-    this.byName = new Map(this.moves.map((m) => [m.name.toLowerCase(), m]));
-    this.byId = new Map(
-      this.moves
-        .filter((m) => typeof m.id === "number")
-        .map((m) => [m.id as number, m]),
-    );
+  async init(): Promise<void> {
+    await loadDataset();
   }
-
-  async getAll(): Promise<MoveWithEs[]> {
-    return [...this.moves];
+  async getAll(): Promise<Move[]> {
+    return loadDataset();
   }
-
-  async getByName(name: string): Promise<MoveWithEs | null> {
-    return this.byName.get(name.toLowerCase().trim()) ?? null;
+  async getByName(name: string): Promise<Move | null> {
+    const q = name.trim().toLowerCase();
+    if (!q) return null;
+    await loadDataset();
+    return nameMap?.get(q) ?? null;
   }
-
-  async getById(id: number): Promise<MoveWithEs | null> {
-    return this.byId.get(id) ?? null;
+  async getByNameEs(nameEs: string): Promise<Move | null> {
+    return this.getByName(nameEs);
   }
-
-  async search(query: string): Promise<MoveWithEs[]> {
-    const q = query.toLowerCase().trim();
-    if (!q) return [...this.moves];
-    return this.moves.filter(
-      (m) =>
-        m.name.toLowerCase().includes(q) ||
-        m.nameEs?.toLowerCase().includes(q) ||
-        m.type?.toLowerCase().includes(q),
-    );
+  async getGroupedByType(): Promise<Record<string, Move[]>> {
+    await loadDataset();
+    return groupedCache ?? {};
   }
-
-  async getByType(type: string): Promise<MoveWithEs[]> {
-    const t = type.toLowerCase().trim();
-    return this.moves.filter((m) => m.type?.toLowerCase() === t);
+  async search(query: string): Promise<Move[]> {
+    const q = query.trim().toLowerCase();
+    const data = await loadDataset();
+    if (!q) return data;
+    return data.filter((mv) => {
+      const n = mv.name.toLowerCase();
+      const es = String(mv.nameEs ?? "").toLowerCase();
+      const t = String(mv.type ?? "").toLowerCase();
+      return n.includes(q) || es.includes(q) || t.includes(q);
+    });
   }
-
-  async getByDamageClass(damageClass: string): Promise<MoveWithEs[]> {
-    const dc = damageClass.toLowerCase().trim();
-    return this.moves.filter((m) => m.damageClass?.toLowerCase() === dc);
+  async getByType(type: string): Promise<Move[]> {
+    const q = type.trim().toLowerCase();
+    if (!q) return [];
+    const grouped = await this.getGroupedByType();
+    return grouped[q] ?? [];
   }
 }
