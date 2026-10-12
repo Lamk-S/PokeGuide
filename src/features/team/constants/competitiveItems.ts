@@ -1,114 +1,118 @@
+import { normalizeId } from "@/domain/shared/utils/normalizeId";
+
 export interface CompetitiveItem {
-  readonly id: string;
-  readonly nameEs: string;
-  readonly descriptionEs: string;
-  readonly category:
-    | "choice"
-    | "recovery"
-    | "offensive"
-    | "defensive"
-    | "utility";
+  id: string;
+  name: string;
+  nameEs: string;
+  description?: string;
+  descriptionEs?: string;
 }
 
-export const COMPETITIVE_ITEMS: readonly CompetitiveItem[] = [
+export const COMPETITIVE_ITEMS: CompetitiveItem[] = [
   {
-    id: "choice-scarf",
-    nameEs: "Pañuelo Elegido",
-    descriptionEs: "+50% Vel, solo 1 mov",
-    category: "choice",
+    id: "life-orb",
+    name: "life-orb",
+    nameEs: "Vidasfera",
+    description: "Boosts power 30% at cost of HP",
+    descriptionEs: "Potencia 30% a cambio de PS",
   },
   {
     id: "choice-band",
+    name: "choice-band",
     nameEs: "Cinta Elegida",
-    descriptionEs: "+50% Atq, solo 1 mov",
-    category: "choice",
+    description: "Boosts Attack 50%, locks move",
+    descriptionEs: "Sube Ataque 50%, bloquea movimiento",
   },
   {
     id: "choice-specs",
+    name: "choice-specs",
     nameEs: "Gafas Elegidas",
-    descriptionEs: "+50% At Esp, solo 1 mov",
-    category: "choice",
+    description: "Boosts SpA 50%, locks move",
+    descriptionEs: "Sube At.Esp 50%, bloquea movimiento",
+  },
+  {
+    id: "choice-scarf",
+    name: "choice-scarf",
+    nameEs: "Pañuelo Elegido",
+    description: "Boosts Speed 50%, locks move",
+    descriptionEs: "Sube Velocidad 50%, bloquea movimiento",
   },
   {
     id: "leftovers",
+    name: "leftovers",
     nameEs: "Restos",
-    descriptionEs: "Recupera 1/16 PS por turno",
-    category: "recovery",
-  },
-  {
-    id: "life-orb",
-    nameEs: "Vidasfera",
-    descriptionEs: "+30% daño, -10% PS",
-    category: "offensive",
-  },
-  {
-    id: "focus-sash",
-    nameEs: "Banda Focus",
-    descriptionEs: "Sobrevive con 1 PS",
-    category: "defensive",
-  },
-  {
-    id: "heavy-duty-boots",
-    nameEs: "Botas Gruesas",
-    descriptionEs: "Inmune a hazards",
-    category: "utility",
-  },
-  {
-    id: "assault-vest",
-    nameEs: "Chaleco Asalto",
-    descriptionEs: "+50% Def Esp, solo ataques",
-    category: "defensive",
-  },
-  {
-    id: "rocky-helmet",
-    nameEs: "Casco Dentado",
-    descriptionEs: "Daño al contacto",
-    category: "defensive",
-  },
-  {
-    id: "air-balloon",
-    nameEs: "Globo",
-    descriptionEs: "Inmunidad Tierra hasta golpe",
-    category: "utility",
+    description: "Restores HP each turn",
+    descriptionEs: "Restaura PS cada turno",
   },
   {
     id: "black-sludge",
+    name: "black-sludge",
     nameEs: "Lodo Negro",
-    descriptionEs: "Veneno cura, resto daña",
-    category: "recovery",
+    description: "Poison heal, others hurt",
+    descriptionEs: "Cura a Veneno, daña a otros",
+  },
+  {
+    id: "heavy-duty-boots",
+    name: "heavy-duty-boots",
+    nameEs: "Botas Gruesas",
+    description: "Immune to hazards",
+    descriptionEs: "Inmune a púas",
+  },
+  {
+    id: "assault-vest",
+    name: "assault-vest",
+    nameEs: "Chaleco Asalto",
+    description: "Boosts SpD 50%, no status moves",
+    descriptionEs: "Sube Def.Esp 50%, sin estados",
+  },
+  {
+    id: "focus-sash",
+    name: "focus-sash",
+    nameEs: "Banda Focus",
+    description: "Survives one hit at full HP",
+    descriptionEs: "Sobrevive 1 golpe a PS llenos",
+  },
+  {
+    id: "rocky-helmet",
+    name: "rocky-helmet",
+    nameEs: "Casco Dentado",
+    description: "Damages attacker on contact",
+    descriptionEs: "Daña al atacante por contacto",
   },
   {
     id: "eviolite",
-    nameEs: "Mineral Evol",
-    descriptionEs: "+50% Def/DefEsp si no evolucionado",
-    category: "defensive",
+    name: "eviolite",
+    nameEs: "Mineral Evolutivo",
+    description: "Boosts Def/SpD if not fully evolved",
+    descriptionEs: "Sube Def/Def.Esp si no está evolucionado",
   },
   {
     id: "light-clay",
-    nameEs: "Roca Suave",
-    descriptionEs: "Pantallas duran 8 turnos",
-    category: "utility",
+    name: "light-clay",
+    nameEs: "Refleluz",
+    description: "Extends screens duration",
+    descriptionEs: "Extiende pantallas",
   },
   {
-    id: "sitrus-berry",
-    nameEs: "Baya Ziuela",
-    descriptionEs: "Cura 25% PS al 50%",
-    category: "recovery",
+    id: "loaded-dice",
+    name: "loaded-dice",
+    nameEs: "Dado Trucado",
+    description: "Multi-hit always hits high",
+    descriptionEs: "Golpes múltiples pegan más veces",
   },
   {
-    id: "",
-    nameEs: "Sin objeto",
-    descriptionEs: "Sin objeto equipado",
-    category: "utility",
+    id: "booster-energy",
+    name: "booster-energy",
+    nameEs: "Energía Potenciadora",
+    description: "Activates Paradox ability",
+    descriptionEs: "Activa habilidad Paradoja",
   },
-] as const;
+];
 
-export function translateItemToSpanish(id: string): string {
-  const found = COMPETITIVE_ITEMS.find((i) => i.id === id);
-  return (
-    found?.nameEs ??
-    (id
-      ? id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-      : "Sin objeto")
-  );
+export function translateItemToSpanish(id: string): string | undefined {
+  return COMPETITIVE_ITEMS.find((i) => normalizeId(i.id) === normalizeId(id))
+    ?.nameEs;
+}
+export function isCompetitiveItem(id: string): boolean {
+  return COMPETITIVE_ITEMS.some((i) => normalizeId(i.id) === normalizeId(id));
 }

@@ -1,109 +1,156 @@
+import { normalizeId } from "@/domain/shared/utils/normalizeId";
+
 export interface CompetitiveAbility {
-  readonly id: string;
-  readonly nameEs: string;
-  readonly immunityType?: string;
-  readonly descriptionEs: string;
+  id: string;
+  name: string;
+  nameEs: string;
+  description?: string;
+  descriptionEs?: string;
 }
 
-export const COMPETITIVE_ABILITIES: readonly CompetitiveAbility[] = [
+export const COMPETITIVE_ABILITIES: CompetitiveAbility[] = [
+  {
+    id: "intimidate",
+    name: "intimidate",
+    nameEs: "Intimidación",
+    description: "Lowers foe Attack on entry",
+    descriptionEs: "Baja Ataque rival al entrar",
+  },
   {
     id: "levitate",
+    name: "levitate",
     nameEs: "Levitación",
-    immunityType: "ground",
-    descriptionEs: "Inmunidad a Tierra",
+    description: "Immune to Ground",
+    descriptionEs: "Inmune a Tierra",
   },
   {
-    id: "water-absorb",
-    nameEs: "Absorbe Agua",
-    immunityType: "water",
-    descriptionEs: "Cura con Agua, inmune",
+    id: "blaze",
+    name: "blaze",
+    nameEs: "Mar Llamas",
+    description: "Powers up Fire when low HP",
+    descriptionEs: "Potencia Fuego con poca vida",
   },
   {
-    id: "storm-drain",
-    nameEs: "Colector",
-    immunityType: "water",
-    descriptionEs: "Sube At Esp con Agua, inmune",
+    id: "torrent",
+    name: "torrent",
+    nameEs: "Torrente",
+    description: "Powers up Water when low HP",
+    descriptionEs: "Potencia Agua con poca vida",
   },
   {
-    id: "dry-skin",
-    nameEs: "Piel Seca",
-    immunityType: "water",
-    descriptionEs: "Cura con Agua, inmune, débil a Fuego",
+    id: "overgrow",
+    name: "overgrow",
+    nameEs: "Espesura",
+    description: "Powers up Grass when low HP",
+    descriptionEs: "Potencia Planta con poca vida",
   },
   {
-    id: "sap-sipper",
-    nameEs: "Herbívoro",
-    immunityType: "grass",
-    descriptionEs: "Sube Atq con Planta, inmune",
+    id: "swarm",
+    name: "swarm",
+    nameEs: "Enjambre",
+    description: "Powers up Bug when low HP",
+    descriptionEs: "Potencia Bicho con poca vida",
   },
   {
-    id: "volt-absorb",
-    nameEs: "Absorbe Elec",
-    immunityType: "electric",
-    descriptionEs: "Cura con Eléctrico, inmune",
-  },
-  {
-    id: "motor-drive",
-    nameEs: "Electromotor",
-    immunityType: "electric",
-    descriptionEs: "Sube Vel con Eléctrico, inmune",
-  },
-  {
-    id: "lightning-rod",
-    nameEs: "Pararrayos",
-    immunityType: "electric",
-    descriptionEs: "Sube At Esp con Eléctrico, inmune",
+    id: "solar-power",
+    name: "solar-power",
+    nameEs: "Poder Solar",
+    description: "Boosts SpA in sun",
+    descriptionEs: "Sube At.Esp con sol",
   },
   {
     id: "flash-fire",
+    name: "flash-fire",
     nameEs: "Absorbe Fuego",
-    immunityType: "fire",
-    descriptionEs: "Potencia Fuego tras recibirlo, inmune",
+    description: "Immune Fire, boosts Fire",
+    descriptionEs: "Inmune a Fuego, sube Fuego",
   },
   {
-    id: "well-baked-body",
-    nameEs: "Cuerpo Horneado",
-    immunityType: "fire",
-    descriptionEs: "+2 Def tras Fuego, inmune",
+    id: "water-absorb",
+    name: "water-absorb",
+    nameEs: "Absorbe Agua",
+    description: "Heals with Water",
+    descriptionEs: "Cura con Agua",
   },
   {
-    id: "earth-eater",
-    nameEs: "Come Tierra",
-    immunityType: "ground",
-    descriptionEs: "Cura con Tierra, inmune",
+    id: "volt-absorb",
+    name: "volt-absorb",
+    nameEs: "Absorbe Electricidad",
+    description: "Heals with Electric",
+    descriptionEs: "Cura con Eléctrico",
   },
   {
-    id: "intimidate",
-    nameEs: "Intimidación",
-    descriptionEs: "-1 Atq rival al entrar",
+    id: "guts",
+    name: "guts",
+    nameEs: "Agallas",
+    description: "Boosts Attack with status",
+    descriptionEs: "Sube Ataque con estado",
   },
-  { id: "speed-boost", nameEs: "Impulso", descriptionEs: "+1 Vel cada turno" },
   {
-    id: "prankster",
-    nameEs: "Bromista",
-    descriptionEs: "Prioridad a movimientos estado",
+    id: "huge-power",
+    name: "huge-power",
+    nameEs: "Potencia",
+    description: "Doubles Attack",
+    descriptionEs: "Duplica Ataque",
   },
-  { id: "guts", nameEs: "Agallas", descriptionEs: "+50% Atq con estado" },
-  { id: "huge-power", nameEs: "Potencia", descriptionEs: "x2 Atq" },
+  {
+    id: "speed-boost",
+    name: "speed-boost",
+    nameEs: "Impulso",
+    description: "Raises Speed each turn",
+    descriptionEs: "Sube Velocidad cada turno",
+  },
+  {
+    id: "protean",
+    name: "protean",
+    nameEs: "Mutatipo",
+    description: "Changes type on attack",
+    descriptionEs: "Cambia tipo al atacar",
+  },
+  {
+    id: "libero",
+    name: "libero",
+    nameEs: "Líbero",
+    description: "Changes type on attack",
+    descriptionEs: "Cambia tipo al atacar",
+  },
   {
     id: "multiscale",
+    name: "multiscale",
     nameEs: "Compensación",
-    descriptionEs: "Mitad daño con PS completos",
+    description: "Reduces dmg at full HP",
+    descriptionEs: "Reduce daño con PS llenos",
   },
   {
     id: "regenerator",
+    name: "regenerator",
     nameEs: "Regeneración",
-    descriptionEs: "Cura 33% al cambiar",
+    description: "Heals on switch out",
+    descriptionEs: "Cura al salir",
   },
-  { id: "", nameEs: "Sin habilidad", descriptionEs: "Sin habilidad asignada" },
-] as const;
+  {
+    id: "intrepid-sword",
+    name: "intrepid-sword",
+    nameEs: "Espada Indómita",
+    description: "Boosts Attack on entry",
+    descriptionEs: "Sube Ataque al entrar",
+  },
+  {
+    id: "dauntless-shield",
+    name: "dauntless-shield",
+    nameEs: "Escudo Recio",
+    description: "Boosts Defense on entry",
+    descriptionEs: "Sube Defensa al entrar",
+  },
+];
 
-export function translateAbilityToSpanish(id: string): string {
-  const found = COMPETITIVE_ABILITIES.find((a) => a.id === id);
-  return (
-    found?.nameEs ??
-    (id
-      ? id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-      : "Sin habilidad")
-  );
+const MAP_ES = new Map<string, string>(
+  COMPETITIVE_ABILITIES.map((a) => [normalizeId(a.id), a.nameEs]),
+);
+
+export function translateAbilityToSpanish(id: string): string | undefined {
+  return MAP_ES.get(normalizeId(id));
+}
+export function isCompetitiveAbility(id: string): boolean {
+  return MAP_ES.has(normalizeId(id));
 }

@@ -1,8 +1,12 @@
 "use client";
-
 import { useState, useMemo } from "react";
 import { useTeamStore } from "../store/useTeamStore";
-import type { Severity, TeamMember } from "@/domain/team/types/TeamTypes";
+import type {
+  Severity,
+  TeamMember,
+  TeamRecommendation,
+  RecommendationCategory,
+} from "@/domain/team/types/TeamTypes";
 import { TypeEffectiveness } from "@/domain/types/TypeChart";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import { translateTypeToSpanish } from "../constants/typeTranslations";
@@ -19,7 +23,6 @@ type MemberWithMeta = TeamMember & {
   readonly name?: string;
   readonly species?: string;
 };
-
 function getMemberDisplayName(member: TeamMember): string {
   const meta = member as MemberWithMeta;
   return meta.displayNameEs ?? meta.name ?? meta.species ?? "Desconocido";
@@ -30,11 +33,10 @@ export function RecommendationList() {
   const team = useTeamStore((s) => s.team);
   const members = team.getMembers();
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const sorted = useMemo(() => {
-    if (!analysis) return [];
-    return [...analysis.recommendations];
-  }, [analysis]);
+  const sorted = useMemo(
+    () => (analysis ? [...analysis.recommendations] : []),
+    [analysis],
+  );
 
   if (team.isEmpty()) {
     return (
@@ -117,39 +119,36 @@ export function RecommendationList() {
 
       <div className="divide-y divide-[#F5F1E8]">
         {sorted.map((rec) => {
-          const sev = SEVERITY_I18N[rec.severity as Severity];
-          const affected = members.filter((m) => {
-            const mult = TypeEffectiveness.getMultiplier(
-              rec.attackingType,
-              m.types as readonly PokemonType[],
-              m.abilityId ?? m.ability ?? null,
-              m.itemId ?? m.item ?? null,
-            );
-            return mult > 1;
-          });
-          const resistCount = rec.evidence.resist + rec.evidence.immune;
-          const tipoEs = translateTypeToSpanish(rec.targetType);
-          const isExpanded = expandedId === rec.id;
-          const tipoLabel = CATEGORY_I18N[rec.category] ?? rec.category;
+          const teamRec = rec as TeamRecommendation;
+          const sev = SEVERITY_I18N[teamRec.severity as Severity];
+          const affected = members.filter(
+            (m) =>
+              TypeEffectiveness.getMultiplier(
+                teamRec.attackingType,
+                m.types as readonly PokemonType[],
+                m.abilityId ?? m.ability ?? null,
+                m.itemId ?? m.item ?? null,
+              ) > 1,
+          );
+          const resistCount = teamRec.evidence.resist + teamRec.evidence.immune;
+          const tipoEs = translateTypeToSpanish(teamRec.targetType);
+          const isExpanded = expandedId === teamRec.id;
+          const tipoLabel =
+            CATEGORY_I18N[teamRec.category as RecommendationCategory] ??
+            teamRec.category;
           const title = getRecommendationTitle(
-            rec,
+            teamRec,
             affected.length,
             resistCount,
           );
-          const reason = getRecommendationReason(rec);
-          const action = getRecommendationAction(rec);
+          const reason = getRecommendationReason(teamRec);
+          const action = getRecommendationAction(teamRec);
 
           return (
-            <article key={rec.id} className="px-5 py-5">
+            <article key={teamRec.id} className="px-5 py-5">
               <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-widest">
                 <span
-                  className={`border px-2 py-0.5 ${
-                    rec.severity === "Critical"
-                      ? "border-[#D93B32] bg-[#FEF2F2] text-[#991B1B]"
-                      : rec.severity === "High"
-                        ? "border-[#111] bg-[#111] text-white"
-                        : "border-[#EDE8E0] bg-white text-zinc-600"
-                  }`}
+                  className={`border px-2 py-0.5 ${teamRec.severity === "Critical" ? "border-[#D93B32] bg-[#FEF2F2] text-[#991B1B]" : teamRec.severity === "High" ? "border-[#111] bg-[#111] text-white" : "border-[#EDE8E0] bg-white text-zinc-600"}`}
                 >
                   {sev.label}
                 </span>
@@ -160,11 +159,9 @@ export function RecommendationList() {
                   {tipoEs.toUpperCase()}
                 </span>
               </div>
-
               <h3 className="mt-3 font-serif text-[15px] font-semibold leading-[1.2] tracking-[-0.01em] text-[#111]">
                 {title}
               </h3>
-
               <div className="mt-3 grid grid-cols-1 gap-3 text-[12px] leading-[1.6]">
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-zinc-500">
@@ -198,33 +195,31 @@ export function RecommendationList() {
                   </p>
                 </div>
               </div>
-
               <button
                 type="button"
-                onClick={() => setExpandedId(isExpanded ? null : rec.id)}
+                onClick={() => setExpandedId(isExpanded ? null : teamRec.id)}
                 className="mt-3 text-[11px] text-zinc-500 underline decoration-zinc-300 underline-offset-2 hover:text-[#111] hover:decoration-[#111]"
               >
                 {isExpanded ? "Ocultar evidencia" : "Ver evidencia técnica"}
               </button>
-
-              {isExpanded && rec.evidence && (
+              {isExpanded && teamRec.evidence && (
                 <div className="mt-3 border border-[#EDE8E0] bg-[#F8F5F0] px-3 py-2 text-[11px] tabular-nums text-zinc-600">
-                  {Object.entries(rec.evidence)
+                  {Object.entries(teamRec.evidence)
                     .map(([k, v]) => `${k}: ${v}`)
                     .join(" · ")}{" "}
-                  · code: {rec.issueCode} · target: {rec.targetType}
+                  · code: {teamRec.issueCode} · target: {teamRec.targetType}
                 </div>
               )}
             </article>
           );
         })}
       </div>
-
       <div className="border-t border-[#EDE8E0] bg-[#F8F5F0] px-5 py-3">
         <p className="text-[11px] leading-normal text-zinc-600">
           Arquitectura purificada: el Dominio evalúa con <code>fire</code> /{" "}
           <code>ice</code> / <code>massive_weakness</code>. La UI traduce a
-          "FUEGO" y genera el mensaje final. Sin imports de i18n en domain/.
+          &quot;FUEGO&quot; y genera el mensaje final. Sin imports de i18n en
+          domain/.
         </p>
       </div>
     </section>

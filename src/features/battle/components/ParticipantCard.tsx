@@ -122,8 +122,9 @@ export const ParticipantCard = memo(function ParticipantCard({
   const [openIV, setOpenIV] = useState(false);
   const [openEV, setOpenEV] = useState(true);
   const [openMods, setOpenMods] = useState(false);
-  const { abilityList } = useAbilityStore();
-  const { itemList } = useItemStore();
+  // FIX FASE 4: selectores atómicos - evita re-render por cualquier cambio en el store
+  const abilityList = useAbilityStore((s) => s.abilityList);
+  const itemList = useItemStore((s) => s.itemList);
 
   const currentPokemon = useMemo(
     () => pokemonList.find((p) => p.id === input?.pokemonId),
@@ -153,21 +154,22 @@ export const ParticipantCard = memo(function ParticipantCard({
   const liveStats = useMemo(() => {
     if (!currentPokemon || !input) return null;
     const base =
+      (currentPokemon as unknown as { baseStats?: BaseStats }).baseStats ||
+      (currentPokemon as unknown as { stats?: BaseStats }).stats ||
       resolvedForm?.formPokemon?.baseStats ||
-      resolvedForm?.basePokemon?.baseStats ||
-      (currentPokemon as unknown as { baseStats?: BaseStats }).baseStats;
+      resolvedForm?.basePokemon?.baseStats;
     if (!base) return null;
     try {
       return calculateStats({
         baseStats: base as unknown as BaseStats,
         level: input.level,
-        nature: input.nature,
+        nature: input.nature as unknown as never,
         ivs: input.ivs as unknown as Record<StatName, number>,
         evs: input.evs as unknown as Record<StatName, number>,
         generation,
       }) as Record<StatName, number>;
     } catch {
-      return null;
+      return base as unknown as Record<StatName, number>;
     }
   }, [currentPokemon, resolvedForm, input, generation]);
 
@@ -224,7 +226,7 @@ export const ParticipantCard = memo(function ParticipantCard({
           <PokemonSelect
             pokemonList={pokemonList}
             value=""
-            onValueChange={(val) => select(parseInt(val, 10))}
+            onValueChange={(val) => select(Number.parseInt(val, 10))}
             placeholder="Busca un Pokémon..."
           />
         </div>
@@ -257,7 +259,6 @@ export const ParticipantCard = memo(function ParticipantCard({
 
   return (
     <div className="bg-[#FFFEFB] rounded-xl border border-[#EDE8E0] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-visible">
-      {/* Header */}
       <div className="p-3 flex items-start justify-between gap-3">
         <div className="flex gap-3 min-w-0">
           <div className="size-16 rounded-xl bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center overflow-hidden shrink-0">
@@ -310,7 +311,7 @@ export const ParticipantCard = memo(function ParticipantCard({
             pokemonList={pokemonList}
             value={input.pokemonId.toString()}
             onValueChange={(val) => {
-              const id = parseInt(val, 10);
+              const id = Number.parseInt(val, 10);
               const p = pokemonList.find((x) => x.id === id);
               if (!p) return;
               onChange({
@@ -341,7 +342,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                   ...input,
                   level: Math.min(
                     100,
-                    Math.max(1, parseInt(e.target.value, 10) || 1),
+                    Math.max(1, Number.parseInt(e.target.value, 10) || 1),
                   ),
                 })
               }
@@ -442,7 +443,6 @@ export const ParticipantCard = memo(function ParticipantCard({
         </div>
       </div>
 
-      {/* Collapsibles */}
       <div className="border-t border-[#F0EDE6] divide-y divide-[#F0EDE6]">
         <div>
           <button
@@ -477,7 +477,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                       onChange={(e) => {
                         const v = Math.min(
                           31,
-                          Math.max(0, parseInt(e.target.value, 10) || 0),
+                          Math.max(0, Number.parseInt(e.target.value, 10) || 0),
                         );
                         const newIVs = {
                           ...(input.ivs as unknown as Record<string, number>),
@@ -544,7 +544,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                       onChange={(e) => {
                         const v = Math.min(
                           maxFor,
-                          Math.max(0, parseInt(e.target.value, 10)),
+                          Math.max(0, Number.parseInt(e.target.value, 10)),
                         );
                         const newEVs = {
                           ...(input.evs as unknown as Record<string, number>),
@@ -569,7 +569,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                       onChange={(e) => {
                         const v = Math.min(
                           maxFor,
-                          Math.max(0, parseInt(e.target.value, 10) || 0),
+                          Math.max(0, Number.parseInt(e.target.value, 10) || 0),
                         );
                         const newEVs = {
                           ...(input.evs as unknown as Record<string, number>),
@@ -636,9 +636,6 @@ export const ParticipantCard = memo(function ParticipantCard({
                         "Gravemente envenenado, daño creciente cada turno.",
                       sleep: "Dormido no puede atacar por 1-3 turnos.",
                       freeze: "Congelado no puede atacar hasta descongelarse.",
-                      envenenado: "Envenenado causa daño residual cada turno.",
-                      quemado: "Quemado reduce Ataque físico 50%.",
-                      paralizado: "Paralizado reduce Velocidad 50%.",
                     };
                     const s = (input.status as string) || "none";
                     return (

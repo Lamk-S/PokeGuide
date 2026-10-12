@@ -3,21 +3,31 @@ import { memo, useMemo } from "react";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
 import { TypeBadge, translateTypeUpper } from "@/components/ui/TypeBadge";
 import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
-import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 import {
   extractTypeName,
   type PokemonTypeRef,
 } from "@/domain/pokemon/utils/pokemonHelpers";
 
-interface BattleSummaryProps {
-  attackerPokemon?: Pokemon | undefined;
-  defenderPokemon?: Pokemon | undefined;
+type PokemonLike =
+  | { id?: number; name?: string; types?: unknown[] | string[] }
+  | null
+  | undefined;
+
+interface Props {
+  attackerPokemon?: PokemonLike | undefined;
+  defenderPokemon?: PokemonLike | undefined;
   attackerLevel?: number | undefined;
   defenderLevel?: number | undefined;
-  generation: number;
+  generation?: number | undefined;
   moveName?: string | undefined;
   moveType?: string | undefined;
   movePower?: number | null | undefined;
+}
+
+function getDisplayName(p: PokemonLike | undefined): string | null {
+  if (!p) return null;
+  const name = (p as { name?: string }).name;
+  return name ? formatPokemonDisplayName(name) : null;
 }
 
 export const BattleSummary = memo(function BattleSummary({
@@ -28,31 +38,39 @@ export const BattleSummary = memo(function BattleSummary({
   moveName,
   moveType,
   movePower,
-}: BattleSummaryProps) {
-  const attackerTypes = useMemo(
-    () =>
-      (attackerPokemon?.types
-        ?.map((t) => extractTypeName(t as PokemonTypeRef))
-        .filter(Boolean) as string[]) || [],
-    [attackerPokemon],
-  );
-  const defenderTypes = useMemo(
-    () =>
-      (defenderPokemon?.types
-        ?.map((t) => extractTypeName(t as PokemonTypeRef))
-        .filter(Boolean) as string[]) || [],
-    [defenderPokemon],
-  );
+}: Props) {
+  const attackerTypes = useMemo(() => {
+    const raw = (attackerPokemon as { types?: unknown[] } | null | undefined)
+      ?.types;
+    if (!raw) return [] as string[];
+    return raw
+      .map((t) => extractTypeName(t as PokemonTypeRef))
+      .filter(Boolean) as string[];
+  }, [attackerPokemon]);
+
+  const defenderTypes = useMemo(() => {
+    const raw = (defenderPokemon as { types?: unknown[] } | null | undefined)
+      ?.types;
+    if (!raw) return [] as string[];
+    return raw
+      .map((t) => extractTypeName(t as PokemonTypeRef))
+      .filter(Boolean) as string[];
+  }, [defenderPokemon]);
+
+  const attackerDisplay = getDisplayName(attackerPokemon);
+  const defenderDisplay = getDisplayName(defenderPokemon);
 
   return (
     <div className="w-full border-y border-[#EDE8E0] bg-[#FFFEFB]">
       <div className="mx-auto max-w-[1600px] px-4 lg:px-6 h-17 flex items-center justify-between gap-3">
-        {/* Attacker */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="size-9 rounded-full bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center overflow-hidden shrink-0">
-            {attackerPokemon ? (
+            {attackerPokemon?.id ? (
               <PokemonSprite
-                pokemon={{ id: attackerPokemon.id, name: attackerPokemon.name }}
+                pokemon={{
+                  id: attackerPokemon.id,
+                  name: (attackerPokemon as { name?: string }).name ?? "",
+                }}
                 size={32}
               />
             ) : (
@@ -62,9 +80,7 @@ export const BattleSummary = memo(function BattleSummary({
           <div className="min-w-0 hidden sm:block">
             <div className="flex items-center gap-1.5">
               <span className="text-[13px] font-bold tracking-[-0.01em] truncate">
-                {attackerPokemon
-                  ? formatPokemonDisplayName(attackerPokemon.name)
-                  : "Sin atacante"}
+                {attackerDisplay ?? "Sin atacante"}
               </span>
               <span className="text-[10px] font-mono text-[#9A9590] tabular-nums">
                 Nv. {attackerLevel ?? 50}
@@ -74,20 +90,13 @@ export const BattleSummary = memo(function BattleSummary({
               {attackerTypes.map((tn) => (
                 <TypeBadge key={tn} type={tn} size="sm" />
               ))}
-              {!attackerTypes.length && (
-                <span className="text-[10px] text-[#9A9590]">—</span>
-              )}
             </div>
           </div>
-          {/* mobile only name */}
           <span className="sm:hidden text-[13px] font-bold truncate">
-            {attackerPokemon
-              ? formatPokemonDisplayName(attackerPokemon.name)
-              : "Atacante"}
+            {attackerDisplay ?? "Atacante"}
           </span>
         </div>
 
-        {/* Center VS + Move */}
         <div className="shrink-0 flex flex-col items-center justify-center min-w-0">
           <span className="text-[10px] font-mono tracking-widest text-[#9A9590] uppercase leading-none">
             VS
@@ -103,12 +112,9 @@ export const BattleSummary = memo(function BattleSummary({
           </span>
         </div>
 
-        {/* Defender */}
         <div className="flex items-center gap-3 min-w-0 flex-1 justify-end">
           <span className="sm:hidden text-[13px] font-bold truncate text-right">
-            {defenderPokemon
-              ? formatPokemonDisplayName(defenderPokemon.name)
-              : "Defensor"}
+            {defenderDisplay ?? "Defensor"}
           </span>
           <div className="min-w-0 hidden sm:block text-right">
             <div className="flex items-center gap-1.5 justify-end">
@@ -116,24 +122,22 @@ export const BattleSummary = memo(function BattleSummary({
                 Nv. {defenderLevel ?? 50}
               </span>
               <span className="text-[13px] font-bold tracking-[-0.01em] truncate">
-                {defenderPokemon
-                  ? formatPokemonDisplayName(defenderPokemon.name)
-                  : "Sin defensor"}
+                {defenderDisplay ?? "Sin defensor"}
               </span>
             </div>
             <div className="flex items-center gap-1 mt-1 justify-end">
               {defenderTypes.map((tn) => (
                 <TypeBadge key={tn} type={tn} size="sm" />
               ))}
-              {!defenderTypes.length && (
-                <span className="text-[10px] text-[#9A9590]">—</span>
-              )}
             </div>
           </div>
           <div className="size-9 rounded-full bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center overflow-hidden shrink-0">
-            {defenderPokemon ? (
+            {defenderPokemon?.id ? (
               <PokemonSprite
-                pokemon={{ id: defenderPokemon.id, name: defenderPokemon.name }}
+                pokemon={{
+                  id: defenderPokemon.id,
+                  name: (defenderPokemon as { name?: string }).name ?? "",
+                }}
                 facing="right"
                 size={32}
               />

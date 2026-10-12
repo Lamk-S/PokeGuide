@@ -47,8 +47,20 @@ export function ItemSelect({
       .slice(0, 60);
   }, [sourceList, query]);
 
+  const uniqueFiltered = useMemo(() => {
+    const seen = new Set<string>();
+    const out: CompetitiveItem[] = [];
+    for (const it of filtered) {
+      const key = `${it.id}::${it.name}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(it);
+    }
+    return out;
+  }, [filtered]);
+
   const selected = useMemo(
-    () => itemList.find((i) => i.name === value),
+    () => itemList.find((i) => i.name === value || i.id === value),
     [itemList, value],
   );
 
@@ -114,16 +126,16 @@ export function ItemSelect({
             >
               Sin objeto
             </button>
-            {filtered.map((item) => (
+            {uniqueFiltered.map((item) => (
               <button
-                key={item.name}
+                key={`${item.id}-${item.name}`}
                 type="button"
                 onClick={() => {
-                  onValueChange(item.name);
+                  onValueChange(item.id);
                   setOpen(false);
                   setQuery("");
                 }}
-                className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-[#F8F5F0] ${item.name === value ? "bg-[#F0EDE6]" : ""}`}
+                className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-[#F8F5F0] ${item.id === value || item.name === value ? "bg-[#F0EDE6]" : ""}`}
               >
                 <span className="size-6 rounded bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
                   <ItemSprite itemName={item.name} size={18} />
@@ -133,7 +145,11 @@ export function ItemSelect({
                     {item.nameEs || item.name}
                   </span>
                   <span className="text-[10px] text-[#9A9590] line-clamp-2 leading-[1.3]">
-                    {item.effectEs || item.effect || ""}
+                    {item.descriptionEs ||
+                      item.effectEs ||
+                      item.description ||
+                      item.effect ||
+                      ""}
                   </span>
                 </span>
               </button>
