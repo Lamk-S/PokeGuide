@@ -1,129 +1,164 @@
-import type { OptimizationProblem } from "../entities/OptimizationProblem";
-import type { OptimizationResult } from "../types/OptimizationTypes";
-import type { StatName } from "@/domain/pokemon/types/pokemon";
+import type { OptimizationProblem } from "@/domain/optimization/entities/OptimizationProblem";
+import type { OptimizationResult } from "@/domain/optimization/types/OptimizationTypes";
 
-type SurvivalSolution = Record<StatName, number>;
+type DefenseStat = "defense" | "special-defense";
+type Evaluator = (hpEV: number, defEV: number) => boolean;
+
+const EV_STEPS = Array.from({ length: 64 }, (_, i) => i * 4);
+
+type SurvivalSolution = {
+  hp: number;
+  defense: number;
+  "special-defense"?: number;
+};
+
+function idxOf(ev: number): number {
+  return Math.max(0, Math.min(63, Math.floor(ev / 4)));
+}
+
+function evAt(idx: number): number {
+  const v = EV_STEPS[idx];
+  return v ?? 0;
+}
 
 export const SurvivalOptimizer = {
-  /**
-   * Utiliza Branch and Bound (Poda) + Búsqueda Binaria.
-   * Complejidad O(N log N) donde N es 64.
-   *
-   * @param problem El problema de optimización.
-   * @param evaluator Función inyectada por el Caso de Uso que retorna true si el Pokémon sobrevive.
-   * @param defenseType Indica si optimiza 'defense' o 'special-defense'.
-   */
   optimize(
-    problem: OptimizationProblem,
-    evaluator: (hpEV: number, defEV: number) => boolean,
-    defenseType: "defense" | "special-defense",
+    _problem: OptimizationProblem,
+    evaluator: Evaluator,
+    defenseStat: DefenseStat,
   ): OptimizationResult<SurvivalSolution> {
-    const startTime = performance.now();
+    let evaluated = 0;
+    const cache = new Map<string, boolean>();
 
-    // 1. Consume el objeto 'problem' para validar la restricción
-    const survivalConstraint = problem.constraints.find(
-      (c) =>
-        c.variable === "survival_physical" || c.variable === "survival_special",
-    );
-
-    if (!survivalConstraint) {
-      return {
-        status: "Unsupported",
-        solution: null,
-        explanation: {
-          objective: "Error de Optimización",
-          constraintDescription: "N/A",
-          solutionDescription:
-            "No se encontró una restricción de supervivencia válida en el problema.",
-          evidence: [],
-        },
-        metrics: { candidatesEvaluated: 0, executionTimeMs: 0 },
-      };
+    function isFeasible(hp: number, def: number): boolean {
+      if (hp < 0 || def < 0 || hp > 252 || def > 252) return false;
+      if (hp + def > 510) return false;
+      const key = `${hp}-${def}`;
+      const hit = cache.get(key);
+      if (hit !== undefined) return hit;
+      evaluated++;
+      const res = evaluator(hp, def);
+      cache.set(key, res);
+      return res;
     }
 
-    // Espacio de búsqueda útil (0 y múltiplos de 4)
-    const possibleEVs = [
-      0,
-      ...Array.from({ length: 63 }, (_, i) => (i + 1) * 4),
-    ];
-
-    let bestTotalEVs = Infinity;
-    let bestPair: { hp: number; def: number } | null = null;
-    let candidatesEvaluated = 0;
-
-    // Iteración lineal sobre HP
-    for (const hpEV of possibleEVs) {
-      // Branch and Bound: Poda del árbol si el HP ya supera la mejor suma encontrada
-      if (hpEV >= bestTotalEVs) {
-        break;
-      }
-
-      // Búsqueda binaria sobre la Defensa para este HP en particular
-      let low = 0;
-      let high = possibleEVs.length - 1;
-      let localBestDef: number | null = null;
-
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
-        const defEV = possibleEVs[mid];
-
-        // Poda interna: Excede el presupuesto límite global (510) o el mejor actual
-        if (hpEV + defEV > 510 || hpEV + defEV >= bestTotalEVs) {
-          high = mid - 1;
-          continue;
-        }
-
-        candidatesEvaluated++;
-        const survives = evaluator(hpEV, defEV);
-
-        if (survives) {
-          localBestDef = defEV;
-          high = mid - 1; // Sobrevive. Busca si puede sobrevivir con menos Defensa.
+    function findMinHpWithMaxDef(maxDef = 252): number {
+      let lo = 0;
+      let hi = EV_STEPS.length - 1;
+      let ansIdx = -1;
+      while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        const hp = evAt(mid);
+        if (isFeasible(hp, maxDef)) {
+          ansIdx = mid;
+          hi = mid - 1;
         } else {
-          low = mid + 1; // No sobrevive. Necesita más Defensa.
+          lo = mid + 1;
         }
       }
-
-      // Si encuentra una defensa válida, actualiza el óptimo global
-      if (localBestDef !== null && hpEV + localBestDef < bestTotalEVs) {
-        bestTotalEVs = hpEV + localBestDef;
-        bestPair = { hp: hpEV, def: localBestDef };
-      }
+      return ansIdx === -1 ? -1 : evAt(ansIdx);
     }
 
-    const executionTimeMs = performance.now() - startTime;
+    function findMinDefForHp(hp: number, hiDef = 252): number {
+      const hiIdx = idxOf(hiDef);
+      let lo = 0;
+      let hi = hiIdx;
+      let ansIdx = -1;
+      while (lo <= hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        const def = evAt(mid);
+        if (isFeasible(hp, def)) {
+          ansIdx = mid;
+          hi = mid - 1;
+        } else {
+          lo = mid + 1;
+        }
+      }
+      return ansIdx === -1 ? -1 : evAt(ansIdx);
+    }
 
-    if (!bestPair) {
+    const minHp = findMinHpWithMaxDef(252);
+    if (minHp === -1) {
       return {
-        status: "NoSolution",
+        status: "Infeasible",
         solution: null,
-        explanation: null,
-        metrics: { candidatesEvaluated, executionTimeMs },
+        explanation: { summary: "No sobrevive", evidence: [] },
+        metrics: { candidatesEvaluated: evaluated },
       };
     }
 
-    const solution: SurvivalSolution = {
-      hp: bestPair.hp,
-      attack: 0,
-      defense: defenseType === "defense" ? bestPair.def : 0,
-      "special-attack": 0,
-      "special-defense": defenseType === "special-defense" ? bestPair.def : 0,
-      speed: 0,
-    };
+    const minDefForMinHp = findMinDefForHp(minHp, 252);
+    if (minDefForMinHp === -1) {
+      return {
+        status: "Infeasible",
+        solution: null,
+        explanation: { summary: "No sobrevive", evidence: [] },
+        metrics: { candidatesEvaluated: evaluated },
+      };
+    }
+
+    let best = minHp + minDefForMinHp;
+    let bestHp = minHp;
+    let bestDef = minDefForMinHp;
+
+    const coarseStep = 4; // 16 EV
+    for (
+      let hpIdx = idxOf(minHp) + coarseStep;
+      hpIdx < EV_STEPS.length;
+      hpIdx += coarseStep
+    ) {
+      const hp = evAt(hpIdx);
+      if (hp >= best) break;
+      const maxDefToBeat = best - hp - 4;
+      if (maxDefToBeat < 0) continue;
+      const maxDefIdx = idxOf(maxDefToBeat);
+      if (!isFeasible(hp, evAt(maxDefIdx))) continue;
+
+      const def = findMinDefForHp(hp, maxDefToBeat);
+      if (def !== -1 && hp + def < best) {
+        best = hp + def;
+        bestHp = hp;
+        bestDef = def;
+      }
+    }
+
+    const bestHpIdx = idxOf(bestHp);
+    const fineRadius = coarseStep;
+    const start = Math.max(0, bestHpIdx - fineRadius);
+    const end = Math.min(EV_STEPS.length - 1, bestHpIdx + fineRadius);
+
+    for (let hpIdx = start; hpIdx <= end; hpIdx++) {
+      const hp = evAt(hpIdx);
+      if (hp === bestHp) continue;
+      if (hp >= best) continue;
+      const maxDefToBeat = best - hp - 1;
+      if (maxDefToBeat < 0) continue;
+      if (!isFeasible(hp, evAt(idxOf(maxDefToBeat)))) continue;
+
+      const def = findMinDefForHp(hp, maxDefToBeat);
+      if (def !== -1 && hp + def < best) {
+        best = hp + def;
+        bestHp = hp;
+        bestDef = def;
+      }
+    }
+
+    const solution: SurvivalSolution =
+      defenseStat === "defense"
+        ? { hp: bestHp, defense: bestDef }
+        : { hp: bestHp, defense: 0, "special-defense": bestDef };
 
     return {
       status: "Optimal",
       solution,
       explanation: {
-        objective:
-          "Sobrevivir al ataque objetivo invirtiendo el mínimo de EVs posibles.",
-        constraintDescription: `${survivalConstraint.variable} ${survivalConstraint.operator} ${survivalConstraint.target}`,
-        solutionDescription: `Se requieren ${bestPair.hp} EVs en HP y ${bestPair.def} EVs en ${defenseType} (Total: ${bestTotalEVs}).`,
+        summary: `Óptimo ${best} EVs · HP ${bestHp} + ${defenseStat} ${bestDef}`,
         evidence: [
-          `La combinación ${bestPair.hp} HP / ${bestPair.def} Def es matemáticamente la inversión mínima requerida.`,
+          `${bestHp}+${bestDef}=${best} sobrevive`,
+          `${evaluated} evaluaciones`,
         ],
       },
-      metrics: { candidatesEvaluated, executionTimeMs },
+      metrics: { candidatesEvaluated: evaluated },
     };
   },
 };
