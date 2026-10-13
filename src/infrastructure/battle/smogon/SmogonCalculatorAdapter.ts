@@ -94,6 +94,7 @@ function buildActiveModifiers(
 export class SmogonCalculatorAdapter implements BattleCalculator {
   calculate(scenario: IResolvedBattleScenario): BattleResult {
     const gen = Generations.get(scenario.generation as GenerationNum);
+
     const attackerResolved = SmogonSpeciesMapper.resolve(
       { id: scenario.attacker.id, name: scenario.attacker.name },
       scenario.generation,
@@ -103,14 +104,16 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
       scenario.generation,
     );
 
-    if (!attackerResolved.supported && !attackerResolved.isFallbackToBase)
+    if (!attackerResolved.supported || attackerResolved.isFallbackToBase) {
       throw new Error(
         `La forma ${scenario.attacker.name} no está disponible en Gen ${scenario.generation}`,
       );
-    if (!defenderResolved.supported && !defenderResolved.isFallbackToBase)
+    }
+    if (!defenderResolved.supported || defenderResolved.isFallbackToBase) {
       throw new Error(
         `La forma ${scenario.defender.name} no está disponible en Gen ${scenario.generation}`,
       );
+    }
 
     const attackerStatus = toSmogonStatus(scenario.attacker.status);
     const defenderStatus = toSmogonStatus(scenario.defender.status);
