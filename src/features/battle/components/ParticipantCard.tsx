@@ -52,7 +52,6 @@ const STAT_LABELS: Record<StatName, { full: string; abbr: string }> = {
   "special-defense": { full: "DFE", abbr: "DFE" },
   speed: { full: "VEL", abbr: "VEL" },
 };
-
 type MoveOption = {
   value: string;
   label: string;
@@ -98,7 +97,7 @@ export const ParticipantCard = memo(function ParticipantCard({
   pokemonList,
   input,
   onChange,
-  facing,
+  facing: _facing,
   generation,
   isAttacker,
   moveName,
@@ -122,7 +121,6 @@ export const ParticipantCard = memo(function ParticipantCard({
   const [openIV, setOpenIV] = useState(false);
   const [openEV, setOpenEV] = useState(true);
   const [openMods, setOpenMods] = useState(false);
-  // FIX FASE 4: selectores atómicos - evita re-render por cualquier cambio en el store
   const abilityList = useAbilityStore((s) => s.abilityList);
   const itemList = useItemStore((s) => s.itemList);
 
@@ -265,7 +263,6 @@ export const ParticipantCard = memo(function ParticipantCard({
             {currentPokemon ? (
               <PokemonSprite
                 pokemon={{ id: currentPokemon.id, name: currentPokemon.name }}
-                facing={facing}
                 size={52}
               />
             ) : (
@@ -278,7 +275,7 @@ export const ParticipantCard = memo(function ParticipantCard({
             </div>
             <div className="text-[10px] font-mono text-[#9A9590] mt-1">
               {currentPokemon
-                ? `${identity?.speciesId || ""}:base #${String(currentPokemon.id).padStart(4, "0")}`
+                ? `${identity?.id || identity?.speciesId || ""} #${String(currentPokemon.id).padStart(4, "0")}`
                 : ""}
             </div>
             <div className="flex items-center gap-1 mt-2">
@@ -391,20 +388,6 @@ export const ParticipantCard = memo(function ParticipantCard({
             </div>
           )}
 
-        {!isAttacker && (
-          <div className="space-y-1">
-            <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
-              Movimiento recibido
-            </Label>
-            <Combobox
-              options={[{ value: "none", label: "—" }]}
-              value="none"
-              onValueChange={() => {}}
-              placeholder="—"
-            />
-          </div>
-        )}
-
         <div className="grid grid-cols-2 gap-2.5">
           <div className="space-y-1">
             <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
@@ -500,7 +483,6 @@ export const ParticipantCard = memo(function ParticipantCard({
             </div>
           )}
         </div>
-
         <div>
           <button
             type="button"
@@ -592,7 +574,6 @@ export const ParticipantCard = memo(function ParticipantCard({
             </div>
           )}
         </div>
-
         <div className="relative">
           <button
             type="button"
@@ -622,29 +603,6 @@ export const ParticipantCard = memo(function ParticipantCard({
                     placeholder="Ninguno"
                   />
                 </div>
-                <p className="text-[10px] text-[#9A9590] leading-snug">
-                  {(() => {
-                    const map: Record<string, string> = {
-                      none: "Sin estado alterado.",
-                      burn: "Quemado reduce daño físico 50% (Guts/Facade lo ignoran) y causa daño residual.",
-                      paralyze:
-                        "Paralizado reduce Velocidad 50% y puede impedir moverse.",
-                      paralysis:
-                        "Paralizado reduce Velocidad 50% y puede impedir moverse.",
-                      poison: "Envenenado causa daño residual cada turno.",
-                      "badly-poisoned":
-                        "Gravemente envenenado, daño creciente cada turno.",
-                      sleep: "Dormido no puede atacar por 1-3 turnos.",
-                      freeze: "Congelado no puede atacar hasta descongelarse.",
-                    };
-                    const s = (input.status as string) || "none";
-                    return (
-                      map[s] ||
-                      map[s.toLowerCase()] ||
-                      "Selecciona un estado para ver su efecto en combate."
-                    );
-                  })()}
-                </p>
               </div>
               {isAttacker && (
                 <label className="flex items-center gap-2 text-[11px] font-mono">

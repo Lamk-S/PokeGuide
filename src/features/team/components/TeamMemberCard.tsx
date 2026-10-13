@@ -95,12 +95,13 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
     () => pokemonList.find((p) => p.name === baseName),
     [pokemonList, baseName],
   );
-  const dexId = baseEntry?.id ?? resolvePokemonNumericId(member);
 
-  // FIX GMAX: no usar formId 10114, usar dexId + nombre gmax para el sprite
+  const formId = useMemo(() => resolvePokemonNumericId(member), [member]);
+  const dexNumber = baseEntry?.id ?? formId;
+
   const spritePayload = useMemo(
-    () => ({ id: dexId, name: rawName }),
-    [dexId, rawName],
+    () => ({ id: formId, name: rawName }),
+    [formId, rawName],
   );
 
   const team = useTeamStore((s) => s.team);
@@ -144,11 +145,15 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
       <div className="flex h-full w-full flex-col bg-white p-4 sm:p-5">
         <div className="flex items-start gap-3">
           <div className="relative shrink-0">
-            <div className="flex h-14 w-14 items-center justify-center bg-[#F8F5F0] sm:h-16 sm:w-16">
-              <PokemonSprite pokemon={spritePayload} size={48} />
+            <div className="flex h-14 w-14 items-center justify-center bg-[#F8F5F0] sm:h-16 sm:w-16 overflow-hidden">
+              <PokemonSprite
+                pokemon={spritePayload}
+                size={56}
+                className="object-contain drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] scale-110"
+              />
             </div>
             <div className="absolute -bottom-1.5 -right-1.5 border border-[#EDE8E0] bg-white px-1 py-0.5 font-mono text-[9px] tabular-nums text-zinc-600">
-              #{String(dexId).padStart(3, "0")}
+              #{String(dexNumber).padStart(3, "0")}
             </div>
           </div>
           <div className="min-w-0 flex-1">

@@ -1,62 +1,50 @@
 "use client";
-import { useState } from "react";
 import Image from "next/image";
+import { useState, useMemo } from "react";
 
-interface ItemSpriteProps {
+interface Props {
   itemName: string;
   size?: number;
-  className?: string;
 }
 
-export function ItemSprite({
-  itemName,
-  size = 24,
-  className = "",
-}: ItemSpriteProps) {
-  const [failed, setFailed] = useState(false);
-
-  const normalized = itemName
+function getItemSpriteUrls(name: string): string[] {
+  const normalized = name
     .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-
-  const urls = [
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+  return [
     `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${normalized}.png`,
-    `https://raw.githubusercontent.com/msikma/pokesprite/master/items/${normalized}.png`,
   ];
+}
 
-  if (failed || !normalized) {
+export function ItemSprite({ itemName, size = 24 }: Props) {
+  const urls = useMemo(() => getItemSpriteUrls(itemName), [itemName]);
+  const [idx, setIdx] = useState(0);
+  const firstUrl = urls[0] ?? "";
+  const current = urls[idx] ?? firstUrl;
+
+  if (!current) {
     return (
-      <span
-        className={`inline-flex items-center justify-center text-[10px] ${className}`}
+      <div
         style={{ width: size, height: size }}
-      >
-        🎒
-      </span>
+        className="bg-[#F8F5F0] border border-[#EDE8E0]"
+      />
     );
   }
 
   return (
     <Image
-      src={urls[0]}
+      src={current}
       alt={itemName}
       width={size}
       height={size}
-      className={`object-contain ${className}`}
+      onError={() => {
+        if (idx + 1 < urls.length) setIdx((p) => p + 1);
+      }}
+      className="object-contain"
       unoptimized
-      onError={() => setFailed(true)}
     />
   );
 }
 
-export function getItemSpriteUrl(itemName: string): string {
-  const normalized = itemName
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${normalized}.png`;
-}
+export default ItemSprite;

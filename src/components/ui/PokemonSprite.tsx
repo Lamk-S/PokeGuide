@@ -1,62 +1,48 @@
 "use client";
 import Image from "next/image";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
+import { resolvePokemonSprite } from "@/domain/pokemon/services/PokemonSpriteResolver";
 
 interface Props {
-  readonly pokemon: { id: number; name: string };
-  readonly size?: number;
-  readonly facing?: "left" | "right";
-  readonly className?: string;
+  pokemon: { id: number; name: string };
+  size?: number;
+  shiny?: boolean;
+  facing?: "left" | "right";
+  className?: string;
 }
 
-function pad4(id: number) {
-  return String(Math.abs(id)).padStart(4, "0");
-}
+export function PokemonSprite({ pokemon, size = 48, className }: Props) {
+  const identity = useMemo(
+    () => parsePokemonIdentity({ id: pokemon.id, name: pokemon.name }),
+    [pokemon.id, pokemon.name],
+  );
+  const resolved = useMemo(() => resolvePokemonSprite(identity), [identity]);
+  const [idx, setIdx] = useState(0);
+  const current = resolved.chain[idx] ?? resolved.url;
 
-function isGmaxName(name: string) {
-  const n = name.toLowerCase();
-  return n.includes("gmax") || n.includes("gigantamax");
-}
-
-export function PokemonSprite({
-  pokemon,
-  size = 56,
-  facing = "left",
-  className,
-}: Props) {
-  const [failed, setFailed] = useState(false);
-
-  const dexId = useMemo(() => {
-    if (pokemon.id < 10000) return pokemon.id;
-    return pokemon.id % 1000;
-  }, [pokemon.id]);
-
-  const nameLower = pokemon.name.toLowerCase();
-  const isGmax = isGmaxName(nameLower);
-
-  const primaryUrl = useMemo(() => {
-    const padded = pad4(dexId);
-    if (isGmax)
-      return `https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${padded}-Gmax.png`;
-    return `https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/images/${padded}.png`;
-  }, [dexId, isGmax]);
-
-  const fallbackUrl = useMemo(() => {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${dexId}.png`;
-  }, [dexId]);
-
-  const url = failed ? fallbackUrl : primaryUrl;
+  if (!current) {
+    return (
+      <div
+        style={{ width: size, height: size }}
+        className="bg-[#F8F5F0] border border-[#EDE8E0]"
+      />
+    );
+  }
 
   return (
     <Image
-      src={url}
+      src={current}
       alt={pokemon.name}
       width={size}
       height={size}
       unoptimized
-      onError={() => setFailed(true)}
-      className={`${facing === "right" ? "scale-x-[-1]" : ""} object-contain ${className ?? ""}`}
-      style={{ width: size, height: size }}
+      onError={() => {
+        if (idx + 1 < resolved.chain.length) setIdx((p) => p + 1);
+      }}
+      className={className ?? "object-contain"}
     />
   );
 }
+
+export default PokemonSprite;

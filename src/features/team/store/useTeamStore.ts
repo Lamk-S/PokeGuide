@@ -58,6 +58,7 @@ function computeAnalysis(members: TeamMember[]): TeamAnalysis | null {
   const recommendations: TeamRecommendation[] = [];
   for (const atk of ALL_POKEMON_TYPES) {
     const exp = defensiveCoverage[atk];
+    if (!exp) continue;
     if (exp.weak >= 2 && exp.resist + exp.immune <= 1) {
       recommendations.push({
         id: `weak-${atk}`,
