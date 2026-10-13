@@ -11,12 +11,15 @@ describe("RecommendationEngine - Dominio Puro (Sin i18n)", () => {
     const recommendations = RecommendationEngine.generate(coverage);
 
     expect(recommendations.length).toBe(1);
-    expect(recommendations[0].severity).toBe("Critical");
-    expect(recommendations[0].issueCode).toBe("massive_weakness");
-    expect(recommendations[0].category).toBe("defensive_gap");
-    expect(recommendations[0].attackingType).toBe("ice");
-    expect(recommendations[0].targetType).toBe("ice");
-    expect("title" in recommendations[0]).toBe(false);
+    const first = recommendations[0];
+    if (!first) throw new Error("Expected first recommendation to exist");
+
+    expect(first.severity).toBe("Critical");
+    expect(first.issueCode).toBe("massive_weakness");
+    expect(first.category).toBe("defensive_gap");
+    expect(first.attackingType).toBe("ice");
+    expect(first.targetType).toBe("ice");
+    expect("title" in first).toBe(false);
   });
 
   it("detects single point of failure (dependency)", () => {
@@ -27,10 +30,13 @@ describe("RecommendationEngine - Dominio Puro (Sin i18n)", () => {
     const recommendations = RecommendationEngine.generate(coverage);
 
     expect(recommendations.length).toBe(1);
-    expect(recommendations[0].severity).toBe("High");
-    expect(recommendations[0].issueCode).toBe("single_point_failure");
-    expect(recommendations[0].category).toBe("dependency");
-    expect(recommendations[0].targetType).toBe("ground");
+    const first = recommendations[0];
+    if (!first) throw new Error("Expected first recommendation to exist");
+
+    expect(first.severity).toBe("High");
+    expect(first.issueCode).toBe("single_point_failure");
+    expect(first.category).toBe("dependency");
+    expect(first.targetType).toBe("ground");
   });
 
   it("uses semantic type identifiers, not Spanish strings", () => {
