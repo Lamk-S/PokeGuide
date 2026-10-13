@@ -53,6 +53,13 @@ const EV_LABELS: Record<EVKey, string> = {
   speed: "VEL",
 };
 
+const FALLBACK_NATURE: Nature = {
+  name: "Hardy",
+  nameEs: "Fuerte",
+  increasedStat: null,
+  decreasedStat: null,
+};
+
 function clampEV(value: number): number {
   return Math.max(0, Math.min(252, Math.floor(value)));
 }
@@ -69,7 +76,7 @@ export function EditMemberModal({
 }: Props) {
   const [itemId, setItemId] = useState<string>("");
   const [abilityId, setAbilityId] = useState<string>("");
-  const [nature, setNature] = useState<Nature>(NATURES[0]);
+  const [nature, setNature] = useState<Nature>(NATURES[0] ?? FALLBACK_NATURE);
   const [evs, setEvs] = useState<EVSet>({
     hp: 0,
     attack: 0,
@@ -85,7 +92,10 @@ export function EditMemberModal({
       setItemId(member.itemId ?? member.item ?? "");
       setAbilityId(member.abilityId ?? member.ability ?? "");
       setNature(
-        member.nature ?? NATURES.find((n) => n.name === "Hardy") ?? NATURES[0],
+        member.nature ??
+          NATURES.find((n) => n.name === "Hardy") ??
+          NATURES[0] ??
+          FALLBACK_NATURE,
       );
       setEvs(member.evs);
       setLevel(member.level);

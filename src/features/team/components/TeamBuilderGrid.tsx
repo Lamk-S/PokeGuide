@@ -145,6 +145,7 @@ export function TeamBuilderGrid() {
                 ? getMemberStableId(member, idx)
                 : `empty-slot-${idx}`;
               const pos = POSICIONES_SUGERIDAS[idx];
+              if (!pos) return null;
               return member ? (
                 <div
                   key={slotKey}

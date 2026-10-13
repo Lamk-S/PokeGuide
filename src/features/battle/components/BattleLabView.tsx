@@ -62,6 +62,11 @@ const BADGE_LABELS: Record<BattleValidationError, string> = {
   MISSING_STATS: "Sin stats",
   INVALID_BATTLE_CONTEXT: "Gen no válida",
   UNSUPPORTED_FORM_FOR_GENERATION: "No disponible en esta gen",
+  INVALID_GENERATION: "Generación inválida",
+  FORM_NOT_AVAILABLE: "Forma no disponible",
+  MOVE_NOT_LEARNABLE: "No aprendible",
+  INVALID_LEVEL: "Nivel inválido",
+  INVALID_NATURE: "Naturaleza inválida",
 };
 
 interface Props {

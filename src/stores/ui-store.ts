@@ -7,10 +7,6 @@ interface UiState {
   closeMobileMenu: () => void;
 }
 
-/**
- * UI Store - Application Shell
- * Solo estado visual efímero. Cero dominio, cero fetch, cero cálculos.
- */
 export const useUiStore = create<UiState>((set) => ({
   isMobileMenuOpen: false,
   toggleMobileMenu: () =>

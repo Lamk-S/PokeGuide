@@ -12,6 +12,7 @@ import { PokemonSprite } from "@/components/ui/PokemonSprite";
 import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 import { calculateStats } from "@/domain/stats/services/StatCalculator";
 import { NATURES } from "@/domain/stats/constants/natures";
+import type { Nature } from "@/domain/stats/types/StatTypes";
 import { IV } from "@/domain/stats/value-objects/IV";
 import { EV } from "@/domain/stats/value-objects/EV";
 import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
@@ -27,6 +28,12 @@ interface Props {
 const ROW_HEIGHT = 56;
 const CONTAINER_HEIGHT = 440;
 const OVERSCAN = 12;
+const FALLBACK_NATURE: Nature = {
+  name: "Hardy",
+  nameEs: "Fuerte",
+  increasedStat: null,
+  decreasedStat: null,
+};
 function displayNameEs(rawName: string): string {
   return rawName.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -40,12 +47,12 @@ function pickNature(
   highest: StatName,
   second: StatName,
   baseStats: Record<StatName, number>,
-) {
-  const speed = baseStats.speed;
-  const atk = baseStats.attack;
-  const spa = baseStats["special-attack"];
+): Nature {
+  const speed = baseStats.speed ?? 80;
+  const atk = baseStats.attack ?? 80;
+  const spa = baseStats["special-attack"] ?? 80;
   const find = (name: string) =>
-    NATURES.find((n) => n.name === name) ?? NATURES[0];
+    NATURES.find((n) => n.name === name) ?? NATURES[0] ?? FALLBACK_NATURE;
   switch (highest) {
     case "attack":
       return speed >= 90 ? find("Jolly") : find("Adamant");
@@ -77,7 +84,6 @@ export function PokemonSelector({
   const [scrollTop, setScrollTop] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  // FIX FASE 4: selectores atómicos
   const pokemonList = usePokedexStore((s) => s.pokemonList);
   const isLoading = usePokedexStore((s) => s.isLoading);
   const error = usePokedexStore((s) => s.error);
@@ -96,78 +102,70 @@ export function PokemonSelector({
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [open, loadPokemon]);
 
-  const toTeamMember = useCallback(
-    (pokemon: Pokemon): TeamMember => {
-      const baseRaw = pokemon.baseStats as Record<StatName, number>;
-      const safeBase: BaseStats = {
-        hp: baseRaw.hp ?? 80,
-        attack: baseRaw.attack ?? 80,
-        defense: baseRaw.defense ?? 80,
-        "special-attack": baseRaw["special-attack"] ?? 80,
-        "special-defense": baseRaw["special-defense"] ?? 80,
-        speed: baseRaw.speed ?? 80,
-      };
-      const sorted = (Object.entries(safeBase) as [StatName, number][]).sort(
-        (a, b) => b[1] - a[1],
-      );
-      const highest = sorted[0][0];
-      const second = sorted[1][0];
-      const third = sorted[2][0];
-      const nature = pickNature(highest, second, safeBase);
-      const evsDist: Record<StatName, number> = {
-        hp: 0,
-        attack: 0,
-        defense: 0,
-        "special-attack": 0,
-        "special-defense": 0,
-        speed: 0,
-      };
-      evsDist[highest] = 252;
-      evsDist[second] = 252;
-      evsDist[third] = 4;
-      const ivs = IV.createPerfectSet();
-      const evs = EV.createSet(evsDist);
-      const calculated = calculateStats({
-        baseStats: safeBase,
-        ivs,
-        evs,
-        level: DEFAULT_BATTLE_RULESET.level,
-        nature,
-        generation: DEFAULT_BATTLE_RULESET.generation,
-      });
-      const defaultAbility = pokemon.abilities?.[0]?.name ?? "";
-      const baseName = resolveBaseName(pokemon.name);
-      const baseEntry = pokemonList.find((p) => p.name === baseName);
-      const displayId =
-        baseEntry?.id ??
-        (pokemon.id < 10000 ? pokemon.id : (baseEntry?.id ?? pokemon.id));
-      return {
-        id: String(displayId),
-        name: normalizeId(pokemon.name),
-        displayNameEs: displayNameEs(pokemon.name),
-        species: displayNameEs(pokemon.name),
-        types: pokemon.types as readonly PokemonType[],
-        abilityId: defaultAbility ? normalizeId(defaultAbility) : null,
-        itemId: null,
-        ability: defaultAbility || null,
-        item: null,
-        nature,
-        level: DEFAULT_BATTLE_RULESET.level,
-        evs,
-        ivs,
-        calculatedStats: {
-          hp: calculated.hp,
-          attack: calculated.attack,
-          defense: calculated.defense,
-          specialAttack: calculated["special-attack"],
-          specialDefense: calculated["special-defense"],
-          speed: calculated.speed,
-        },
-        baseStats: safeBase,
-      } as unknown as TeamMember;
-    },
-    [pokemonList],
-  );
+  const toTeamMember = useCallback((pokemon: Pokemon): TeamMember => {
+    const baseRaw = pokemon.baseStats as Record<StatName, number>;
+    const safeBase: BaseStats = {
+      hp: baseRaw.hp ?? 80,
+      attack: baseRaw.attack ?? 80,
+      defense: baseRaw.defense ?? 80,
+      "special-attack": baseRaw["special-attack"] ?? 80,
+      "special-defense": baseRaw["special-defense"] ?? 80,
+      speed: baseRaw.speed ?? 80,
+    };
+    const sorted = (Object.entries(safeBase) as [StatName, number][]).sort(
+      (a, b) => b[1] - a[1],
+    );
+    const highest = sorted[0]?.[0] ?? "attack";
+    const secondName = sorted[1]?.[0] ?? "speed";
+    const nature = pickNature(highest, secondName, safeBase);
+    const evsDist: Record<StatName, number> = {
+      hp: 0,
+      attack: 0,
+      defense: 0,
+      "special-attack": 0,
+      "special-defense": 0,
+      speed: 0,
+    };
+    evsDist[highest] = 252;
+    evsDist[secondName] = 252;
+    evsDist[sorted[2]?.[0] ?? "hp"] = 4;
+    const ivs = IV.createPerfectSet();
+    const evs = EV.createSet(evsDist);
+    const calculated = calculateStats({
+      baseStats: safeBase,
+      ivs,
+      evs,
+      level: DEFAULT_BATTLE_RULESET.level,
+      nature,
+      generation: DEFAULT_BATTLE_RULESET.generation,
+    });
+    const defaultAbility = pokemon.abilities?.[0]?.name ?? "";
+    const formId = pokemon.id;
+    return {
+      id: String(formId),
+      name: normalizeId(pokemon.name),
+      displayNameEs: displayNameEs(pokemon.name),
+      species: displayNameEs(pokemon.name),
+      types: pokemon.types as readonly PokemonType[],
+      abilityId: defaultAbility ? normalizeId(defaultAbility) : null,
+      itemId: null,
+      ability: defaultAbility || null,
+      item: null,
+      nature,
+      level: DEFAULT_BATTLE_RULESET.level,
+      evs,
+      ivs,
+      calculatedStats: {
+        hp: calculated.hp,
+        attack: calculated.attack,
+        defense: calculated.defense,
+        specialAttack: calculated["special-attack"],
+        specialDefense: calculated["special-defense"],
+        speed: calculated.speed,
+      },
+      baseStats: safeBase,
+    } as unknown as TeamMember;
+  }, []);
 
   const searchIndex = useMemo(
     () =>
@@ -275,9 +273,6 @@ export function PokemonSelector({
             </button>
           </div>
           <div className="mt-4">
-            <label htmlFor="pokemon-search" className="sr-only">
-              Buscar Pokémon
-            </label>
             <div className="relative">
               <span
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
@@ -286,7 +281,6 @@ export function PokemonSelector({
                 ⌕
               </span>
               <input
-                id="pokemon-search"
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -310,26 +304,16 @@ export function PokemonSelector({
           {isLoading ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 py-16">
               <div className="h-5 w-5 animate-spin border-2 border-[#EDE8E0] border-t-[#111]" />
-              <p className="text-[13px] text-zinc-600">
-                Cargando {pokemonList.length > 0 ? pokemonList.length : ""}{" "}
-                Pokémon...
-              </p>
-              <p className="text-[11px] text-zinc-500">
-                Local-first · Nv.50 · 252/252/4 · Naturaleza favorable · 31 IVs
-              </p>
+              <p className="text-[13px] text-zinc-600">Cargando...</p>
             </div>
           ) : isEmpty ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 py-16 text-center">
-              <p className="text-[13px] font-medium text-[#111]">
+              <p className="text-[13px] font-medium">
                 Sin resultados para &quot;{query}&quot;
-              </p>
-              <p className="max-w-[32ch] text-[11px] leading-normal text-zinc-500">
-                Prueba con nombre, número o tipo en español. La búsqueda es
-                tolerante a mayúsculas y guiones.
               </p>
             </div>
           ) : !hasData ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 py-16 text-center">
+            <div className="flex h-full items-center justify-center py-16">
               <p className="text-[13px] text-zinc-600">dataset.json vacío</p>
             </div>
           ) : (
@@ -354,17 +338,18 @@ export function PokemonSelector({
                   const baseEntry = pokemonList.find(
                     (p) => p.name === baseName,
                   );
-                  const displayId = baseEntry?.id ?? pokemon.id;
+                  const dexNumber = baseEntry?.id ?? pokemon.id;
+                  const spriteId = pokemon.id;
                   return (
                     <button
-                      type="button"
                       key={`${pokemon.id}-${pokemon.name}`}
+                      type="button"
                       onClick={() => handleSelect(pokemon)}
                       className="group flex h-14 w-full items-center gap-3 border-b border-[#F5F1E8] bg-white px-4 text-left hover:bg-[#FFFEFB]"
                     >
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#F8F5F0] group-hover:bg-white">
                         <PokemonSprite
-                          pokemon={{ id: displayId, name: pokemon.name }}
+                          pokemon={{ id: spriteId, name: pokemon.name }}
                           size={36}
                         />
                       </div>
@@ -374,7 +359,7 @@ export function PokemonSelector({
                             {display}
                           </span>
                           <span className="border border-[#EDE8E0] bg-[#F8F5F0] px-1 py-0.5 font-mono text-[10px] tabular-nums text-zinc-500">
-                            #{String(displayId).padStart(3, "0")}
+                            #{String(dexNumber).padStart(3, "0")}
                           </span>
                         </div>
                         <div className="mt-1 flex items-center gap-1">
@@ -405,8 +390,7 @@ export function PokemonSelector({
         </div>
         <div className="border-t border-[#EDE8E0] bg-[#F8F5F0] px-4 py-2.5 text-[11px] leading-normal text-zinc-600">
           {pokemonList.length} Pokémon · Nv.{DEFAULT_BATTLE_RULESET.level} ·
-          Auto-set competitivo · 252/252/4 · Gen{" "}
-          {DEFAULT_BATTLE_RULESET.generation}
+          Auto-set competitivo
         </div>
       </div>
     </div>,
