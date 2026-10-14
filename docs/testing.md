@@ -11,9 +11,9 @@ No buscamos 100% artificial, buscamos confianza.
 ## 2. Quality Gates
 Definidos en `vitest.config.ts` y forzados en `ci.yml`:
 
-1.  `pnpm typecheck` -> `exactOptionalPropertyTypes` activo
+1.  `pnpm typecheck` -> TS compiler actúa como nuestra primera prueba unitaria. En la v1.4.0 se activó `"noUncheckedIndexedAccess": true` para evitar bugs con accesos a arrays indefinidos en tiempo de compilación. Las opciones `exactOptionalPropertyTypes` también están activas.
 2.  `pnpm lint` + `format:check`
-3.  `pnpm test -- --coverage` -> umbrales 80/80/75/80. Falla si baja.
+3.  `pnpm test -- --coverage` -> umbrales 80/80/75/80. Falla si baja. Todo el código muerto (ej. `mockPool`, viejos mappers y test de validaciones obsoletos) debe purgarse sistemáticamente.
 4.  `pnpm build` -> Next.js debe compilar
 
 ## 3. Prevención de Flakiness
