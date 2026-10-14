@@ -35,9 +35,17 @@ Mantiene ViewModel: store da `pokemonId`, componente deriva sprite y display nam
 - **Header:** Nuevo `Header.tsx` con logo Flame gradiente, nav pills `rounded-full`, active `bg-zinc-900 text-white`. `BattleLabView` header único con título + descripción generacional + Gen selector + badge estado. Documentar en `layout.tsx` que `app/battle-lab/page.tsx` no debe tener h1 propio si usa `BattleLabView`.
 - **Mobile:** Stats overview `grid-cols-3 md:grid-cols-6`, `BattleSummary` solo 1 tipo en móvil, bottom bar con `pb-[env(safe-area-inset-bottom)]` y sin `N` de dev overlay.
 
+## Actualización v1.4.0: Selectores Atómicos (Fase 5)
+
+**Problema v1.4.0:**
+A medida que el simulador crecía, suscribirse al estado completo de Zustand o a objetos muy grandes provocaba re-renderizados en cascada (ej. actualizar un EV en el atacante provocaba renderizado en el defensor sin motivo).
+
+**Decisión v1.4.0:**
+- Refactorización estricta hacia **Selectores Atómicos**. Los componentes como `PokemonSelector.tsx` o `ParticipantCard.tsx` ahora extraen única y exclusivamente el slice de datos primitivos que requieren.
+- Se ha eliminado la deuda técnica del estado permitiendo que Zustand actúe verdaderamente como un ViewModel optimizado, asegurando una experiencia interactiva sin saltos de FPS.
+
 ## Consecuencias
 - **Positivo:** Excelente rendimiento (Zustand permite suscribirse selectivamente sin re-renderizar hermanos).
 - **Positivo:** Separación clara. El estado de la UI puede testearse sin montar el DOM.
-- **Positivo (v1.1.2):** Sprites HD nítidos (`image-rendering: pixelated` para ani) y 0 errores de lint / terminal.
-- **Positivo (v1.2.1):** Naturalezas en español, EVs con límite dinámico (UX competitiva real), sin distorsión móvil, header editorial único.
-- **Negativo:** Requiere disciplina para no convertir los *stores* en monolitos. El store debe llamar a Casos de Uso, no implementar la matemática.
+- **Positivo (v1.4.0):** Cero re-renders inútiles gracias al uso de Selectores Atómicos, dejando la aplicación lista para producción a nivel de infraestructura.
+- **Negativo:** Requiere disciplina para no convertir los *stores* en monolitos. El store debe llamar a Casos de Uso, no implementar la matemática, y los componentes cliente deben ser celosos con qué fragmento de estado consumen.

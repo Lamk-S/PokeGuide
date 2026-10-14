@@ -1,6 +1,19 @@
 # Changelog
 Todos los cambios notables de PokeGuide.
 
+## [v1.4.0] - Phase 5: Infrastructure Polish, Error Boundaries & Zustand Optimization
+
+### Added
+- **Granular Error Boundaries & Loading States:** Implementación de `app/error.tsx`, `battle-lab/error.tsx` y `app/loading.tsx`. Garantiza que si falla un segmento de la aplicación, el resto siga vivo, entregando feedback instantáneo y resiliente en producción.
+- **Strict TypeScript Quality Gate:** Añadido `"noUncheckedIndexedAccess": true` en el `tsconfig.json`. Previene drásticamente bugs en tiempo de compilación obligando a gestionar accesos a arrays o colecciones indefinidas.
+
+### Fixed
+- **Tailwind Escaping Bug (Critical UI):** Corregido un bug en los nuevos archivos de enrutamiento (`error.tsx`, `loading.tsx`, `global-error.tsx`) donde las clases de utilidades con valores arbitrarios se inyectaron con barras invertidas (ej. `bg-\[#F8F5F0]`). Se limpió el JSX para que Tailwind lea los corchetes correctamente (`bg-[#F8F5F0]`), evitando pantallas blancas rotas en los estados de error.
+
+### Changed
+- **Zustand Atomic Selectors:** Refactorización profunda de componentes (ej. `PokemonSelector.tsx`, `ParticipantCard.tsx`) para usar selectores atómicos del estado global. Elimina re-renderizados en cascada inútiles, logrando una interfaz sumamente fluida.
+- **Dead Code Elimination:** Purga general de código muerto de fases anteriores, incluyendo mappers obsoletos, `mockPool` y tests descontinuados (`BattleValidation.test.ts`), aligerando el peso del proyecto y mejorando la mantenibilidad.
+
 ## [v1.3.0] - Domain Integrity, Critical Scoping & i18n Decoupling
 
 ### Fixed
@@ -23,7 +36,7 @@ Todos los cambios notables de PokeGuide.
 - **Lint:** 0 `any`, 0 `useHookAtTopLevel`. Todos los hooks antes de early return `if (!input)`.
 
 ### Changed
-- Docs: `sprites-and-i18n.md` (sección 1.2 Naturalezas ES + 3. UI Guardrails v1.2.1), `UI-001-zustand-viewmodel-pattern.md` (Actualización v1.2.1), `UI-002-battle-lab-strict-validation.md` (EVs remaining + Naturaleza validación), `battle-lab.md` (sección 2 generation required + 5 i18n naturalezas + 6 guardrails v1.2.1).
+- Docs: `sprites-and-i18n.md`, `UI-001-zustand-viewmodel-pattern.md`, `UI-002-battle-lab-strict-validation.md`, `battle-lab.md`.
 
 ## [v1.2.0] - Battle Lab Id-first y UI Editorial
 

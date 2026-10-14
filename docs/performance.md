@@ -1,13 +1,14 @@
 # Políticas de Rendimiento - PokeGuide
 
 ## 1. Core Web Vitals - Objetivos
-*   **LCP < 2.5s:** Sprites activos en `Battle Lab` con `fetchPriority="high"` y `next/image` con `priority`.
+*   **LCP < 2.5s:** Sprites activos en `Battle Lab` con `fetchPriority="high"` y `next/image` con `priority`. Los estados de carga (`loading.tsx`) proveen un esqueleto visual instantáneo garantizando que el usuario perciba velocidad de inmediato.
 *   **INP < 200ms:** `BreedingGraphSearch` (BFS) corre en cliente pero con `MAX_ITERATIONS=1000` y `visited Set`. Si supera 200ms en gama baja, mover a Web Worker (futuro).
 *   **CLS < 0.1:** Reservar espacio con `aspect-ratio` para gráficos y resultados. `main-content` tiene `min-h-screen`.
 
 ## 2. Rendering Strategy
 *   **Server Components por defecto:** `GenerationRulesProvider`, `GenerationComparisonService` y `CompareGenerationsUseCase` son puros, estáticos y memoizados con `Map`. Deben ejecutarse en servidor.
 *   **Client Leaf Nodes:** `"use client"` solo en hojas: `ReportWebVitals`, `SkipLink`, sliders de EVs, selector de naturaleza. Nunca en `app/layout.tsx`.
+*   **Zustand Atomic Selectors (v1.4.0):** Componentes como `PokemonSelector.tsx` o `ParticipantCard.tsx` se suscriben *únicamente* a los fragmentos exactos del estado global que necesitan. Esto evita re-renderizados en cadena inútiles.
 *   **Memoización:** `GenerationRulesProvider` tiene `CACHE` interno. `GenerationComparison.getChangesByCategory()` hace `Object.freeze`.
 *   **React Portals para UI Densa:** Componentes como el `Combobox` utilizan React Portals (`createPortal`) para evitar problemas de *z-index* y recálculos de layout masivos en las grillas complejas del Battle Lab, manteniendo un renderizado fluido (60fps).
 
