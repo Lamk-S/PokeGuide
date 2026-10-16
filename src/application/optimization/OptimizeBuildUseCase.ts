@@ -1,41 +1,28 @@
-import type { OptimizationProblem } from "@/domain/optimization/entities/OptimizationProblem";
-import { SpeedOptimizer } from "@/domain/optimization/services/SpeedOptimizer";
-import { SurvivalOptimizer } from "@/domain/optimization/services/SurvivalOptimizer";
-import type { OptimizationResult } from "@/domain/optimization/types/OptimizationTypes";
-
-type AnySolution =
-  | number
-  | { hp: number; defense: number; "special-defense"?: number }
-  | null;
+import { OptimizeSpeedUseCase } from "./OptimizeSpeedUseCase";
+import {
+  OptimizeSurvivalUseCase,
+  type SurvivalEvaluator,
+} from "./OptimizeSurvivalUseCase";
+import type {
+  SpeedOptimizationInput,
+  SurvivalOptimizationInput,
+  DefenseStat,
+} from "@/domain/optimization/types/OptimizationTypes";
 
 export class OptimizeBuildUseCase {
-  execute(problem: OptimizationProblem): OptimizationResult<AnySolution> {
-    const constraint = problem.constraints[0];
-    if (!constraint) {
-      return {
-        status: "Invalid",
-        solution: null,
-        explanation: { summary: "Sin restricciones", evidence: [] },
-        metrics: { candidatesEvaluated: 0 },
-      };
-    }
+  private readonly speedUC = new OptimizeSpeedUseCase();
+  private readonly survivalUC = new OptimizeSurvivalUseCase();
 
-    if (constraint.variable === "speed") {
-      return SpeedOptimizer.optimize(problem);
-    }
+  optimizeSpeed(input: SpeedOptimizationInput) {
+    return this.speedUC.execute(input);
+  }
 
-    if (
-      constraint.variable === "survival_physical" ||
-      constraint.variable === "survival_special"
-    ) {
-      const evaluator = () => true;
-      const targetStat =
-        constraint.variable === "survival_physical"
-          ? ("defense" as const)
-          : ("special-defense" as const);
-      return SurvivalOptimizer.optimize(problem, evaluator, targetStat);
-    }
-
-    return SpeedOptimizer.optimize(problem);
+  optimizeSurvival(
+    input: SurvivalOptimizationInput,
+    evaluator: SurvivalEvaluator,
+    defenseStat: DefenseStat = "defense",
+  ) {
+    return this.survivalUC.execute(input, evaluator, defenseStat);
   }
 }
+export const optimizeBuildUseCase = new OptimizeBuildUseCase();

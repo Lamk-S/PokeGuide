@@ -1,35 +1,33 @@
-import type { Nature } from "@/domain/stats/types/StatTypes";
-import type { StatSet } from "@/domain/battle/types/BattleParticipant";
-
-export interface OptimizationConstraint {
-  variable: "speed" | "survival_physical" | "survival_special" | string;
-  operator: "gte" | "lte" | "eq";
-  target: number;
-}
-
-export interface OptimizationContext {
-  baseStats: StatSet;
-  ivs: StatSet;
-  level: number;
-  nature: Nature;
-  generation: number;
-}
-
-export class OptimizationProblem {
-  public readonly objective: {
-    type: string;
-    direction: "minimize" | "maximize";
+import type { StatName } from "../types/OptimizationTypes";
+export type OptimizationObjective = {
+  readonly type: "ev_investment";
+  readonly direction: "minimize" | "maximize";
+};
+export type OptimizationConstraint = {
+  readonly variable: string;
+  readonly operator: "gte" | "lte" | "eq";
+  readonly target: number;
+};
+export type OptimizationContext = {
+  readonly baseStats: Record<StatName, number>;
+  readonly ivs: Record<StatName, number>;
+  readonly level: number;
+  readonly nature: {
+    readonly name: string;
+    readonly nameEs?: string;
+    readonly increasedStat: StatName | null;
+    readonly decreasedStat: StatName | null;
   };
-  public readonly constraints: OptimizationConstraint[];
-  public readonly context: OptimizationContext;
-
+  readonly generation: number;
+  readonly currentEVs?: Partial<Record<StatName, number>>;
+};
+export class OptimizationProblem {
   constructor(
-    objective: { type: string; direction: "minimize" | "maximize" },
-    constraints: OptimizationConstraint[],
-    context: OptimizationContext,
-  ) {
-    this.objective = objective;
-    this.constraints = constraints;
-    this.context = context;
+    public readonly objective: OptimizationObjective,
+    public readonly constraints: OptimizationConstraint[],
+    public readonly context: OptimizationContext,
+  ) {}
+  getSpeedTarget(): number | null {
+    return this.constraints.find((x) => x.variable === "speed")?.target ?? null;
   }
 }
