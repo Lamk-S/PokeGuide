@@ -7,12 +7,20 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 
 const inter = Inter({
   subsets: ["latin"],
+  display: "swap",
   weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
+  fallback: ["system-ui", "Arial", "sans-serif"],
+  adjustFontFallback: true,
 });
+
 const mono = JetBrains_Mono({
   subsets: ["latin"],
+  display: "swap",
   weight: ["400", "500", "700"],
   variable: "--font-mono",
+  fallback: ["ui-monospace", "monospace"],
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = {
@@ -31,9 +39,11 @@ export default function RootLayout({
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${inter.className} ${mono.variable}`}
+      className={`${inter.variable} ${mono.variable}`}
     >
-      <body className="flex min-h-screen flex-col bg-[#F8F5F0] text-[#1A1A1A] antialiased">
+      <body
+        className={`${inter.className} flex min-h-screen flex-col bg-[#F8F5F0] text-[#1A1A1A] antialiased`}
+      >
         <SkipLink />
         <ReportWebVitals />
         <Header />

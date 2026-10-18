@@ -6,8 +6,9 @@ const nextConfig: NextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   typedRoutes: true,
+  turbopack: {},
   experimental: {
-    optimizePackageImports: ["lucide-react", "zustand"],
+    optimizePackageImports: ["lucide-react", "zustand", "@base-ui/react"],
   },
   images: {
     remotePatterns: [
@@ -15,6 +16,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "raw.githubusercontent.com",
         pathname: "/PokeAPI/sprites/**",
+      },
+      {
+        protocol: "https",
+        hostname: "play.pokemonshowdown.com",
+        pathname: "/sprites/**",
       },
     ],
   },
