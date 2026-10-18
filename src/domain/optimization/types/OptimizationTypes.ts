@@ -5,93 +5,81 @@ export type StatName =
   | "special-attack"
   | "special-defense"
   | "speed";
-
+export type DefenseStat = "defense" | "special-defense";
+export type OffensiveStat = "attack" | "special-attack";
+export const EV_STEPS = Array.from(
+  { length: 64 },
+  (_, i) => i * 4,
+) as readonly number[];
 export type OptimizationStatus =
+  | "Idle"
+  | "Calculating"
   | "Optimal"
   | "Infeasible"
-  | "Unsupported"
-  | "Calculating";
-
-export interface OptimizationMetrics {
+  | "Unsupported";
+export type OptimizationMetrics = {
   readonly candidatesEvaluated: number;
   readonly iterations: number;
   readonly prunedBranches: number;
   readonly executionTimeMs?: number;
-}
-
-export interface OptimizationExplanation {
+};
+export type ProofCandidate = {
+  readonly ev: number;
+  readonly stat?: number;
+  readonly dmg?: number;
+  readonly percent?: number;
+  readonly hpEv?: number;
+  readonly defenseEv?: number;
+};
+export type Proof = {
+  readonly failingCandidate: ProofCandidate | null;
+  readonly passingCandidate: ProofCandidate | null;
+} | null;
+export type Explanation = {
   readonly summary: string;
-  readonly evidence: string[];
-}
-
-export interface OptimizationProof {
-  readonly failingCandidate: { ev: number; stat: number } | null;
-  readonly passingCandidate: { ev: number; stat: number } | null;
-}
-
-// ---- Speed ----
-export interface SpeedOptimizationResult {
+  readonly evidence: readonly string[];
+};
+export type SpeedOptimizationResult = {
   readonly status: OptimizationStatus;
   readonly solution: number | null;
   readonly achievedStat: number | null;
   readonly target: number;
-  readonly explanation: OptimizationExplanation | null;
+  readonly explanation: Explanation;
   readonly metrics: OptimizationMetrics;
-  readonly proof: OptimizationProof | null;
-}
-
-export interface SpeedOptimizationInput {
-  readonly baseStats: Record<StatName, number>;
-  readonly ivs: Record<StatName, number>;
-  readonly level: number;
-  readonly nature: {
-    readonly name: string;
-    readonly nameEs?: string;
-    readonly increasedStat: StatName | null;
-    readonly decreasedStat: StatName | null;
-  };
-  readonly generation: number;
-  readonly targetSpeed: number;
-  readonly currentEVs?: Partial<Record<StatName, number>>;
-}
-
-// ---- Survival ----
-export type DefenseStat = "defense" | "special-defense";
-
-export interface SurvivalSolution {
+  readonly proof: Proof;
+};
+export type DamageOptimizationResult = {
+  readonly status: OptimizationStatus;
+  readonly solution: number | null;
+  readonly achievedPercent: number | null;
+  readonly target: number;
+  readonly explanation: Explanation;
+  readonly metrics: OptimizationMetrics;
+  readonly proof: Proof;
+  readonly offensiveStat: OffensiveStat;
+};
+export type SurvivalSolution = {
   readonly hp: number;
   readonly defense?: number;
   readonly specialDefense?: number;
   readonly totalEVs: number;
-}
-
-export interface SurvivalOptimizationResult {
+};
+export type SurvivalOptimizationResult = {
   readonly status: OptimizationStatus;
   readonly solution: SurvivalSolution | null;
   readonly totalEVs: number | null;
-  readonly explanation: OptimizationExplanation | null;
+  readonly explanation: Explanation;
   readonly metrics: OptimizationMetrics;
-}
-
-export interface SurvivalOptimizationInput {
-  readonly baseStats: Record<StatName, number>;
-  readonly ivs: Record<StatName, number>;
-  readonly level: number;
-  readonly nature: {
-    readonly name: string;
-    readonly nameEs?: string;
-    readonly increasedStat: StatName | null;
-    readonly decreasedStat: StatName | null;
-  };
-  readonly generation: number;
   readonly defenseStat: DefenseStat;
-  readonly currentEVs?: Partial<Record<StatName, number>>;
-  readonly evaluator?: (hpEV: number, defEV: number) => boolean;
-}
-
-export const EV_STEPS: readonly number[] = Object.freeze(
-  Array.from({ length: 64 }, (_, i) => i * 4),
-);
-
-export const MAX_EV_SINGLE = 252;
-export const MAX_EV_TOTAL = 510;
+};
+export type BuildComparison = {
+  readonly ahorro: number;
+  readonly libres: number;
+  readonly diffs: Array<{
+    stat: StatName;
+    original: number;
+    optimizado: number;
+  }>;
+  readonly originalTotal: number;
+  readonly optimizedTotal: number;
+};

@@ -1,67 +1,55 @@
 import { calculateStats } from "@/domain/stats/services/StatCalculator";
-import type { StatName } from "../types/OptimizationTypes";
-import {
-  EV_STEPS as BASE_EV_STEPS,
-  type SpeedOptimizationResult,
-  type OptimizationMetrics,
-} from "../types/OptimizationTypes";
+import { EV_STEPS } from "../types/OptimizationTypes";
 import type { OptimizationProblem } from "../entities/OptimizationProblem";
-
-type Nature = {
-  readonly name: string;
-  readonly nameEs?: string;
-  readonly increasedStat: StatName | null;
-  readonly decreasedStat: StatName | null;
-};
+import type {
+  SpeedOptimizationResult,
+  StatName,
+} from "../types/OptimizationTypes";
 
 function buildEVs(
   speedEV: number,
-  currentEVs?: Partial<Record<StatName, number>>,
+  cur?: Partial<Record<StatName, number>>,
 ): Record<StatName, number> {
-  const base: Record<StatName, number> = {
-    hp: 0,
-    attack: 0,
-    defense: 0,
-    "special-attack": 0,
-    "special-defense": 0,
-    speed: 0,
+  return {
+    hp: cur?.hp ?? 0,
+    attack: cur?.attack ?? 0,
+    defense: cur?.defense ?? 0,
+    "special-attack": cur?.["special-attack"] ?? 0,
+    "special-defense": cur?.["special-defense"] ?? 0,
+    speed: speedEV,
   };
-  if (currentEVs) {
-    for (const k of Object.keys(currentEVs) as StatName[]) {
-      const v = currentEVs[k];
-      if (typeof v === "number") {
-        base[k] = v;
-      }
-    }
-  }
-  base.speed = speedEV;
-  return base;
 }
 
-function calcSpeedForEV(
-  ev: number,
-  ctx: OptimizationProblem["context"],
-): number {
+function toCalcNature(n: OptimizationProblem["context"]["nature"]) {
+  return {
+    name: n.name,
+    nameEs: n.nameEs,
+    increasedStat: n.increasedStat,
+    decreasedStat: n.decreasedStat,
+  };
+}
+
+function calcSpeed(ev: number, ctx: OptimizationProblem["context"]): number {
   const evs = buildEVs(ev, ctx.currentEVs);
+  const nature = toCalcNature(ctx.nature);
   const result = calculateStats({
-    baseStats: ctx.baseStats as unknown as Record<string, number> &
-      Record<StatName, number>,
+    baseStats: ctx.baseStats,
     level: ctx.level,
-    nature: ctx.nature as unknown as Nature,
-    ivs: ctx.ivs as unknown as Record<string, number> &
-      Record<StatName, number>,
-    evs: evs as unknown as Record<string, number> & Record<StatName, number>,
+    nature,
+    ivs: ctx.ivs,
+    evs,
     generation: ctx.generation,
-  } as never);
-  const speed = (result as Record<StatName, number>).speed;
-  return typeof speed === "number" ? speed : 0;
+  });
+  return (result as Record<StatName, number>).speed ?? 0;
 }
 
-function optimizeSpeed(problem: OptimizationProblem): SpeedOptimizationResult {
+export function optimizeSpeed(
+  problem: OptimizationProblem,
+): SpeedOptimizationResult {
   const start = performance.now();
   const target = problem.getSpeedTarget();
 
-  if (target === null || target === undefined) {
+  if (target === null) {
     return {
       status: "Unsupported",
       solution: null,
@@ -76,21 +64,74 @@ function optimizeSpeed(problem: OptimizationProblem): SpeedOptimizationResult {
     };
   }
 
+  if (!Number.isFinite(target) || target <= 0) {
+    return {
+      status: "Unsupported",
+      solution: null,
+      achievedStat: null,
+      target,
+      explanation: { summary: `Objetivo inválido ${target}`, evidence: [] },
+      metrics: { candidatesEvaluated: 0, iterations: 0, prunedBranches: 0 },
+      proof: null,
+    };
+  }
+
+  const otherTotal = problem.getOtherEVsTotal("speed");
+  const maxAvailable = Math.min(252, 510 - otherTotal);
+
+  if (maxAvailable < 0) {
+    return {
+      status: "Infeasible",
+      solution: null,
+      achievedStat: null,
+      target,
+      explanation: {
+        summary: `Presupuesto excedido: otros EVs suman ${otherTotal}`,
+        evidence: [`Otros EVs ${otherTotal} > 510`],
+      },
+      metrics: {
+        candidatesEvaluated: 0,
+        iterations: 0,
+        prunedBranches: 0,
+        executionTimeMs: performance.now() - start,
+      },
+      proof: null,
+    };
+  }
+
+  const feasible = EV_STEPS.filter((ev) => ev <= maxAvailable);
+
+  if (feasible.length === 0) {
+    return {
+      status: "Infeasible",
+      solution: null,
+      achievedStat: null,
+      target,
+      explanation: { summary: `Sin presupuesto para Speed`, evidence: [] },
+      metrics: {
+        candidatesEvaluated: 0,
+        iterations: 0,
+        prunedBranches: 0,
+        executionTimeMs: performance.now() - start,
+      },
+      proof: null,
+    };
+  }
+
   let low = 0;
-  let high = BASE_EV_STEPS.length - 1;
+  let high = feasible.length - 1;
   let bestIdx = -1;
   let bestStat: number | null = null;
-  let evaluations = 0;
+  let evals = 0;
   let lastFail: { ev: number; stat: number } | null = null;
   let firstPass: { ev: number; stat: number } | null = null;
   const history: Array<{ ev: number; stat: number; pass: boolean }> = [];
 
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
-    const ev = BASE_EV_STEPS[mid];
-    if (ev === undefined) break;
-    const stat = calcSpeedForEV(ev, problem.context);
-    evaluations++;
+    const ev = feasible[mid] as number;
+    const stat = calcSpeed(ev, problem.context);
+    evals++;
     const pass = stat >= target;
     history.push({ ev, stat, pass });
     if (pass) {
@@ -105,95 +146,54 @@ function optimizeSpeed(problem: OptimizationProblem): SpeedOptimizationResult {
   }
 
   if (bestIdx !== -1) {
-    const bestEvCandidate = BASE_EV_STEPS[bestIdx];
-    if (bestEvCandidate === undefined) {
-      return {
-        status: "Infeasible",
-        solution: null,
-        achievedStat: null,
-        target,
-        explanation: {
-          summary: `Imposible alcanzar ${target} Speed incluso con 252 EVs`,
-          evidence: history.map(
-            (h) => `${h.ev} EV → ${h.stat} Speed ${h.pass ? "✅" : "❌"}`,
-          ),
-        },
-        metrics: {
-          candidatesEvaluated: evaluations,
-          iterations: evaluations,
-          prunedBranches: 0,
-          executionTimeMs: performance.now() - start,
-        },
-        proof: { failingCandidate: lastFail, passingCandidate: firstPass },
-      };
+    const bestEv = feasible[bestIdx] as number;
+    if (bestIdx > 0 && !lastFail) {
+      const prevEv = feasible[bestIdx - 1] as number;
+      const prevStat = calcSpeed(prevEv, problem.context);
+      evals++;
+      lastFail = { ev: prevEv, stat: prevStat };
+      history.push({ ev: prevEv, stat: prevStat, pass: false });
     }
-    const bestEv = bestEvCandidate;
-
-    if (bestIdx > 0) {
-      const prevEv = BASE_EV_STEPS[bestIdx - 1];
-      if (prevEv !== undefined) {
-        const isImmediateFail = lastFail !== null && lastFail.ev === prevEv;
-        if (!isImmediateFail) {
-          const prevStat = calcSpeedForEV(prevEv, problem.context);
-          evaluations++;
-          lastFail = { ev: prevEv, stat: prevStat };
-          if (!history.some((h) => h.ev === prevEv)) {
-            history.push({ ev: prevEv, stat: prevStat, pass: false });
-          }
-        }
-      }
-    }
-
-    history.sort((a, b) => a.ev - b.ev);
     const evidence: string[] = [];
     if (lastFail)
-      evidence.push(`${lastFail.ev} EV → ${lastFail.stat} Speed ❌`);
+      evidence.push(`${lastFail.ev} EV → ${lastFail.stat} Speed — no alcanza`);
     if (firstPass)
-      evidence.push(`${firstPass.ev} EV → ${firstPass.stat} Speed ✅`);
-    if (evidence.length === 0 && firstPass) {
-      evidence.push(
-        `${firstPass.ev} EV → ${firstPass.stat} Speed ✅ (ya supera objetivo con 0 EVs)`,
-      );
-    }
-
-    const metrics: OptimizationMetrics = {
-      candidatesEvaluated: evaluations,
-      iterations: evaluations,
-      prunedBranches: 0,
-      executionTimeMs: performance.now() - start,
-    };
-
-    const summary = lastFail
-      ? `Con ${lastFail.ev} EVs llegas a ${lastFail.stat}, fallando por ${target - lastFail.stat} punto(s). Con ${bestEv} EVs llegas a ${bestStat ?? 0}, logrando la meta.`
-      : `Objetivo ${target} alcanzado con ${bestEv} EVs (${bestStat ?? 0} Speed)`;
-
+      evidence.push(`${firstPass.ev} EV → ${firstPass.stat} Speed — cumple`);
     return {
       status: "Optimal",
       solution: bestEv,
       achievedStat: bestStat,
       target,
-      explanation: { summary, evidence },
-      metrics,
+      explanation: {
+        summary: lastFail
+          ? `Con ${lastFail.ev} EVs llegas a ${lastFail.stat}, insuficiente para ${target}. Con ${bestEv} EVs alcanzas ${bestStat}.`
+          : `Objetivo ${target} alcanzado con ${bestEv} EVs (${bestStat} Speed).`,
+        evidence,
+      },
+      metrics: {
+        candidatesEvaluated: evals,
+        iterations: evals,
+        prunedBranches: 0,
+        executionTimeMs: performance.now() - start,
+      },
       proof: { failingCandidate: lastFail, passingCandidate: firstPass },
     };
   }
 
-  const lastStep = BASE_EV_STEPS[BASE_EV_STEPS.length - 1];
-  const maxEv = lastStep ?? 252;
-  const maxStat = calcSpeedForEV(maxEv, problem.context);
-
+  const maxEv = feasible[feasible.length - 1] as number;
+  const maxStat = calcSpeed(maxEv, problem.context);
   return {
     status: "Infeasible",
     solution: null,
     achievedStat: maxStat,
     target,
     explanation: {
-      summary: `Inalcanzable: ${target} Speed > ${maxStat} máximo con 252 EVs`,
-      evidence: history.map((h) => `${h.ev} EV → ${h.stat} Speed ❌`),
+      summary: `Inalcanzable: ${target} Speed > ${maxStat} máximo con ${maxEv} EVs`,
+      evidence: history.map((h) => `${h.ev} EV → ${h.stat} Speed — no alcanza`),
     },
     metrics: {
-      candidatesEvaluated: evaluations,
-      iterations: evaluations,
+      candidatesEvaluated: evals,
+      iterations: evals,
       prunedBranches: 0,
       executionTimeMs: performance.now() - start,
     },
@@ -204,9 +204,4 @@ function optimizeSpeed(problem: OptimizationProblem): SpeedOptimizationResult {
   };
 }
 
-export const SpeedOptimizer = {
-  EV_STEPS: BASE_EV_STEPS,
-  optimize: optimizeSpeed,
-};
-
-export { optimizeSpeed };
+export const SpeedOptimizer = { EV_STEPS, optimize: optimizeSpeed };

@@ -1,44 +1,53 @@
 import { OptimizationProblem } from "@/domain/optimization/entities/OptimizationProblem";
-import { SurvivalOptimizer } from "@/domain/optimization/services/SurvivalOptimizer";
+import {
+  optimizeSurvival,
+  type SurvivalEvaluator,
+} from "@/domain/optimization/services/SurvivalOptimizer";
 import type {
-  SurvivalOptimizationInput,
-  SurvivalOptimizationResult,
+  StatName,
   DefenseStat,
 } from "@/domain/optimization/types/OptimizationTypes";
+import type { NatureContext } from "@/domain/optimization/entities/OptimizationProblem";
 
-export type SurvivalEvaluator = (hpEV: number, defEV: number) => boolean;
+export type OptimizeSurvivalInput = {
+  readonly baseStats: Record<StatName, number>;
+  readonly ivs: Record<StatName, number>;
+  readonly nature: {
+    name: string;
+    nameEs?: string;
+    increasedStat: StatName | null;
+    decreasedStat: StatName | null;
+  };
+  readonly level: number;
+  readonly generation: number;
+  readonly defenseStat: DefenseStat;
+  readonly currentEVs?: Partial<Record<StatName, number>>;
+  readonly evaluator: SurvivalEvaluator;
+};
 
-export class OptimizeSurvivalUseCase {
-  execute(
-    input: SurvivalOptimizationInput,
-    evaluator: SurvivalEvaluator,
-    defenseStat: DefenseStat = "defense",
-  ): SurvivalOptimizationResult {
-    const variable =
-      defenseStat === "defense" ? "survival_physical" : "survival_special";
-    const problem = new OptimizationProblem(
-      { type: "ev_investment", direction: "minimize" },
-      [{ variable, operator: "gte", target: 1 }],
-      {
-        baseStats: input.baseStats,
-        ivs: input.ivs,
-        level: input.level,
-        nature: input.nature,
-        generation: input.generation,
-        currentEVs: input.currentEVs,
-      },
-    );
-    const finalEvaluator = input.evaluator ?? evaluator;
-    if (!finalEvaluator) {
-      return {
-        status: "Unsupported",
-        solution: null,
-        totalEVs: null,
-        explanation: { summary: "Evaluator no proporcionado", evidence: [] },
-        metrics: { candidatesEvaluated: 0, iterations: 0, prunedBranches: 0 },
-      };
-    }
-    return SurvivalOptimizer.optimize(problem, finalEvaluator, defenseStat);
-  }
+function toNatureContext(n: OptimizeSurvivalInput["nature"]): NatureContext {
+  return {
+    name: n.name,
+    nameEs: n.nameEs ?? n.name,
+    increasedStat: n.increasedStat,
+    decreasedStat: n.decreasedStat,
+  };
 }
-export const optimizeSurvivalUseCase = new OptimizeSurvivalUseCase();
+
+export function OptimizeSurvivalUseCase(input: OptimizeSurvivalInput) {
+  const survivalVar =
+    input.defenseStat === "defense" ? "survival_physical" : "survival_special";
+  const problem = new OptimizationProblem(
+    { type: "ev_investment", direction: "minimize" },
+    [{ variable: survivalVar, operator: "gte", target: 1 }],
+    {
+      baseStats: input.baseStats,
+      ivs: input.ivs,
+      level: input.level,
+      nature: toNatureContext(input.nature),
+      generation: input.generation,
+      currentEVs: input.currentEVs ?? {},
+    },
+  );
+  return optimizeSurvival(problem, input.evaluator, input.defenseStat);
+}
