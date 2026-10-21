@@ -2,28 +2,67 @@ import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories
 import { LocalMoveRepository } from "@/infrastructure/local-data/repositories/local-move.repository";
 import { LocalAbilityRepository } from "@/infrastructure/local-data/repositories/local-ability.repository";
 import { LocalItemRepository } from "@/infrastructure/local-data/repositories/local-item.repository";
+
 import { PokemonBaseProviderAdapter } from "@/infrastructure/battle/PokemonBaseProviderAdapter";
 import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCalculatorAdapter";
+
 import { CalculateBattleScenarioUseCase } from "@/application/battle/CalculateBattleScenarioUseCase";
 import { AnalyzeTeamUseCase } from "@/application/team/AnalyzeTeamUseCase";
 import { CompareGenerationsUseCase } from "@/application/generations/CompareGenerationsUseCase";
 import { PlanBreedingUseCase } from "@/application/breeding/PlanBreedingUseCase";
 import { CalculatePokemonStats } from "@/application/stats/CalculatePokemonStats";
-import { OptimizeBuildUseCase } from "@/application/optimization/OptimizeBuildUseCase";
-import { OptimizeSpeedUseCase } from "@/application/optimization/OptimizeSpeedUseCase";
-import { OptimizeSurvivalUseCase } from "@/application/optimization/OptimizeSurvivalUseCase";
-import { OptimizeDamageUseCase } from "@/application/optimization/OptimizeDamageUseCase";
-import { OptimizeSurvivalWithBattleUseCase } from "@/application/optimization/OptimizeSurvivalWithBattleUseCase";
+
+import * as OptimizeBuildModule from "@/application/optimization/OptimizeBuildUseCase";
+import * as OptimizeSpeedModule from "@/application/optimization/OptimizeSpeedUseCase";
+import * as OptimizeSurvivalModule from "@/application/optimization/OptimizeSurvivalUseCase";
+import * as OptimizeDamageModule from "@/application/optimization/OptimizeDamageUseCase";
+import * as OptimizeSurvivalWithBattleModule from "@/application/optimization/OptimizeSurvivalWithBattleUseCase";
 
 type ContainerState = "idle" | "initializing" | "ready" | "failed";
+type Executable = { execute: (input: unknown) => Promise<unknown> };
+type ModuleRecord = Record<string, unknown>;
+type FunctionCandidate = (input: unknown) => Promise<unknown>;
+type ClassCandidate = new (arg?: unknown) => Executable;
 
-type RepositoryLike = {
-  init: () => Promise<void>;
-  getAll?: () => Promise<unknown[]>;
-  findAll?: () => Promise<unknown[]>;
-  getById?: (id: number) => Promise<unknown>;
-  getGroupedByType?: () => Promise<Record<string, unknown[]>>;
-};
+function hasExecute(value: unknown): value is Executable {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "execute" in value &&
+    typeof (value as { execute: unknown }).execute === "function"
+  );
+}
+
+function toExecutable(mod: unknown, fallback?: unknown): Executable {
+  const m = mod as ModuleRecord;
+  const candidate = (m.OptimizeBuildUseCase ??
+    m.OptimizeSpeedUseCase ??
+    m.OptimizeSurvivalUseCase ??
+    m.OptimizeDamageUseCase ??
+    m.OptimizeSurvivalWithBattleUseCase ??
+    m.default ??
+    m) as unknown;
+
+  if (hasExecute(candidate)) return candidate;
+
+  if (typeof candidate === "function") {
+    const withProto = candidate as { prototype?: { execute?: unknown } };
+    if (
+      withProto.prototype &&
+      typeof withProto.prototype.execute === "function"
+    ) {
+      try {
+        const inst = new (candidate as ClassCandidate)(fallback);
+        if (hasExecute(inst)) return inst;
+      } catch {}
+    }
+    return {
+      execute: (input: unknown) => (candidate as FunctionCandidate)(input),
+    };
+  }
+
+  return { execute: async () => ({}) };
+}
 
 export class CompositionContainer {
   private static instance: CompositionContainer | null = null;
@@ -45,11 +84,11 @@ export class CompositionContainer {
   private planBreedingUseCase!: PlanBreedingUseCase;
   private calculatePokemonStatsUseCase!: CalculatePokemonStats;
 
-  private optimizeBuildUseCase!: unknown;
-  private optimizeSpeedUseCase!: unknown;
-  private optimizeSurvivalUseCase!: unknown;
-  private optimizeDamageUseCase!: unknown;
-  private optimizeSurvivalWithBattleUseCase!: unknown;
+  private optimizeBuildUseCase!: Executable;
+  private optimizeSpeedUseCase!: Executable;
+  private optimizeSurvivalUseCase!: Executable;
+  private optimizeDamageUseCase!: Executable;
+  private optimizeSurvivalWithBattleUseCase!: Executable;
 
   private constructor() {}
 
@@ -71,45 +110,35 @@ export class CompositionContainer {
         this.moveRepository = new LocalMoveRepository();
         this.abilityRepository = new LocalAbilityRepository();
         this.itemRepository = new LocalItemRepository();
+
         await Promise.all([
           this.pokemonRepository.init(),
           this.moveRepository.init(),
           this.abilityRepository.init(),
           this.itemRepository.init(),
         ]);
+
         this.pokemonBaseProvider = new PokemonBaseProviderAdapter(
-          this.pokemonRepository as unknown as never,
+          this.pokemonRepository as never,
         );
         this.battleCalculator = new SmogonCalculatorAdapter();
+
         this.calculateBattleScenarioUseCase =
           new CalculateBattleScenarioUseCase(
-            this.pokemonBaseProvider as unknown as never,
-            this.battleCalculator as unknown as never,
+            this.pokemonBaseProvider as never,
+            this.battleCalculator as never,
           );
         this.analyzeTeamUseCase = new AnalyzeTeamUseCase();
         this.compareGenerationsUseCase = new CompareGenerationsUseCase();
         this.planBreedingUseCase = new PlanBreedingUseCase();
         this.calculatePokemonStatsUseCase = new CalculatePokemonStats();
 
-        const tryCreate = (Ctor: unknown, ...args: unknown[]): unknown => {
-          try {
-            const ctor = Ctor as {
-              prototype?: { execute?: unknown };
-              new (...a: unknown[]): unknown;
-            };
-            if (typeof ctor === "function" && ctor.prototype?.execute)
-              return new ctor(...args);
-            return Ctor;
-          } catch {
-            return Ctor;
-          }
-        };
-        this.optimizeBuildUseCase = tryCreate(OptimizeBuildUseCase);
-        this.optimizeSpeedUseCase = tryCreate(OptimizeSpeedUseCase);
-        this.optimizeSurvivalUseCase = tryCreate(OptimizeSurvivalUseCase);
-        this.optimizeDamageUseCase = tryCreate(OptimizeDamageUseCase);
-        this.optimizeSurvivalWithBattleUseCase = tryCreate(
-          OptimizeSurvivalWithBattleUseCase,
+        this.optimizeBuildUseCase = toExecutable(OptimizeBuildModule);
+        this.optimizeSpeedUseCase = toExecutable(OptimizeSpeedModule);
+        this.optimizeSurvivalUseCase = toExecutable(OptimizeSurvivalModule);
+        this.optimizeDamageUseCase = toExecutable(OptimizeDamageModule);
+        this.optimizeSurvivalWithBattleUseCase = toExecutable(
+          OptimizeSurvivalWithBattleModule,
           this.pokemonBaseProvider,
         );
 
@@ -149,26 +178,28 @@ export class CompositionContainer {
     this.ensureReady();
     return this.calculatePokemonStatsUseCase;
   }
-  getOptimizeBuildUseCase(): unknown {
+
+  getOptimizeBuildUseCase(): Executable {
     this.ensureReady();
     return this.optimizeBuildUseCase;
   }
-  getOptimizeSpeedUseCase(): unknown {
+  getOptimizeSpeedUseCase(): Executable {
     this.ensureReady();
     return this.optimizeSpeedUseCase;
   }
-  getOptimizeSurvivalUseCase(): unknown {
+  getOptimizeSurvivalUseCase(): Executable {
     this.ensureReady();
     return this.optimizeSurvivalUseCase;
   }
-  getOptimizeDamageUseCase(): unknown {
+  getOptimizeDamageUseCase(): Executable {
     this.ensureReady();
     return this.optimizeDamageUseCase;
   }
-  getOptimizeSurvivalWithBattleUseCase(): unknown {
+  getOptimizeSurvivalWithBattleUseCase(): Executable {
     this.ensureReady();
     return this.optimizeSurvivalWithBattleUseCase;
   }
+
   getPokemonRepository(): LocalPokemonRepository {
     this.ensureReady();
     return this.pokemonRepository;
@@ -184,41 +215,6 @@ export class CompositionContainer {
   getItemRepository(): LocalItemRepository {
     this.ensureReady();
     return this.itemRepository;
-  }
-
-  get pokemon(): RepositoryLike {
-    this.ensureReady();
-    const repo = this.pokemonRepository as unknown as RepositoryLike;
-    return {
-      init: () => repo.init(),
-      getAll: () => repo.getAll?.() ?? repo.findAll?.() ?? Promise.resolve([]),
-      getById: (id: number) => repo.getById?.(id) ?? Promise.resolve(undefined),
-    };
-  }
-  get moves(): RepositoryLike {
-    this.ensureReady();
-    const repo = this.moveRepository as unknown as RepositoryLike;
-    return {
-      init: () => repo.init(),
-      getAll: () => repo.getAll?.() ?? repo.findAll?.() ?? Promise.resolve([]),
-      getGroupedByType: () => repo.getGroupedByType?.() ?? Promise.resolve({}),
-    };
-  }
-  get abilities(): RepositoryLike {
-    this.ensureReady();
-    const repo = this.abilityRepository as unknown as RepositoryLike;
-    return {
-      init: () => repo.init(),
-      getAll: () => repo.getAll?.() ?? Promise.resolve([]),
-    };
-  }
-  get items(): RepositoryLike {
-    this.ensureReady();
-    const repo = this.itemRepository as unknown as RepositoryLike;
-    return {
-      init: () => repo.init(),
-      getAll: () => repo.getAll?.() ?? Promise.resolve([]),
-    };
   }
 
   getState(): ContainerState {

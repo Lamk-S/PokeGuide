@@ -4,37 +4,41 @@ import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIden
 import { resolvePokemonSprite } from "@/domain/pokemon/services/PokemonSpriteResolver";
 
 function getSpriteChain(input: { id: number; name: string }) {
-  const identity = parsePokemonIdentity(input);
+  const identity = parsePokemonIdentity(input.id, input.name);
   const resolved = resolvePokemonSprite(identity);
   return resolved.chain;
 }
 
 describe("Id-first identity", () => {
   it("mapper recibe ID y no depende de nombre como identidad interna", () => {
-    const r = SmogonSpeciesMapper.resolve({ id: 487, name: "giratina-altered" }, 9);
+    const identity = parsePokemonIdentity(487, "giratina-altered");
+    const r = SmogonSpeciesMapper.resolve(identity, 9);
     expect(r.smogonName).toBe("Giratina");
     expect(r.supported).toBe(true);
   });
 
   it("dos formas con IDs distintos no se mezclan", () => {
-    const altered = SmogonSpeciesMapper.resolve({ id: 487, name: "giratina-altered" }, 9);
-    const origin = SmogonSpeciesMapper.resolve({ id: 487, name: "giratina-origin" }, 9);
+    const alteredId = parsePokemonIdentity(487, "giratina-altered");
+    const originId = parsePokemonIdentity(487, "giratina-origin");
+    const altered = SmogonSpeciesMapper.resolve(alteredId, 9);
+    const origin = SmogonSpeciesMapper.resolve(originId, 9);
     expect(altered.smogonName).not.toBe(origin.smogonName);
   });
 
   it("forma no soportada genera error funcional en adapter", () => {
-    const r = SmogonSpeciesMapper.resolve({ id: 10307, name: "absol-mega-z" }, 9);
+    const id = parsePokemonIdentity(10307, "absol-mega-z");
+    const r = SmogonSpeciesMapper.resolve(id, 9);
     expect(r.supported).toBe(false);
   });
 
   it("sprite resolver usa ID como identidad, estático y sin fallback incorrecto", () => {
     const chainBase = getSpriteChain({ id: 487, name: "giratina-altered" });
-    const firstBase = chainBase[0]?? "";
+    const firstBase = chainBase[0] ?? "";
     expect(firstBase).toContain("/487.png");
     expect(firstBase).toContain("/home/");
 
     const chainOrigin = getSpriteChain({ id: 10007, name: "giratina-origin" });
-    const firstOrigin = chainOrigin[0]?? "";
+    const firstOrigin = chainOrigin[0] ?? "";
     expect(firstOrigin).toContain("/10007.png");
     expect(firstOrigin).not.toBe(firstBase);
 
@@ -46,7 +50,8 @@ describe("Id-first identity", () => {
   });
 
   it("Gmax en Gen 7 no soportado como Gmax", () => {
-    const r = SmogonSpeciesMapper.resolve({ id: 6, name: "charizard-gmax" }, 7);
+    const id = parsePokemonIdentity(6, "charizard-gmax");
+    const r = SmogonSpeciesMapper.resolve(id, 7);
     expect(r.isFallbackToBase).toBe(true);
   });
 });
