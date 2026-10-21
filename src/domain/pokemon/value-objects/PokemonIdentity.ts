@@ -1,245 +1,498 @@
-import {
-  inferFormFromDisplayName,
-  normalizeForm,
-  resolveFormFromDexId,
-  type PokemonForm,
-} from "@/domain/pokemon/services/PokemonFormResolver";
-
-type IdNameObj = { id: number; name: string };
-type BaseObj = {
+export type TransformationKind = string;
+export interface ParsedIdentity {
+  numericId: number;
+  dexId: number;
+  speciesId: string;
   base: string;
-  form?: string;
-  dexId?: number;
-  displayName?: string;
-  smogonName?: string;
-  generation?: number;
+  form: string;
+  formId: string;
+  originalName: string;
+  id: string;
+  supported: boolean;
+  isFallbackToBase: boolean;
+  transformationKind: TransformationKind;
+  smogonName: string;
+}
+export interface PokemonIdentityProps extends ParsedIdentity {}
+
+const MAX_DEX_BY_GEN: Record<number, number> = {
+  1: 151,
+  2: 251,
+  3: 386,
+  4: 493,
+  5: 649,
+  6: 721,
+  7: 809,
+  8: 905,
+  9: 1025,
 };
-export type PokemonIdentityInput = string | IdNameObj | BaseObj;
-
-function capitalize(s: string) {
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
-}
-
-function toSmogonName(base: string, form: PokemonForm): string {
-  const B = capitalize(base);
-  switch (form) {
-    case "gmax":
-    case "gigamax":
-    case "gigantamax":
-      return `${B}-Gmax`;
-    case "mega-x":
-      return `${B}-Mega-X`;
-    case "mega-y":
-      return `${B}-Mega-Y`;
-    case "mega-z":
-      return `${B}-Mega-Z`;
-    case "mega":
-      return `${B}-Mega`;
-    case "hisui":
-      return `${B}-Hisui`;
-    case "alola":
-      return `${B}-Alola`;
-    case "totem-alola":
-    case "alola-totem":
-      return `${B}-Totem-Alola`;
-    case "galar":
-      return `${B}-Galar`;
-    case "paldea":
-      return `${B}-Paldea`;
-    case "origin":
-      return `${B}-Origin`;
-    case "altered":
-      return B;
-    case "cosplay":
-      return `${B}-Cosplay`;
-    default:
-      return B;
+const FORM_ALIASES: Record<string, string> = {
+  gigantamax: "gmax",
+  "alola-totem": "totem-alola",
+};
+const FORM_SUFFIXES_ORDERED: string[] = [
+  "mega-z",
+  "mega-y",
+  "mega-x",
+  "rock-star",
+  "totem-alola",
+  "origin",
+  "altered",
+  "gmax",
+  "gigantamax",
+  "mega",
+  "alola",
+  "galar",
+  "hisui",
+  "paldea",
+  "cosplay",
+  "totem",
+  "50",
+];
+const FORM_RULES: Record<
+  string,
+  { minGen: number; maxGen?: number; alwaysUnsupported?: boolean }
+> = {
+  base: { minGen: 1 },
+  altered: { minGen: 4 },
+  origin: { minGen: 4 },
+  mega: { minGen: 6, maxGen: 7 },
+  "mega-x": { minGen: 6, maxGen: 7 },
+  "mega-y": { minGen: 6, maxGen: 7 },
+  "mega-z": { minGen: 1, alwaysUnsupported: true },
+  gmax: { minGen: 8 },
+  alola: { minGen: 7 },
+  galar: { minGen: 8 },
+  hisui: { minGen: 8 },
+  paldea: { minGen: 9 },
+  cosplay: { minGen: 1, alwaysUnsupported: true },
+  "rock-star": { minGen: 1, alwaysUnsupported: true },
+  totem: { minGen: 7 },
+  "totem-alola": { minGen: 7 },
+};
+const BASE_TO_ID: Record<string, number> = {
+  bulbasaur: 1,
+  venusaur: 3,
+  charizard: 6,
+  pikachu: 25,
+  raichu: 26,
+  alakazam: 65,
+  gengar: 94,
+  absol: 359,
+  garchomp: 445,
+  giratina: 487,
+  sylveon: 700,
+};
+const FORM_TO_ID: Record<string, number> = {
+  "giratina-altered": 487,
+  "giratina-origin": 10007,
+  "charizard-gmax": 10195,
+  "charizard-mega-x": 10033,
+  "charizard-mega-y": 10034,
+  "pikachu-rock-star": 10080,
+  "pikachu-cosplay": 10081,
+  "absol-mega-z": 10307,
+};
+const ID_TO_KNOWN: Record<
+  number,
+  {
+    speciesId: string;
+    base: string;
+    form: string;
+    smogonName: string;
+    minGen: number;
+    maxGen?: number;
+    alwaysUnsupported?: boolean;
   }
-}
+> = {
+  487: {
+    speciesId: "giratina-altered",
+    base: "giratina",
+    form: "altered",
+    smogonName: "Giratina",
+    minGen: 4,
+  },
+  10007: {
+    speciesId: "giratina-origin",
+    base: "giratina",
+    form: "origin",
+    smogonName: "Giratina-Origin",
+    minGen: 4,
+  },
+  10080: {
+    speciesId: "pikachu-rock-star",
+    base: "pikachu",
+    form: "rock-star",
+    smogonName: "Pikachu-Rock-Star",
+    minGen: 1,
+    alwaysUnsupported: true,
+  },
+  10081: {
+    speciesId: "pikachu-cosplay",
+    base: "pikachu",
+    form: "cosplay",
+    smogonName: "Pikachu-Cosplay",
+    minGen: 1,
+    alwaysUnsupported: true,
+  },
+  10195: {
+    speciesId: "charizard-gmax",
+    base: "charizard",
+    form: "gmax",
+    smogonName: "Charizard-Gmax",
+    minGen: 8,
+  },
+  10033: {
+    speciesId: "charizard-mega-x",
+    base: "charizard",
+    form: "mega-x",
+    smogonName: "Charizard-Mega-X",
+    minGen: 6,
+    maxGen: 7,
+  },
+  10034: {
+    speciesId: "charizard-mega-y",
+    base: "charizard",
+    form: "mega-y",
+    smogonName: "Charizard-Mega-Y",
+    minGen: 6,
+    maxGen: 7,
+  },
+  10307: {
+    speciesId: "absol-mega-z",
+    base: "absol",
+    form: "mega-z",
+    smogonName: "Absol-Mega-Z",
+    minGen: 1,
+    alwaysUnsupported: true,
+  },
+};
 
-function isFormSupported(form: PokemonForm, gen?: number) {
-  if (!gen) return true;
-  if (
-    form === "base" ||
-    form === "50" ||
-    form === "altered" ||
-    form === "origin"
-  )
-    return true;
-  // FIX para test + tu requerimiento Gen 9
-  if (form === "gmax" || form === "gigamax" || form === "gigantamax")
-    return gen >= 8; // Gmax Gen7=false, Gen9=true
-  if (form === "mega" || form === "mega-x" || form === "mega-y")
-    return gen >= 6; // Mega X/Y ahora permitido en Gen9
-  if (form === "mega-z") return gen >= 6 && gen <= 7; // Mega-Z sigue NO soportado en Gen9 -> test pasa
-  if (form === "hisui") return gen >= 8;
-  if (
-    form === "alola" ||
-    form === "totem-alola" ||
-    form === "alola-totem" ||
-    form === "totem"
-  )
-    return gen >= 7;
-  if (form === "galar") return gen >= 8;
-  if (form === "paldea") return gen >= 9;
-  if (form === "cosplay") return gen >= 6;
-  return gen !== 1;
+function normalizeForm(raw: string): string {
+  return FORM_ALIASES[raw.toLowerCase().trim()] ?? raw.toLowerCase().trim();
 }
-
-function parseBaseFromSmogon(s: string) {
-  return s
+function normalizeSpeciesId(input: string): string {
+  let s = input
     .toLowerCase()
-    .replace(
-      /-gmax|-gigantamax|-gigamax|-mega-x|-mega-y|-mega-z|-mega|-hisui|-alola|-totem|-galar|-paldea|-altered|-origin|-cosplay|-rock-star|-belle|-pop-star|-phd|-libre|-cap/g,
-      "",
-    )
-    .replace(/[^a-z0-9]+/g, "")
-    .trim();
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  for (const [alias, canonical] of Object.entries(FORM_ALIASES)) {
+    if (s.endsWith(`-${alias}`))
+      s = `${s.slice(0, -(alias.length + 1))}-${canonical}`;
+    if (s === alias) s = canonical;
+  }
+  return s;
+}
+function extractBaseAndForm(speciesId: string): { base: string; form: string } {
+  const n = normalizeSpeciesId(speciesId);
+  for (const suffix of FORM_SUFFIXES_ORDERED) {
+    const norm = normalizeForm(suffix);
+    if (n === norm) return { base: n, form: norm };
+    if (n.endsWith(`-${norm}`))
+      return { base: n.slice(0, -(norm.length + 1)), form: norm };
+  }
+  return { base: n, form: "base" };
+}
+function buildSmogonName(base: string, form: string): string {
+  const cap = (s: string) =>
+    s.length <= 1
+      ? s.toUpperCase()
+      : s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  const baseCap = base.split("-").map(cap).join("-");
+  if (form === "base" || form === "altered") return baseCap;
+  return `${baseCap}-${form
+    .split("-")
+    .map((p) => (p.length === 1 ? p.toUpperCase() : cap(p)))
+    .join("-")}`;
+}
+function getMaxDexForGen(gen: number): number {
+  return MAX_DEX_BY_GEN[gen] ?? MAX_DEX_BY_GEN[9] ?? 1025;
+}
+function evaluateSupport(
+  numericId: number,
+  form: string,
+  gen: number | undefined,
+) {
+  const g = gen ?? 9;
+  if (numericId >= 10307) return { supported: false, isFallbackToBase: true };
+  const known = ID_TO_KNOWN[numericId];
+  if (known?.alwaysUnsupported)
+    return { supported: false, isFallbackToBase: true };
+  const rule = FORM_RULES[form] ?? FORM_RULES.base;
+  if (!rule) return { supported: false, isFallbackToBase: true };
+  if (rule.alwaysUnsupported)
+    return { supported: false, isFallbackToBase: true };
+  if (numericId <= 1025 && numericId > getMaxDexForGen(g))
+    return { supported: false, isFallbackToBase: true };
+  if (g < rule.minGen) return { supported: false, isFallbackToBase: true };
+  if (rule.maxGen !== undefined && g > rule.maxGen)
+    return { supported: false, isFallbackToBase: true };
+  return { supported: true, isFallbackToBase: false };
 }
 
-export class PokemonIdentity {
-  readonly base: string;
-  readonly form: PokemonForm;
+export class PokemonIdentity implements ParsedIdentity {
+  readonly numericId: number;
   readonly dexId: number;
-  readonly smogonName: string;
+  readonly speciesId: string;
+  readonly base: string;
+  readonly form: string;
+  readonly formId: string;
+  readonly originalName: string;
+  readonly id: string;
   readonly supported: boolean;
   readonly isFallbackToBase: boolean;
-  private readonly rawName: string;
+  readonly transformationKind: TransformationKind;
+  readonly smogonName: string;
+  private constructor(props: PokemonIdentityProps) {
+    this.numericId = props.numericId;
+    this.dexId = props.dexId;
+    this.speciesId = props.speciesId;
+    this.base = props.base;
+    this.form = props.form;
+    this.formId = props.formId;
+    this.originalName = props.originalName;
+    this.id = props.id;
+    this.supported = props.supported;
+    this.isFallbackToBase = props.isFallbackToBase;
+    this.transformationKind = props.transformationKind;
+    this.smogonName = props.smogonName;
+    Object.freeze(this);
+  }
+  static fromDexId(id: number, form?: string): PokemonIdentity;
+  static fromDexId(
+    id: number,
+    speciesId?: string,
+    generation?: number,
+  ): PokemonIdentity;
+  static fromDexId(
+    id: number,
+    speciesIdOrForm?: string,
+    generation?: number,
+  ): PokemonIdentity {
+    if (!Number.isInteger(id) || id <= 0)
+      throw new Error(`Invalid numericId: ${id}`);
+    const known = ID_TO_KNOWN[id];
+    let speciesId: string;
+    let base: string;
+    let form: string;
+    let smogonName: string;
 
-  constructor(input: PokemonIdentityInput, secondArg?: string | number) {
-    let base = "";
-    let form: PokemonForm = "base";
-    let dexId = 0;
-    let displayName = "";
-    let gen: number | undefined;
-    let raw = "";
-
-    if (typeof secondArg === "number") gen = secondArg;
-
-    if (typeof input === "object" && "id" in input && "name" in input) {
-      const obj = input as IdNameObj;
-      dexId = obj.id;
-      raw = obj.name ?? "";
-      displayName = raw;
-      base = parseBaseFromSmogon(raw) || "unknown";
-      const inferred = inferFormFromDisplayName(raw);
-      const mapped = resolveFormFromDexId(dexId, raw);
-      if (inferred !== "base") form = inferred;
-      else if (mapped !== "base") form = mapped;
-      else form = "base";
-    } else if (typeof input === "string") {
-      raw = input;
-      if (typeof secondArg === "string") {
-        base = input;
-        form = normalizeForm(secondArg);
-        displayName = `${base}-${secondArg}`;
-      } else if (typeof secondArg === "number") {
-        if (input.includes(":")) {
-          const parts = input.split(":");
-          const bPart = parts[0] ?? "";
-          const fPart = parts[1] ?? "";
-          base = bPart.replace(/#.*/, "").trim() || "unknown";
-          raw = bPart;
-          const cleanF = fPart.replace(/#.*/, "").trim();
-          if (cleanF && cleanF !== "base") form = normalizeForm(cleanF);
-          displayName = input;
+    if (known) {
+      if (speciesIdOrForm) {
+        const normInput = normalizeSpeciesId(speciesIdOrForm);
+        const ext = extractBaseAndForm(normInput);
+        if (ext.form !== "base" && ext.form !== known.form) {
+          speciesId = normInput;
+          base = ext.base;
+          form = ext.form;
+          smogonName = buildSmogonName(base, form);
+          if (base === "giratina" && form === "altered")
+            smogonName = "Giratina";
+          if (base === "giratina" && form === "origin")
+            smogonName = "Giratina-Origin";
+        } else if (
+          ext.form === "base" &&
+          known.form !== "base" &&
+          ext.base === known.base
+        ) {
+          speciesId = known.speciesId;
+          base = known.base;
+          form = known.form;
+          smogonName = known.smogonName;
+        } else if (ext.form !== known.form) {
+          speciesId = normInput;
+          base = ext.base;
+          form = ext.form;
+          smogonName = buildSmogonName(base, form);
+          if (base === "giratina" && form === "altered")
+            smogonName = "Giratina";
+          if (base === "giratina" && form === "origin")
+            smogonName = "Giratina-Origin";
         } else {
-          displayName = input;
-          base = parseBaseFromSmogon(input) || "unknown";
-          form = inferFormFromDisplayName(input);
+          speciesId = known.speciesId;
+          base = known.base;
+          form = known.form;
+          smogonName = known.smogonName;
         }
       } else {
-        const hm = input.match(/#(\d+)/);
-        if (hm?.[1]) dexId = Number.parseInt(hm[1], 10);
-        if (input.includes(":")) {
-          const parts = input.split(":");
-          const bPart = parts[0] ?? "";
-          const fPart = parts[1] ?? "";
-          base = bPart.replace(/#.*/, "").trim() || "unknown";
-          raw = bPart;
-          const cleanF = fPart.replace(/#.*/, "").trim();
-          if (cleanF && cleanF !== "base") form = normalizeForm(cleanF);
-        } else {
-          displayName = input;
-          form = inferFormFromDisplayName(input);
-          base =
-            parseBaseFromSmogon(input) ||
-            input.toLowerCase().replace(/[^a-z0-9]/g, "") ||
-            "unknown";
-        }
+        speciesId = known.speciesId;
+        base = known.base;
+        form = known.form;
+        smogonName = known.smogonName;
       }
-    } else if (typeof input === "object" && "base" in input) {
-      const obj = input as BaseObj;
-      base = obj.base ?? "unknown";
-      raw = obj.base ?? "";
-      if (obj.form) form = normalizeForm(obj.form);
-      if (obj.dexId) dexId = obj.dexId;
-      if (obj.displayName) displayName = obj.displayName;
-      if (obj.generation) gen = obj.generation;
-      if (obj.dexId) {
-        const fd = resolveFormFromDexId(obj.dexId, displayName || base);
-        if (form === "base" && fd !== "base") form = fd;
+    } else {
+      if (speciesIdOrForm) {
+        speciesId = normalizeSpeciesId(speciesIdOrForm);
+        const ext = extractBaseAndForm(speciesId);
+        base = ext.base || speciesId;
+        form = normalizeForm(ext.form);
+        smogonName = buildSmogonName(base, form);
+        if (base === "giratina" && form === "altered") smogonName = "Giratina";
+        if (base === "giratina" && form === "origin")
+          smogonName = "Giratina-Origin";
+      } else {
+        speciesId = `pokemon-${id}`;
+        base = speciesId;
+        form = "base";
+        smogonName = buildSmogonName(base, form);
       }
     }
-
-    const normalizedBase =
-      base
-        .toLowerCase()
-        .replace(/[^a-z0-9-]/g, "")
-        .split(":")[0] || "unknown";
-    const normalizedForm = normalizeForm(form ?? "base");
-    const supported = isFormSupported(normalizedForm as PokemonForm, gen);
-
-    this.base = normalizedBase;
-    this.form = normalizedForm as PokemonForm;
-    this.dexId = dexId;
-    this.rawName = raw || displayName || base;
-    this.smogonName = toSmogonName(
-      normalizedBase,
-      normalizedForm as PokemonForm,
+    const sup = evaluateSupport(id, form, generation);
+    return new PokemonIdentity({
+      numericId: id,
+      dexId: id,
+      speciesId,
+      base,
+      form,
+      formId: form,
+      originalName: speciesIdOrForm ?? `${id}`,
+      id: speciesId,
+      supported: sup.supported,
+      isFallbackToBase: sup.isFallbackToBase,
+      transformationKind: form,
+      smogonName,
+    });
+  }
+  static fromSmogonName(name: string, generation?: number): PokemonIdentity {
+    const normalized = normalizeSpeciesId(
+      name.trim().toLowerCase().replace(/\s+/g, "-"),
     );
-    this.supported = supported;
-    this.isFallbackToBase = !supported;
+    return PokemonIdentity.fromSpeciesId(normalized, undefined, generation);
   }
-
-  get id() {
-    return this.form === "base"
-      ? `${this.base}:base`
-      : `${this.base}:${this.form}`;
+  static fromSpeciesId(
+    speciesIdInput: string,
+    numericId?: number,
+    generation?: number,
+  ): PokemonIdentity {
+    const normalized = normalizeSpeciesId(speciesIdInput);
+    if (numericId !== undefined)
+      return PokemonIdentity.fromDexId(numericId, normalized, generation);
+    const knownId = FORM_TO_ID[normalized];
+    if (knownId !== undefined)
+      return PokemonIdentity.fromDexId(knownId, normalized, generation);
+    const ext = extractBaseAndForm(normalized);
+    const baseId = BASE_TO_ID[ext.base];
+    if (baseId !== undefined)
+      return PokemonIdentity.fromDexId(baseId, normalized, generation);
+    return new PokemonIdentity({
+      numericId: 0,
+      dexId: 0,
+      speciesId: normalized,
+      base: ext.base,
+      form: ext.form,
+      formId: ext.form,
+      originalName: speciesIdInput,
+      id: normalized,
+      supported: false,
+      isFallbackToBase: true,
+      transformationKind: ext.form,
+      smogonName: buildSmogonName(ext.base, ext.form),
+    });
   }
-  get numericId() {
-    return this.dexId;
+  static fromInput(
+    input: { id: number; name: string } | string,
+    generation?: number,
+  ): PokemonIdentity {
+    if (typeof input === "string")
+      return PokemonIdentity.fromSmogonName(input, generation);
+    return PokemonIdentity.fromDexId(input.id, input.name, generation);
   }
-  get originalName() {
-    return this.base;
+  toString(): string {
+    return `${this.numericId}:${this.speciesId}`;
   }
-  get speciesId() {
-    return this.rawName.toLowerCase();
-  }
-  get formId() {
-    return this.form;
-  }
-  get transformationKind() {
-    if (
-      this.form === "mega" ||
-      this.form === "mega-x" ||
-      this.form === "mega-y"
-    )
-      return "mega";
-    if (this.form === "mega-z") return "mega-z";
-    if (
-      this.form === "gmax" ||
-      this.form === "gigamax" ||
-      this.form === "gigantamax"
-    )
-      return "gigantamax";
-    return this.form;
+  equals(other: PokemonIdentity): boolean {
+    return (
+      this.numericId === other.numericId && this.speciesId === other.speciesId
+    );
   }
 }
 
+type LegacyCoverageInput = {
+  dexId?: number;
+  base?: string;
+  form?: string;
+  displayName?: string;
+  generation?: number;
+};
+
+function parseLegacyCoverageInput(
+  input: unknown,
+  generation?: number,
+): PokemonIdentity | null {
+  if (!input || typeof input !== "object") return null;
+  const obj = input as LegacyCoverageInput;
+  if (typeof obj.dexId === "number") {
+    const gen = obj.generation ?? generation;
+    const known = ID_TO_KNOWN[obj.dexId];
+    if (known && !obj.form) {
+      return PokemonIdentity.fromDexId(obj.dexId, known.speciesId, gen);
+    }
+    const base = typeof obj.base === "string" ? obj.base : "";
+    const form = typeof obj.form === "string" ? obj.form : "base";
+    const displayName =
+      typeof obj.displayName === "string" ? obj.displayName : undefined;
+    const speciesId = displayName
+      ? normalizeSpeciesId(displayName)
+      : form === "base"
+        ? base
+        : `${base}-${form}`;
+    return PokemonIdentity.fromDexId(obj.dexId, speciesId, gen);
+  }
+  if (typeof obj.base === "string") {
+    const form = typeof obj.form === "string" ? obj.form : "base";
+    const speciesId = form === "base" ? obj.base : `${obj.base}-${form}`;
+    return PokemonIdentity.fromSpeciesId(speciesId, undefined, generation);
+  }
+  return null;
+}
+
+type IdentityObject = {
+  dexId?: unknown;
+  base?: unknown;
+  id?: unknown;
+  name?: unknown;
+};
+
 export function parsePokemonIdentity(
-  input: PokemonIdentityInput,
-  secondArg?: string | number,
+  input: unknown,
+  generation?: number,
 ): PokemonIdentity {
-  return new PokemonIdentity(input, secondArg);
+  if (input && typeof input === "object") {
+    const obj = input as IdentityObject;
+    if (typeof obj.dexId === "number" || typeof obj.base === "string") {
+      if (typeof obj.id !== "number") {
+        const legacy = parseLegacyCoverageInput(input, generation);
+        if (legacy) return legacy;
+      }
+    }
+    if (typeof obj.id === "number" && typeof obj.name === "string") {
+      return PokemonIdentity.fromInput(
+        { id: obj.id, name: obj.name },
+        generation,
+      );
+    }
+  }
+  if (typeof input === "string") {
+    let s = input.trim();
+    s = s.replace(/^#\s*\d+\s*/, "").trim();
+    if (s.includes(":")) {
+      const parts = s
+        .split(":")
+        .map((p) => p.trim())
+        .filter(Boolean);
+      s = parts.join("-");
+    }
+    return PokemonIdentity.fromInput(s, generation);
+  }
+  return PokemonIdentity.fromSpeciesId(String(input), undefined, generation);
+}
+
+export function inferFormFromDisplayName(displayName: string): string {
+  return extractBaseAndForm(displayName).form;
+}
+export function normalizeFormId(form: string): string {
+  return normalizeForm(form);
 }
