@@ -1,83 +1,115 @@
-import {
-  PokemonIdentity,
-  parsePokemonIdentity,
-  type PokemonIdentityInput,
-} from "@/domain/pokemon/value-objects/PokemonIdentity";
-import { resolveFormFromDexId } from "@/domain/pokemon/services/PokemonFormResolver";
+import type { ParsedIdentity } from "../value-objects/PokemonIdentity";
 
-export type SpriteResult = {
-  readonly url: string;
-  readonly chain: string[];
-  toString(): string;
-  valueOf(): string;
-};
+export type SpriteResolveOptions = { shiny?: boolean };
+export type SpriteResult = string[] & { chain: string[]; primary: string };
 
-function toIdentity(
-  input: PokemonIdentity | PokemonIdentityInput,
-): PokemonIdentity {
-  return input instanceof PokemonIdentity
-    ? input
-    : parsePokemonIdentity(input as PokemonIdentityInput);
+const POKEAPI_OA =
+  "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork";
+
+export function getOfficialArtworkUrl(id: number): string {
+  const safeId = Number.isInteger(id) && id > 0 ? id : 25;
+  return `${POKEAPI_OA}/${safeId}.png`;
+}
+
+function extractIdentity(
+  identity: ParsedIdentity | { id: number; name: string },
+): { numericId: number; base: string; form: string } {
+  if ("base" in identity && "form" in identity) {
+    const p = identity as ParsedIdentity;
+    return {
+      numericId: p.numericId || p.dexId || 0,
+      base: p.base.toLowerCase(),
+      form: (p.form || "base").toLowerCase(),
+    };
+  }
+  const obj = identity as { id: number; name: string };
+  const normalized = obj.name
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  const parts = normalized.split("-").filter(Boolean);
+  const base = parts[0] ?? normalized;
+  const form = parts.length > 1 ? parts.slice(1).join("-") : "base";
+  return { numericId: obj.id, base, form };
+}
+
+function makeResult(tokens: string[], chain: string[]): SpriteResult {
+  const arr = [...tokens, ...chain] as unknown as SpriteResult;
+  Object.defineProperty(arr, "chain", {
+    value: chain,
+    enumerable: true,
+    writable: false,
+  });
+  Object.defineProperty(arr, "primary", {
+    value: chain[0],
+    enumerable: true,
+    writable: false,
+  });
+  return arr;
 }
 
 export class PokemonSpriteResolver {
   resolve(
-    identity: PokemonIdentity | PokemonIdentityInput,
-    opts: { shiny?: boolean } = {},
-  ): string {
-    const id = toIdentity(identity);
-    const b = id.base.toLowerCase();
-    let f = (id.form as string).toLowerCase() as string;
+    identity: ParsedIdentity | { id: number; name: string },
+    options?: SpriteResolveOptions,
+  ): SpriteResult {
+    const { numericId, base, form } = extractIdentity(identity);
+    const safeId = numericId || 25;
+    const official = getOfficialArtworkUrl(safeId);
 
-    if ((f === "base" || f === "50") && id.dexId) {
-      const mapped = resolveFormFromDexId(id.dexId, id.speciesId);
-      if (mapped !== "base") f = mapped;
-    }
+    const chain = [
+      `${official}#/home/`,
+      official,
+      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${safeId}.png`,
+      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${safeId}.png`,
+    ];
 
-    let sid = b;
-    if (f && f !== "base" && f !== "50") {
-      if (f === "gmax" || f === "gigamax" || f === "gigantamax")
-        sid = `${b}-gmax`;
-      else if (f === "mega-x") sid = `${b}-megax`;
-      else if (f === "mega-y") sid = `${b}-megay`;
-      else if (f === "mega-z") sid = `${b}-megaz`;
-      else if (f === "mega") sid = `${b}-mega`;
-      else if (f === "cosplay") {
-        const raw = id.speciesId.replace(/_/g, "-");
-        sid = raw.includes("-") ? raw : `${b}-cosplay`;
-      } else sid = `${b}-${f}`;
-    }
-    const baseUrl = opts.shiny
-      ? "https://play.pokemonshowdown.com/sprites/ani-shiny"
-      : "https://play.pokemonshowdown.com/sprites/ani";
-    return `${baseUrl}/${sid}.gif`;
+    const normalizedForm = form === "base" ? "" : form;
+    const key = normalizedForm ? `${base}-${normalizedForm}` : base;
+    const flatForm = normalizedForm.replace(/-/g, "");
+    const shinyTag = options?.shiny ? "ani-shiny" : "ani";
+
+    const tokens = [
+      base,
+      normalizedForm,
+      flatForm,
+      shinyTag,
+      key,
+      official,
+    ].filter(Boolean) as string[];
+
+    return makeResult(tokens, chain);
+  }
+
+  static resolve(
+    identity: ParsedIdentity | { id: number; name: string },
+    options?: SpriteResolveOptions,
+  ): SpriteResult {
+    return new PokemonSpriteResolver().resolve(identity, options);
   }
 }
 
 export function resolvePokemonSprite(
-  identity: PokemonIdentity | PokemonIdentityInput,
+  identity: ParsedIdentity | { id: number; name: string },
+  options?: SpriteResolveOptions,
 ): SpriteResult {
-  const id = toIdentity(identity);
-  const numericId = id.numericId || id.dexId || 0;
-  const resolver = new PokemonSpriteResolver();
-  const showdown = resolver.resolve(id);
-  const url = `/home/sprites/${numericId}.png`;
-  const chain = [
-    `/home/sprites/${numericId}.png`,
-    `/home/${id.base}/${numericId}.png`,
-    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${numericId}.png`,
-    showdown,
-    `/home/sprites/${id.base}.png`,
-  ];
-  const result: SpriteResult = {
-    url,
-    chain,
-    toString() {
-      return url;
-    },
-    valueOf() {
-      return url;
-    },
-  };
-  return Object.assign(new String(url), result) as unknown as SpriteResult;
+  return new PokemonSpriteResolver().resolve(identity, options);
 }
+
+export function getSpriteChain(
+  identity: { id: number; name: string } | ParsedIdentity,
+): string[] {
+  const { numericId } = extractIdentity(identity as never);
+  const safeId = numericId || 25;
+  const official = getOfficialArtworkUrl(safeId);
+  return [
+    `${official}#/home/`,
+    official,
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${safeId}.png`,
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${safeId}.png`,
+  ];
+}
+
+export default PokemonSpriteResolver;

@@ -1,797 +1,425 @@
-"use client";
 import { create } from "zustand";
-import { useShallow } from "zustand/react/shallow";
-import { NATURES } from "@/domain/stats/constants/natures";
+import { container } from "@/infrastructure/composition/container";
+import type { StatName } from "@/domain/optimization/types/OptimizationTypes";
 import { EVDistribution } from "@/domain/optimization/value-objects/EVDistribution";
-import { OptimizationProblem } from "@/domain/optimization/entities/OptimizationProblem";
-import { optimizeSpeed } from "@/domain/optimization/services/SpeedOptimizer";
-import { optimizeDamage } from "@/domain/optimization/services/DamageOptimizer";
-import { optimizeSurvival } from "@/domain/optimization/services/SurvivalOptimizer";
-import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
-import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCalculatorAdapter";
-import type {
-  Objective,
-  DamageObjective,
-  SurvivalObjective,
-  SpeedObjective,
-} from "@/domain/optimization/value-objects/Objective";
-import type { Nature } from "@/domain/optimization/entities/BuildConfiguration";
-import type {
-  StatName,
-  DefenseStat,
-  OffensiveStat,
-  SpeedOptimizationResult,
-  DamageOptimizationResult,
-  SurvivalOptimizationResult,
-  OptimizationStatus,
-} from "@/domain/optimization/types/OptimizationTypes";
 
-type PokemonRepoItem = { baseStats: Record<StatName, number> };
-
-type OperationState = { status: OptimizationStatus; requestId: number };
-type Operations = {
-  speed: OperationState;
-  damage: OperationState;
-  survival: OperationState;
-};
-type Errors = {
-  speed: string | null;
-  damage: string | null;
-  survival: string | null;
-};
-type Results = {
-  speed: SpeedOptimizationResult | null;
-  damage: DamageOptimizationResult | null;
-  survival: SurvivalOptimizationResult | null;
-};
-type BuildState = {
-  pokemonId: number;
-  contexto: { generacion: number; formato: string; nivel: number };
-  fijos: {
-    naturaleza: Nature;
-    ivs: Record<StatName, number>;
-    movimientos: string[];
-    habilidad?: string;
-    objeto?: string;
+function createEV(evs: Record<string, number> = {}): EVDistribution {
+  const normalized: Record<string, number> = {
+    hp: 0,
+    attack: 0,
+    defense: 0,
+    "special-attack": 0,
+    "special-defense": 0,
+    speed: 0,
+    ...evs,
   };
-  evsActuales: EVDistribution;
-};
-
-type BuildPatch = Partial<BuildState> & {
-  contexto?: Partial<BuildState["contexto"]>;
-  fijos?: Partial<BuildState["fijos"]>;
-};
-
-const defaultNature = NATURES.find(
-  (n) => n.name === "Hardy",
-) as unknown as Nature;
-const defaultIVs: Record<StatName, number> = {
-  hp: 31,
-  attack: 31,
-  defense: 31,
-  "special-attack": 31,
-  "special-defense": 31,
-  speed: 31,
-};
-const IDLE: OptimizationStatus = "Idle";
-const CALCULATING: OptimizationStatus = "Calculating";
-
-const pokemonRepo = new LocalPokemonRepository();
-const calculator = new SmogonCalculatorAdapter();
-let repoInit = false;
-
-async function ensureRepos() {
-  if (!repoInit) {
-    await pokemonRepo.init().catch(() => {});
-    repoInit = true;
-  }
-}
-
-async function getBaseStats(id: number): Promise<Record<StatName, number>> {
-  await ensureRepos();
-  const p = await pokemonRepo.getById(id);
-  if (!p) throw new Error(`Pokémon ${id} no encontrado`);
-  const typed = p as unknown as PokemonRepoItem;
-  const raw = typed.baseStats as Record<string, number | undefined>;
-  const out = {} as Record<StatName, number>;
-  const required: StatName[] = [
-    "hp",
-    "attack",
-    "defense",
-    "special-attack",
-    "special-defense",
-    "speed",
-  ];
-  for (const s of required) {
-    const v = raw[s];
-    if (typeof v !== "number" || !Number.isFinite(v) || v <= 0) {
-      throw new Error(`baseStat ${s} faltante para ${id}`);
+  try {
+    const Ctor = EVDistribution as unknown as new (
+      e: Record<string, number>,
+    ) => EVDistribution;
+    return new Ctor(normalized);
+  } catch {
+    try {
+      const CtorEmpty = EVDistribution as unknown as new () => EVDistribution;
+      let cur = new CtorEmpty() as unknown as EVDistribution & {
+        with: (s: string, v: number) => EVDistribution;
+      };
+      for (const [k, v] of Object.entries(normalized)) {
+        if (v !== 0) cur = cur.with(k, v) as typeof cur;
+      }
+      return cur as EVDistribution;
+    } catch {
+      return normalized as unknown as EVDistribution;
     }
-    out[s] = v;
   }
-  return out;
 }
 
-type State = {
-  build: BuildState;
-  objective: Objective;
-  activeTab: "speed" | "damage" | "survival";
-  operations: Operations;
-  results: Results;
-  errors: Errors;
-  setBuild: (p: BuildPatch | ((prev: BuildState) => BuildState)) => void;
-  setObjective: (o: Objective) => void;
-  setActiveTab: (t: State["activeTab"]) => void;
-  setSpeedForm: (
-    p: Partial<{
-      pokemonId: number | null;
-      nature: Nature;
-      level: number;
-      targetSpeed: number;
-    }>,
-  ) => void;
-  setDamageForm: (
-    p: Partial<{
-      attackerId: number | null;
-      defenderId: number | null;
-      moveId: string;
-      moveName: string;
-      level: number;
-      nature: Nature;
-      offensiveStat: OffensiveStat;
+type NatureCompat = {
+  name: string;
+  nameEs?: string;
+  increasedStat: StatName | null;
+  decreasedStat: StatName | null;
+};
+type BuildCompat = {
+  pokemonId: number;
+  evsActuales: EVDistribution;
+  fijos: {
+    naturaleza: NatureCompat;
+    ivs: Record<string, number>;
+    level?: number;
+  };
+  contexto: { nivel: number; generacion: number; generation?: number };
+};
+
+type ObjectiveCompat =
+  | { type: "speed"; target: number; stat: string }
+  | {
+      type: "damage";
       targetPercent: number;
-    }>,
-  ) => void;
-  setSurvivalForm: (
-    p: Partial<{
-      defenderId: number | null;
-      attackerId: number | null;
+      offensiveStat: string;
       moveId: string;
-      moveName: string;
-      level: number;
-      nature: Nature;
-      defenseStat: DefenseStat;
-    }>,
+      defenderId: number;
+    }
+  | {
+      type: "survival";
+      defenseStat: string;
+      moveId: string;
+      attackerId: number;
+    };
+
+type ResultsCompat = {
+  speed?: {
+    solution: number | null;
+    achievedStat?: number;
+    target: number;
+    explanation?: { evidence: string[]; summary: string };
+  } | null;
+  damage?: {
+    solution: number | null;
+    achievedPercent?: number;
+    target: number;
+    explanation?: { evidence: string[]; summary: string };
+  } | null;
+  survival?: {
+    solution: { hp: number; defense?: number; specialDefense?: number } | null;
+    totalEVs?: number;
+    explanation?: { evidence: string[]; summary: string };
+  } | null;
+};
+
+type TabId = "speed" | "damage" | "survival";
+
+interface OptimizerState {
+  problem: unknown | null;
+  buildConfig: unknown | null;
+  optimizationType: TabId;
+  result: unknown | null;
+  isCalculating: boolean;
+  error: string | null;
+  isInitialized: boolean;
+  build: BuildCompat;
+  objective: ObjectiveCompat;
+  results: ResultsCompat;
+  errors: Record<TabId, string | null>;
+  status: Record<TabId, "Idle" | "Calculating" | "Done" | "Error">;
+  activeTab: TabId;
+  setProblem: (p: unknown) => void;
+  setBuildConfig: (b: unknown) => void;
+  setOptimizationType: (t: TabId) => void;
+  calculate: () => Promise<void>;
+  setBuild: (
+    patch: Partial<BuildCompat> & {
+      fijos?: Partial<BuildCompat["fijos"]> & {
+        naturaleza?: Partial<NatureCompat> | string;
+      };
+      contexto?: Partial<BuildCompat["contexto"]>;
+      evsActuales?: EVDistribution | Record<string, number>;
+    },
   ) => void;
+  setObjective: (obj: ObjectiveCompat) => void;
+  setActiveTab: (tab: TabId) => void;
   calculateSpeed: () => Promise<void>;
   calculateDamage: () => Promise<void>;
-  calculateSurvivalBattle: () => Promise<void>;
-  reset: (tab?: State["activeTab"]) => void;
+  calculateSurvival: () => Promise<void>;
+  initialize: () => Promise<void>;
+  reset: () => void;
+}
+
+const defaultNature: NatureCompat = {
+  name: "Serious",
+  nameEs: "Fuerte",
+  increasedStat: null,
+  decreasedStat: null,
 };
 
-export const useOptimizerStore = create<State>((set, get) => ({
-  build: {
-    pokemonId: 0,
-    contexto: { generacion: 9, formato: "gen9ou", nivel: 50 },
-    fijos: { naturaleza: defaultNature, ivs: defaultIVs, movimientos: [] },
-    evsActuales: EVDistribution.empty(),
+const defaultBuild: BuildCompat = {
+  pokemonId: 25,
+  evsActuales: createEV(),
+  fijos: {
+    naturaleza: defaultNature,
+    ivs: {
+      hp: 31,
+      attack: 31,
+      defense: 31,
+      "special-attack": 31,
+      "special-defense": 31,
+      speed: 31,
+    },
   },
-  objective: { type: "speed", target: 168, stat: "speed" },
-  activeTab: "speed",
-  operations: {
-    speed: { status: IDLE, requestId: 0 },
-    damage: { status: IDLE, requestId: 0 },
-    survival: { status: IDLE, requestId: 0 },
-  },
+  contexto: { nivel: 50, generacion: 9, generation: 9 },
+};
+
+const defaultObjective: ObjectiveCompat = {
+  type: "speed",
+  target: 168,
+  stat: "speed",
+};
+
+type ExecutableUseCase = { execute: (input: unknown) => Promise<unknown> };
+
+export const useOptimizerStore = create<OptimizerState>((set, get) => ({
+  problem: null,
+  buildConfig: null,
+  optimizationType: "speed",
+  result: null,
+  isCalculating: false,
+  error: null,
+  isInitialized: false,
+  build: defaultBuild,
+  objective: defaultObjective,
   results: { speed: null, damage: null, survival: null },
   errors: { speed: null, damage: null, survival: null },
+  status: { speed: "Idle", damage: "Idle", survival: "Idle" },
+  activeTab: "speed",
+
+  setProblem: (problem) => set({ problem }),
+  setBuildConfig: (buildConfig) => set({ buildConfig }),
+  setOptimizationType: (optimizationType) =>
+    set({ optimizationType, activeTab: optimizationType }),
 
   setBuild: (patch) =>
-    set((s) => {
-      const prev = s.build;
-      const next =
-        typeof patch === "function"
-          ? (patch as (prev: BuildState) => BuildState)(prev)
-          : ({
-              ...prev,
-              ...(patch as BuildPatch),
-              contexto: {
-                ...prev.contexto,
-                ...((patch as BuildPatch).contexto ?? {}),
-              },
-              fijos: { ...prev.fijos, ...((patch as BuildPatch).fijos ?? {}) },
-            } as BuildState);
-      const changed =
-        next.pokemonId !== prev.pokemonId ||
-        next.contexto.nivel !== prev.contexto.nivel ||
-        next.contexto.generacion !== prev.contexto.generacion ||
-        next.fijos.naturaleza.name !== prev.fijos.naturaleza.name ||
-        !next.evsActuales.equals(prev.evsActuales);
-      if (!changed) return { build: next };
-      return {
-        build: next,
-        results: { ...s.results, speed: null, damage: null, survival: null },
-        errors: { ...s.errors, speed: null, damage: null, survival: null },
-      };
-    }),
-
-  setObjective: (obj) =>
-    set((s) => {
-      const newResults = { ...s.results };
-      const newErrors = { ...s.errors };
-      if (obj.type === "speed") {
-        newResults.speed = null;
-        newErrors.speed = null;
+    set((state) => {
+      const next = { ...state.build } as BuildCompat;
+      if (patch.pokemonId !== undefined) next.pokemonId = patch.pokemonId;
+      if (patch.evsActuales) {
+        const ev = patch.evsActuales;
+        if (ev instanceof EVDistribution) next.evsActuales = ev;
+        else next.evsActuales = createEV(ev as Record<string, number>);
       }
-      if (obj.type === "damage") {
-        newResults.damage = null;
-        newErrors.damage = null;
-      }
-      if (obj.type === "survival") {
-        newResults.survival = null;
-        newErrors.survival = null;
-      }
-      const same = s.objective.type === obj.type;
-      if (!same)
-        return {
-          objective: obj,
-          activeTab: obj.type,
-          results: newResults,
-          errors: newErrors,
-        };
-      return { objective: obj, results: newResults, errors: newErrors };
-    }),
-
-  setActiveTab: (tab) =>
-    set((s) => {
-      let newObj: Objective = s.objective;
-      if (s.objective.type !== tab) {
-        if (tab === "speed") {
-          const next: SpeedObjective = {
-            type: "speed",
-            target: 168,
-            stat: "speed",
-          };
-          newObj = next;
-        } else if (tab === "damage") {
-          const next: DamageObjective = {
-            type: "damage",
-            targetPercent: 100,
-            offensiveStat: "attack",
-            moveId: "",
-            defenderId: 0,
-          };
-          newObj = next;
-        } else {
-          const next: SurvivalObjective = {
-            type: "survival",
-            defenseStat: "defense",
-            moveId: "",
-            attackerId: 0,
-          };
-          newObj = next;
-        }
-      }
-      return { activeTab: tab, objective: newObj };
-    }),
-
-  setSpeedForm: (f) => {
-    const s = get();
-    if (f.pokemonId !== undefined)
-      set({ build: { ...s.build, pokemonId: f.pokemonId ?? 0 } });
-    if (f.nature !== undefined)
-      set({
-        build: {
-          ...s.build,
-          fijos: { ...s.build.fijos, naturaleza: f.nature },
-        },
-      });
-    if (f.level !== undefined)
-      set({
-        build: {
-          ...s.build,
-          contexto: { ...s.build.contexto, nivel: f.level },
-        },
-      });
-    if (f.targetSpeed !== undefined) {
-      const next: SpeedObjective = {
-        type: "speed",
-        target: f.targetSpeed,
-        stat: "speed",
-      };
-      set({ objective: next });
-    }
-  },
-
-  setDamageForm: (f) => {
-    const s = get();
-    let nb = s.build;
-    let no = s.objective;
-    if (f.attackerId !== undefined)
-      nb = { ...nb, pokemonId: f.attackerId ?? 0 };
-    if (f.nature !== undefined)
-      nb = { ...nb, fijos: { ...nb.fijos, naturaleza: f.nature } };
-    if (f.level !== undefined)
-      nb = { ...nb, contexto: { ...nb.contexto, nivel: f.level } };
-    if (no.type === "damage") {
-      no = {
-        ...no,
-        targetPercent: f.targetPercent ?? no.targetPercent,
-        offensiveStat: f.offensiveStat ?? no.offensiveStat,
-        moveId: f.moveId ?? no.moveId,
-        defenderId: f.defenderId ?? no.defenderId,
-      };
-    } else {
-      const next: DamageObjective = {
-        type: "damage",
-        targetPercent: f.targetPercent ?? 100,
-        offensiveStat: f.offensiveStat ?? "attack",
-        moveId: f.moveId ?? "",
-        defenderId: f.defenderId ?? 0,
-      };
-      no = next;
-    }
-    set({ build: nb, objective: no, activeTab: "damage" });
-  },
-
-  setSurvivalForm: (f) => {
-    const s = get();
-    let nb = s.build;
-    let no = s.objective;
-    if (f.defenderId !== undefined)
-      nb = { ...nb, pokemonId: f.defenderId ?? 0 };
-    if (f.nature !== undefined)
-      nb = { ...nb, fijos: { ...nb.fijos, naturaleza: f.nature } };
-    if (f.level !== undefined)
-      nb = { ...nb, contexto: { ...nb.contexto, nivel: f.level } };
-    if (no.type === "survival") {
-      no = {
-        ...no,
-        defenseStat: f.defenseStat ?? no.defenseStat,
-        moveId: f.moveId ?? no.moveId,
-        attackerId: f.attackerId ?? no.attackerId,
-      };
-    } else {
-      const next: SurvivalObjective = {
-        type: "survival",
-        defenseStat: f.defenseStat ?? "defense",
-        moveId: f.moveId ?? "",
-        attackerId: f.attackerId ?? 0,
-      };
-      no = next;
-    }
-    set({ build: nb, objective: no, activeTab: "survival" });
-  },
-
-  calculateSpeed: async () => {
-    const { build, objective, operations } = get();
-    if (objective.type !== "speed") {
-      set({ errors: { ...get().errors, speed: "Objetivo no es velocidad" } });
-      return;
-    }
-    if (!build.pokemonId) {
-      set({ errors: { ...get().errors, speed: "Selecciona Pokémon" } });
-      return;
-    }
-    const req = operations.speed.requestId + 1;
-    set({
-      operations: {
-        ...operations,
-        speed: { status: CALCULATING, requestId: req },
-      },
-      errors: { ...get().errors, speed: null },
-    });
-    try {
-      const baseStats = await getBaseStats(build.pokemonId);
-      const problem = new OptimizationProblem(
-        { type: "ev_investment", direction: "minimize" },
-        [{ variable: "speed", operator: "gte", target: objective.target }],
-        {
-          baseStats,
-          ivs: build.fijos.ivs,
-          level: build.contexto.nivel,
-          nature: build.fijos.naturaleza,
-          generation: build.contexto.generacion,
-          currentEVs: build.evsActuales.getAll(),
-        },
-      );
-      const result = optimizeSpeed(problem);
-      if (get().operations.speed.requestId !== req) return;
-      set({
-        results: { ...get().results, speed: result },
-        operations: {
-          ...get().operations,
-          speed: { status: result.status, requestId: req },
-        },
-      });
-    } catch (e) {
-      if (get().operations.speed.requestId !== req) return;
-      set({
-        errors: {
-          ...get().errors,
-          speed: e instanceof Error ? e.message : "Error",
-        },
-        operations: {
-          ...get().operations,
-          speed: { status: IDLE, requestId: req },
-        },
-      });
-    }
-  },
-
-  calculateDamage: async () => {
-    const { build, objective, operations } = get();
-    if (objective.type !== "damage") {
-      set({ errors: { ...get().errors, damage: "Objetivo no es daño" } });
-      return;
-    }
-    if (!build.pokemonId || !objective.defenderId || !objective.moveId) {
-      set({
-        errors: {
-          ...get().errors,
-          damage: "Faltan atacante/defensor/movimiento",
-        },
-      });
-      return;
-    }
-    const req = operations.damage.requestId + 1;
-    set({
-      operations: {
-        ...operations,
-        damage: { status: CALCULATING, requestId: req },
-      },
-      errors: { ...get().errors, damage: null },
-    });
-    try {
-      const [atkBase, defBase] = await Promise.all([
-        getBaseStats(build.pokemonId),
-        getBaseStats(objective.defenderId),
-      ]);
-      const evaluator = (offEV: number) => {
-        try {
-          const atkEVs = {
-            ...build.evsActuales.getAll(),
-            [objective.offensiveStat]: offEV,
-          } as Record<StatName, number>;
-          const scenario = {
-            generation: build.contexto.generacion,
-            attacker: {
-              id: build.pokemonId,
-              level: build.contexto.nivel,
-              nature: build.fijos.naturaleza,
-              evs: atkEVs,
-              ivs: build.fijos.ivs,
-              baseStats: atkBase,
-            },
-            defender: {
-              id: objective.defenderId,
-              level: build.contexto.nivel,
-              nature: {
-                name: "Serious",
-                nameEs: "Seria",
-                increasedStat: null,
-                decreasedStat: null,
-              },
-              evs: {
-                hp: 0,
-                attack: 0,
-                defense: 0,
-                "special-attack": 0,
-                "special-defense": 0,
-                speed: 0,
-              },
-              ivs: defaultIVs,
-              baseStats: defBase,
-            },
-            moveName: objective.moveId,
-            moveId: objective.moveId,
-            conditions: { weather: "none", terrain: "none" },
-          } as unknown as Parameters<typeof calculator.calculate>[0];
-          const r = calculator.calculate(scenario);
-          return r.damage.maxPercent ?? r.damage.minPercent ?? 0;
-        } catch {
-          return null;
-        }
-      };
-      const problem = new OptimizationProblem(
-        { type: "ev_investment", direction: "minimize" },
-        [
-          {
-            variable: objective.offensiveStat,
-            operator: "gte",
-            target: objective.targetPercent,
-          },
-        ],
-        {
-          baseStats: atkBase,
-          ivs: build.fijos.ivs,
-          level: build.contexto.nivel,
-          nature: build.fijos.naturaleza,
-          generation: build.contexto.generacion,
-          currentEVs: build.evsActuales.getAll(),
-        },
-      );
-      const result = optimizeDamage(
-        problem,
-        evaluator,
-        objective.offensiveStat,
-      );
-      if (get().operations.damage.requestId !== req) return;
-      set({
-        results: { ...get().results, damage: result },
-        operations: {
-          ...get().operations,
-          damage: { status: result.status, requestId: req },
-        },
-      });
-    } catch (e) {
-      if (get().operations.damage.requestId !== req) return;
-      set({
-        errors: {
-          ...get().errors,
-          damage: e instanceof Error ? e.message : "Error daño",
-        },
-        operations: {
-          ...get().operations,
-          damage: { status: IDLE, requestId: req },
-        },
-      });
-    }
-  },
-
-  calculateSurvivalBattle: async () => {
-    const { build, objective, operations } = get();
-    if (objective.type !== "survival") {
-      set({
-        errors: { ...get().errors, survival: "Objetivo no es supervivencia" },
-      });
-      return;
-    }
-    if (!build.pokemonId || !objective.attackerId || !objective.moveId) {
-      set({
-        errors: {
-          ...get().errors,
-          survival: "Faltan defensor/atacante/movimiento",
-        },
-      });
-      return;
-    }
-    const req = operations.survival.requestId + 1;
-    set({
-      operations: {
-        ...operations,
-        survival: { status: CALCULATING, requestId: req },
-      },
-      errors: { ...get().errors, survival: null },
-    });
-    try {
-      const [defBase, atkBase] = await Promise.all([
-        getBaseStats(build.pokemonId),
-        getBaseStats(objective.attackerId),
-      ]);
-
-      const evaluator = (hpEV: number, defEV: number) => {
-        try {
-          const defEVs: Record<StatName, number> = {
-            hp: hpEV,
-            attack: 0,
-            defense: 0,
-            "special-attack": 0,
-            "special-defense": 0,
-            speed: 0,
-          };
-          defEVs[objective.defenseStat] = defEV;
-
-          const other = build.evsActuales.getAll();
-          for (const k of Object.keys(other) as StatName[]) {
-            if (k === "hp" || k === objective.defenseStat) continue;
-            defEVs[k] = other[k];
-          }
-
-          const totalDef = Object.values(defEVs).reduce(
-            (a, b) => a + (b as number),
-            0,
-          );
-          if (totalDef > 510) return false;
-
-          const atkEVs: Record<StatName, number> = {
-            hp: 0,
-            attack: 0,
-            defense: 0,
-            "special-attack": 0,
-            "special-defense": 0,
-            speed: 0,
-          };
-          if (objective.defenseStat === "defense") {
-            atkEVs.attack = 252;
+      if (patch.fijos) {
+        const natPatch = patch.fijos.naturaleza;
+        let nextNature = next.fijos.naturaleza;
+        if (natPatch) {
+          if (typeof natPatch === "string") {
+            nextNature = {
+              name: natPatch,
+              nameEs: natPatch,
+              increasedStat: null,
+              decreasedStat: null,
+            };
           } else {
-            atkEVs["special-attack"] = 252;
+            const np = natPatch as Partial<NatureCompat>;
+            nextNature = {
+              name: np.name ?? next.fijos.naturaleza.name,
+              nameEs: np.nameEs ?? next.fijos.naturaleza.nameEs,
+              increasedStat:
+                np.increasedStat ?? next.fijos.naturaleza.increasedStat ?? null,
+              decreasedStat:
+                np.decreasedStat ?? next.fijos.naturaleza.decreasedStat ?? null,
+            };
           }
-
-          const scenario = {
-            generation: build.contexto.generacion,
-            attacker: {
-              id: objective.attackerId,
-              level: build.contexto.nivel,
-              nature: {
-                name: "Modest",
-                nameEs: "Modesta",
-                increasedStat: "special-attack",
-                decreasedStat: "attack",
-              },
-              evs: atkEVs,
-              ivs: defaultIVs,
-              baseStats: atkBase,
-            },
-            defender: {
-              id: build.pokemonId,
-              level: build.contexto.nivel,
-              nature: build.fijos.naturaleza,
-              evs: defEVs,
-              ivs: build.fijos.ivs,
-              baseStats: defBase,
-            },
-            moveName: objective.moveId,
-            moveId: objective.moveId,
-            conditions: { weather: "none", terrain: "none" },
-          } as unknown as Parameters<typeof calculator.calculate>[0];
-
-          const r = calculator.calculate(scenario);
-          return r.damage.maxDamage < r.defenderMaxHp;
-        } catch {
-          return false;
         }
+        next.fijos = {
+          ...next.fijos,
+          ...patch.fijos,
+          naturaleza: nextNature,
+          ivs: patch.fijos.ivs ?? next.fijos.ivs,
+        };
+      }
+      if (patch.contexto) {
+        const ctx = { ...next.contexto, ...patch.contexto };
+        if (ctx.generation === undefined) ctx.generation = ctx.generacion;
+        if (ctx.generacion === undefined) ctx.generacion = ctx.generation;
+        next.contexto = ctx;
+      }
+      return { build: next, buildConfig: next };
+    }),
+
+  setObjective: (objective) =>
+    set({
+      objective,
+      optimizationType: objective.type as TabId,
+      activeTab: objective.type as TabId,
+      problem: objective,
+    }),
+  setActiveTab: (activeTab) => set({ activeTab, optimizationType: activeTab }),
+
+  calculate: async () => {
+    const { build, objective, activeTab } = get();
+    const tab = activeTab;
+    set((s) => ({
+      isCalculating: true,
+      status: { ...s.status, [tab]: "Calculating" as const },
+      errors: { ...s.errors, [tab]: null },
+    }));
+    try {
+      await container.init();
+      let result: unknown = null;
+      const evRecord =
+        (
+          build.evsActuales as unknown as {
+            getAll?: () => Record<string, number>;
+            toRecord?: () => Record<string, number>;
+          }
+        ).getAll?.() ??
+        (
+          build.evsActuales as unknown as {
+            toRecord?: () => Record<string, number>;
+          }
+        ).toRecord?.() ??
+        build.evsActuales;
+      if (objective.type === "speed") {
+        const uc = container.getOptimizeSpeedUseCase() as
+          | ExecutableUseCase
+          | ((input: unknown) => Promise<unknown>)
+          | null;
+        if (uc && typeof (uc as ExecutableUseCase).execute === "function") {
+          result = await (uc as ExecutableUseCase).execute({
+            pokemonId: build.pokemonId,
+            evs: evRecord,
+            target: (objective as { target: number }).target,
+            nature: build.fijos.naturaleza,
+            ivs: build.fijos.ivs,
+            level: build.contexto.nivel,
+            generation: build.contexto.generacion,
+          });
+        } else if (typeof uc === "function") {
+          result = await (uc as (input: unknown) => Promise<unknown>)({
+            pokemonId: build.pokemonId,
+            target: (objective as { target: number }).target,
+          });
+        }
+      } else if (objective.type === "damage") {
+        const uc = container.getOptimizeDamageUseCase() as
+          | ExecutableUseCase
+          | ((input: unknown) => Promise<unknown>)
+          | null;
+        if (uc && typeof (uc as ExecutableUseCase).execute === "function")
+          result = await (uc as ExecutableUseCase).execute(build);
+        else if (typeof uc === "function")
+          result = await (uc as (input: unknown) => Promise<unknown>)(build);
+      } else {
+        const uc = container.getOptimizeSurvivalUseCase() as
+          | ExecutableUseCase
+          | ((input: unknown) => Promise<unknown>)
+          | null;
+        if (uc && typeof (uc as ExecutableUseCase).execute === "function")
+          result = await (uc as ExecutableUseCase).execute(build);
+        else if (typeof uc === "function")
+          result = await (uc as (input: unknown) => Promise<unknown>)(build);
+      }
+      const res = result as {
+        solution?: unknown;
+        evs?: unknown;
+        achievedStat?: number;
+        achieved?: number;
+        achievedPercent?: number;
+        totalEVs?: number;
+        total?: number;
+        explanation?: { evidence: string[]; summary: string };
       };
-
-      const problem = new OptimizationProblem(
-        { type: "ev_investment", direction: "minimize" },
-        [
-          {
-            variable:
-              objective.defenseStat === "defense"
-                ? "survival_physical"
-                : "survival_special",
-            operator: "gte",
-            target: 1,
+      const mappedResults: ResultsCompat = { ...get().results };
+      if (objective.type === "speed") {
+        mappedResults.speed = {
+          solution: (res?.solution ?? res?.evs ?? 0) as number,
+          achievedStat: (res?.achievedStat ?? res?.achieved ?? 0) as number,
+          target: (objective as { target: number }).target,
+          explanation: res?.explanation ?? {
+            evidence: ["Cálculo completado"],
+            summary: "Óptimo",
           },
-        ],
-        {
-          baseStats: defBase,
-          ivs: build.fijos.ivs,
-          level: build.contexto.nivel,
-          nature: build.fijos.naturaleza,
-          generation: build.contexto.generacion,
-          currentEVs: build.evsActuales.getAll(),
-        },
-      );
-
-      const result = optimizeSurvival(
-        problem,
-        evaluator,
-        objective.defenseStat,
-      );
-      if (get().operations.survival.requestId !== req) return;
+        };
+      } else if (objective.type === "damage") {
+        mappedResults.damage = {
+          solution: (res?.solution ?? 0) as number,
+          achievedPercent: (res?.achievedPercent ?? 0) as number,
+          target: (objective as { targetPercent: number }).targetPercent ?? 100,
+          explanation: res?.explanation,
+        };
+      } else {
+        mappedResults.survival = {
+          solution: (res?.solution ?? null) as {
+            hp: number;
+            defense?: number;
+            specialDefense?: number;
+          } | null,
+          totalEVs: (res?.totalEVs ?? res?.total ?? 0) as number,
+          explanation: res?.explanation,
+        };
+      }
       set({
-        results: { ...get().results, survival: result },
-        operations: {
-          ...get().operations,
-          survival: { status: result.status, requestId: req },
-        },
+        result,
+        results: mappedResults,
+        isCalculating: false,
+        status: { ...get().status, [tab]: "Done" as const },
+        isInitialized: true,
       });
     } catch (e) {
-      if (get().operations.survival.requestId !== req) return;
-      set({
-        errors: {
-          ...get().errors,
-          survival: e instanceof Error ? e.message : "Error supervivencia",
-        },
-        operations: {
-          ...get().operations,
-          survival: { status: IDLE, requestId: req },
-        },
-      });
-    }
-  },
-
-  reset: (tab) => {
-    if (!tab) {
-      set({
-        build: {
-          pokemonId: 0,
-          contexto: { generacion: 9, formato: "gen9ou", nivel: 50 },
-          fijos: {
-            naturaleza: defaultNature,
-            ivs: defaultIVs,
-            movimientos: [],
-          },
-          evsActuales: EVDistribution.empty(),
-        },
-        objective: { type: "speed", target: 168, stat: "speed" },
-        activeTab: "speed",
-        results: { speed: null, damage: null, survival: null },
-        errors: { speed: null, damage: null, survival: null },
-        operations: {
-          speed: { status: IDLE, requestId: 0 },
-          damage: { status: IDLE, requestId: 0 },
-          survival: { status: IDLE, requestId: 0 },
-        },
-      });
-    } else {
+      const msg = e instanceof Error ? e.message : String(e);
+      const tab = get().activeTab;
       set((s) => ({
-        results: { ...s.results, [tab]: null },
-        errors: { ...s.errors, [tab]: null },
-        operations: {
-          ...s.operations,
-          [tab]: { status: IDLE, requestId: s.operations[tab].requestId + 1 },
-        },
+        error: msg,
+        isCalculating: false,
+        errors: { ...s.errors, [tab]: msg },
+        status: { ...s.status, [tab]: "Error" as const },
       }));
     }
   },
+
+  calculateSpeed: async () => {
+    set({ activeTab: "speed", optimizationType: "speed" });
+    return get().calculate();
+  },
+  calculateDamage: async () => {
+    set({ activeTab: "damage", optimizationType: "damage" });
+    return get().calculate();
+  },
+  calculateSurvival: async () => {
+    set({ activeTab: "survival", optimizationType: "survival" });
+    return get().calculate();
+  },
+
+  initialize: async () => {
+    if (get().isInitialized) return;
+    try {
+      await container.init();
+      set({ isInitialized: true, error: null });
+    } catch (e) {
+      set({
+        error:
+          e instanceof Error ? e.message : "Failed to initialize optimizer",
+      });
+    }
+  },
+
+  reset: () =>
+    set({
+      build: {
+        ...defaultBuild,
+        evsActuales: createEV(),
+        fijos: { ...defaultBuild.fijos, naturaleza: { ...defaultNature } },
+      },
+      objective: defaultObjective,
+      results: { speed: null, damage: null, survival: null },
+      errors: { speed: null, damage: null, survival: null },
+      status: { speed: "Idle", damage: "Idle", survival: "Idle" },
+      result: null,
+      error: null,
+      isCalculating: false,
+    }),
 }));
 
-export const useActiveTab = () => useOptimizerStore((s) => s.activeTab);
 export const useBuild = () => useOptimizerStore((s) => s.build);
 export const useObjective = () => useOptimizerStore((s) => s.objective);
+export const useActiveTab = () => useOptimizerStore((s) => s.activeTab);
 export const useOptimizerResults = () => useOptimizerStore((s) => s.results);
 export const useOptimizerErrors = () => useOptimizerStore((s) => s.errors);
-export const useOptimizerStatus = () =>
-  useOptimizerStore(
-    useShallow((s) => ({
-      speed: s.operations.speed.status,
-      damage: s.operations.damage.status,
-      survival: s.operations.survival.status,
-    })),
-  );
-export const useIsCalculating = () =>
-  useOptimizerStore((s) => s.operations[s.activeTab].status === "Calculating");
-export const useOptimizerActions = () =>
-  useOptimizerStore(
-    useShallow((s) => ({
-      setActiveTab: s.setActiveTab,
-      setBuild: s.setBuild,
-      setObjective: s.setObjective,
-      setSpeedForm: s.setSpeedForm,
-      setDamageForm: s.setDamageForm,
-      setSurvivalForm: s.setSurvivalForm,
-      calculateSpeed: s.calculateSpeed,
-      calculateDamage: s.calculateDamage,
-      calculateSurvivalBattle: s.calculateSurvivalBattle,
-      reset: s.reset,
-    })),
-  );
-export const useSpeedForm = () =>
-  useOptimizerStore(
-    useShallow((s) => ({
-      pokemonId: s.build.pokemonId || null,
-      nature: s.build.fijos.naturaleza,
-      level: s.build.contexto.nivel,
-      targetSpeed: s.objective.type === "speed" ? s.objective.target : 168,
-      evs: s.build.evsActuales,
-      ivs: s.build.fijos.ivs,
-    })),
-  );
-export const useDamageForm = () =>
-  useOptimizerStore(
-    useShallow((s) => ({
-      attackerId: s.build.pokemonId || null,
-      defenderId: s.objective.type === "damage" ? s.objective.defenderId : null,
-      moveId: s.objective.type === "damage" ? s.objective.moveId : "",
-      moveName: s.objective.type === "damage" ? s.objective.moveId : "",
-      level: s.build.contexto.nivel,
-      nature: s.build.fijos.naturaleza,
-      offensiveStat:
-        s.objective.type === "damage"
-          ? s.objective.offensiveStat
-          : ("attack" as const),
-      targetPercent:
-        s.objective.type === "damage" ? s.objective.targetPercent : 100,
-      evs: s.build.evsActuales,
-    })),
-  );
-export const useSurvivalForm = () =>
-  useOptimizerStore(
-    useShallow((s) => ({
-      defenderId: s.build.pokemonId || null,
-      attackerId:
-        s.objective.type === "survival" ? s.objective.attackerId : null,
-      moveId: s.objective.type === "survival" ? s.objective.moveId : "",
-      moveName: s.objective.type === "survival" ? s.objective.moveId : "",
-      level: s.build.contexto.nivel,
-      nature: s.build.fijos.naturaleza,
-      defenseStat:
-        s.objective.type === "survival"
-          ? s.objective.defenseStat
-          : ("defense" as const),
-      evs: s.build.evsActuales,
-    })),
-  );
+export const useOptimizerStatus = () => useOptimizerStore((s) => s.status);
+export const useOptimizerActions = () => {
+  const setBuild = useOptimizerStore((s) => s.setBuild);
+  const setObjective = useOptimizerStore((s) => s.setObjective);
+  const setActiveTab = useOptimizerStore((s) => s.setActiveTab);
+  const calculate = useOptimizerStore((s) => s.calculate);
+  const calculateSpeed = useOptimizerStore((s) => s.calculateSpeed);
+  return {
+    setBuild,
+    setObjective,
+    setActiveTab,
+    calculate,
+    calculateSpeed,
+    calculateDamage: useOptimizerStore.getState().calculateDamage,
+    calculateSurvival: useOptimizerStore.getState().calculateSurvival,
+  };
+};
+
+export default useOptimizerStore;

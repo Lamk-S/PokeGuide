@@ -1,120 +1,162 @@
-"use client";
 import { create } from "zustand";
-import type {
-  TeamMember,
-  TypeExposure,
-  TeamRecommendation,
-  RecommendationCategory,
-  RecommendationIssueCode,
-} from "@/domain/team/types/TeamTypes";
-import { TypeEffectiveness, ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
-import type { PokemonType } from "@/domain/pokemon/types/pokemon";
+import { container } from "@/infrastructure/composition/container";
+import type { TeamAnalysis, TeamMember } from "@/domain/team/types/TeamTypes";
 
-type TeamAnalysis = {
-  defensiveCoverage: Record<string, TypeExposure>;
-  recommendations: TeamRecommendation[];
-  averageSpeed: number;
-  effectiveMaxSpeed: number;
+type TeamMemberInput = TeamMember & {
+  id: string;
+  pokemonId: number;
+  name: string;
+  types: string[];
+  level: number;
 };
-type TeamWrapper = {
+
+type RawMember = {
+  id?: unknown;
+  name?: unknown;
+  pokemonId?: unknown;
+  species?: unknown;
+  types?: unknown;
+  level?: unknown;
+};
+
+interface TeamFacade {
+  readonly size: number;
   getMembers: () => TeamMember[];
   isEmpty: () => boolean;
-  size: number;
-};
-
-function computeAnalysis(members: TeamMember[]): TeamAnalysis | null {
-  if (members.length === 0) return null;
-  const defensiveCoverage: Record<string, TypeExposure> = {};
-  let totalSpeed = 0;
-  let maxEff = 0;
-  for (const m of members) {
-    const spd = m.calculatedStats?.speed ?? 0;
-    const eff =
-      m.itemId?.includes("scarf") || m.item?.includes("scarf")
-        ? spd * 1.5
-        : spd;
-    totalSpeed += spd;
-    maxEff = Math.max(maxEff, eff);
-  }
-  for (const atk of ALL_POKEMON_TYPES) {
-    let weak = 0,
-      resist = 0,
-      immune = 0,
-      neutral = 0;
-    for (const mem of members) {
-      const mult = TypeEffectiveness.getMultiplier(
-        atk,
-        mem.types as readonly PokemonType[],
-        mem.abilityId ?? mem.ability ?? null,
-        mem.itemId ?? mem.item ?? null,
-      );
-      if (mult === 0) immune++;
-      else if (mult > 1) weak++;
-      else if (mult < 1) resist++;
-      else neutral++;
-    }
-    defensiveCoverage[atk] = { weak, resist, immune, neutral };
-  }
-  const recommendations: TeamRecommendation[] = [];
-  for (const atk of ALL_POKEMON_TYPES) {
-    const exp = defensiveCoverage[atk];
-    if (!exp) continue;
-    if (exp.weak >= 2 && exp.resist + exp.immune <= 1) {
-      recommendations.push({
-        id: `weak-${atk}`,
-        severity: exp.weak >= 3 ? "Critical" : "High",
-        category: "massive_weakness" as RecommendationCategory,
-        attackingType: atk as PokemonType,
-        targetType: atk as PokemonType,
-        issueCode: "massive_weakness" as RecommendationIssueCode,
-        evidence: exp,
-      } as TeamRecommendation);
-    }
-  }
-  return {
-    defensiveCoverage,
-    recommendations,
-    averageSpeed: Math.round(totalSpeed / Math.max(1, members.length)),
-    effectiveMaxSpeed: Math.round(maxEff),
-  };
-}
-function wrap(members: TeamMember[]): TeamWrapper {
-  return {
-    getMembers: () => members,
-    isEmpty: () => members.length === 0,
-    size: members.length,
-  };
 }
 
-interface State {
-  team: TeamWrapper;
+interface TeamState {
+  members: TeamMemberInput[];
+  team: TeamFacade;
   analysis: TeamAnalysis | null;
+  isAnalyzing: boolean;
   error: string | null;
-  addMember: (m: TeamMember) => void;
-  removeMember: (i: number) => void;
-  replaceMember: (i: number, m: TeamMember) => void;
-  clearTeam: () => void;
+  isInitialized: boolean;
+  setMembers: (members: TeamMemberInput[]) => void;
+  addMember: (member: TeamMember | TeamMemberInput) => void;
+  removeMember: (id: string | number) => void;
+  updateMember: (id: string, patch: Partial<TeamMemberInput>) => void;
+  replaceMember: (index: number, member: TeamMember | TeamMemberInput) => void;
+  analyze: () => Promise<void>;
+  initialize: () => Promise<void>;
+  reset: () => void;
 }
 
-export const useTeamStore = create<State>((set, get) => ({
-  team: wrap([]),
-  analysis: null,
-  error: null,
-  addMember: (member) => {
-    const members = [...get().team.getMembers(), member].slice(0, 6);
-    set({ team: wrap(members), analysis: computeAnalysis(members) });
-  },
-  removeMember: (index) => {
-    const members = get()
-      .team.getMembers()
-      .filter((_, i) => i !== index);
-    set({ team: wrap(members), analysis: computeAnalysis(members) });
-  },
-  replaceMember: (index, member) => {
-    const members = get()
-      .team.getMembers()
-      .map((m, i) => (i === index ? member : m));
-    set({ team: wrap(members), analysis: computeAnalysis(members) });
-  },
-  clearTeam: () => set({ team: wrap([]), analysis: null, error: null }),
-}));
+function toInput(member: TeamMember | TeamMemberInput): TeamMemberInput {
+  if (!member) return member as TeamMemberInput;
+  const m = member as unknown as RawMember;
+  const id = (m.id as string) ?? (m.name as string) ?? `${Date.now()}`;
+  const rawPid = (m.pokemonId as number) ?? (m.id as number) ?? 0;
+  const pokemonId = typeof rawPid === "number" ? rawPid : Number(rawPid) || 0;
+  return {
+    ...(member as object),
+    id: String(id),
+    pokemonId,
+    name: (m.name as string) ?? (m.species as string) ?? String(id),
+    types: (m.types as string[]) ?? [],
+    level: (m.level as number) ?? 50,
+  } as TeamMemberInput;
+}
+
+export const useTeamStore = create<TeamState>((set, get) => {
+  const makeTeam = (): TeamFacade => ({
+    get size() {
+      return get().members.length;
+    },
+    getMembers: () => get().members as unknown as TeamMember[],
+    isEmpty: () => get().members.length === 0,
+  });
+
+  return {
+    members: [],
+    team: makeTeam(),
+    analysis: null,
+    isAnalyzing: false,
+    error: null,
+    isInitialized: false,
+
+    setMembers: (members) => {
+      const mapped = members.map(toInput);
+      set({ members: mapped, team: makeTeam() });
+    },
+    addMember: (member) => {
+      const input = toInput(member as TeamMemberInput);
+      set((state) => {
+        const next = [...state.members, input].slice(0, 6);
+        return { members: next, team: makeTeam() };
+      });
+    },
+    removeMember: (id) => {
+      set((state) => {
+        if (typeof id === "number") {
+          const next = state.members.filter((_, idx) => idx !== id);
+          return { members: next, team: makeTeam() };
+        }
+        const next = state.members.filter((m) => m.id !== String(id));
+        return { members: next, team: makeTeam() };
+      });
+    },
+    updateMember: (id, patch) => {
+      set((state) => ({
+        members: state.members.map((m) =>
+          m.id === id ? { ...m, ...patch } : m,
+        ),
+        team: makeTeam(),
+      }));
+    },
+    replaceMember: (index, member) => {
+      const input = toInput(member as TeamMemberInput);
+      set((state) => {
+        const next = [...state.members];
+        next[index] = input;
+        return { members: next, team: makeTeam() };
+      });
+    },
+
+    initialize: async () => {
+      if (get().isInitialized) return;
+      try {
+        await container.init();
+        set({ isInitialized: true, error: null });
+      } catch (e) {
+        set({
+          error:
+            e instanceof Error
+              ? e.message
+              : "Failed to initialize team container",
+        });
+      }
+    },
+
+    analyze: async () => {
+      const { members } = get();
+      if (members.length === 0) {
+        set({ error: "Team is empty" });
+        return;
+      }
+      set({ isAnalyzing: true, error: null });
+      try {
+        await container.init();
+        const useCase = container.getAnalyzeTeamUseCase() as unknown as {
+          execute: (m: typeof members) => Promise<TeamAnalysis>;
+        };
+        const result = await useCase.execute(members);
+        set({ analysis: result, isAnalyzing: false, isInitialized: true });
+      } catch (e) {
+        set({
+          error: e instanceof Error ? e.message : "Team analysis failed",
+          isAnalyzing: false,
+        });
+      }
+    },
+
+    reset: () =>
+      set({
+        members: [],
+        team: makeTeam(),
+        analysis: null,
+        error: null,
+        isAnalyzing: false,
+      }),
+  };
+});

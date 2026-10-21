@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import { container } from "@/infrastructure/composition/container";
 import type { Pokemon } from "@/domain/pokemon/types/pokemon";
+
 interface State {
   pokemonList: Pokemon[];
   loading: boolean;
@@ -9,6 +10,13 @@ interface State {
   error: string | null;
   loadPokemon: () => Promise<void>;
 }
+
+type PokemonRepo = {
+  init: () => Promise<void>;
+  getAll: () => Promise<Pokemon[]>;
+  getById?: (id: number) => Promise<Pokemon | undefined>;
+};
+
 export const usePokedexStore = create<State>((set) => ({
   pokemonList: [],
   loading: false,
@@ -17,8 +25,18 @@ export const usePokedexStore = create<State>((set) => ({
   loadPokemon: async () => {
     set({ loading: true, isLoading: true, error: null });
     try {
-      await container.pokemon.init();
-      const list = (await container.pokemon.getAll()) as unknown as Pokemon[];
+      await container.init();
+      const repo = (container as unknown as { pokemon: PokemonRepo })
+        .pokemon ?? {
+        getAll: () =>
+          container.getPokemonRepository().getAll() as unknown as Promise<
+            Pokemon[]
+          >,
+        init: async () => {},
+      };
+      if (repo.init) await repo.init();
+      const raw = await repo.getAll();
+      const list = raw as unknown as Pokemon[];
       set({ pokemonList: list, loading: false, isLoading: false });
     } catch (e) {
       set({
