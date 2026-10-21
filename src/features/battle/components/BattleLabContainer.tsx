@@ -93,26 +93,26 @@ export function BattleLabContainer() {
   const attackerIdentity = useMemo(() => {
     if (!attackerInput?.pokemonId) return null;
     const raw = pokemonList.find((p) => p.id === attackerInput.pokemonId);
-    return raw ? parsePokemonIdentity({ id: raw.id, name: raw.name }) : null;
+    return raw ? parsePokemonIdentity(raw.id, raw.name) : null;
   }, [attackerInput?.pokemonId, pokemonList]);
 
   const defenderIdentity = useMemo(() => {
     if (!defenderInput?.pokemonId) return null;
     const raw = pokemonList.find((p) => p.id === defenderInput.pokemonId);
-    return raw ? parsePokemonIdentity({ id: raw.id, name: raw.name }) : null;
+    return raw ? parsePokemonIdentity(raw.id, raw.name) : null;
   }, [defenderInput?.pokemonId, pokemonList]);
 
   const attackerResolvedForm = useMemo(
     () =>
       attackerIdentity
-        ? resolvePokemonForm(attackerIdentity, pokemonList as never)
+        ? resolvePokemonForm(attackerIdentity as never, pokemonList as never)
         : null,
     [attackerIdentity, pokemonList],
   );
   const defenderResolvedForm = useMemo(
     () =>
       defenderIdentity
-        ? resolvePokemonForm(defenderIdentity, pokemonList as never)
+        ? resolvePokemonForm(defenderIdentity as never, pokemonList as never)
         : null,
     [defenderIdentity, pokemonList],
   );
@@ -149,7 +149,10 @@ export function BattleLabContainer() {
   const resolvedAttackerMoves = useMemo(() => {
     if (!attackerIdentity)
       return { moves: [] as string[], source: "fallback" as const };
-    return resolvePokemonMovesSync(attackerIdentity, pokemonList as never);
+    return resolvePokemonMovesSync(
+      attackerIdentity as never,
+      pokemonList as never,
+    );
   }, [attackerIdentity, pokemonList]);
 
   const availableMovesRich = useMemo(() => {
@@ -213,22 +216,17 @@ export function BattleLabContainer() {
       move: moveData as never,
       generation,
     });
+
     const genErrors: BattleValidationError[] = [];
-    if (attackerPokemon) {
-      const res = SmogonSpeciesMapper.resolve(
-        { id: attackerPokemon.id, name: attackerPokemon.name },
-        generation,
-      );
+    if (attackerIdentity) {
+      const res = SmogonSpeciesMapper.resolve(attackerIdentity, generation);
       if (!res.supported && !res.isFallbackToBase)
         genErrors.push(
           "UNSUPPORTED_FORM_FOR_GENERATION" as BattleValidationError,
         );
     }
-    if (defenderPokemon) {
-      const res = SmogonSpeciesMapper.resolve(
-        { id: defenderPokemon.id, name: defenderPokemon.name },
-        generation,
-      );
+    if (defenderIdentity) {
+      const res = SmogonSpeciesMapper.resolve(defenderIdentity, generation);
       if (!res.supported && !res.isFallbackToBase)
         genErrors.push(
           "UNSUPPORTED_FORM_FOR_GENERATION" as BattleValidationError,
@@ -251,6 +249,8 @@ export function BattleLabContainer() {
     moveName,
     moveList,
     generation,
+    attackerIdentity,
+    defenderIdentity,
   ]);
 
   useEffect(() => {

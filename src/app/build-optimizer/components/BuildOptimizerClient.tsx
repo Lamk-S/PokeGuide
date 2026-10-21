@@ -10,7 +10,7 @@ import { useOptimizerStore } from "@/features/optimization/store/useOptimizerSto
 export function BuildOptimizerClient() {
   const build = useOptimizerStore((s) => s.build);
   const setBuild = useOptimizerStore((s) => s.setBuild);
-  const calc = useOptimizerStore((s) => s.calculateSpeed);
+  const calc = useOptimizerStore((s) => s.calculate);
   useEffect(() => {
     void usePokedexStore.getState().loadPokemon();
   }, []);

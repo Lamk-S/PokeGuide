@@ -7,6 +7,7 @@ import type {
   BattleResult,
 } from "@/domain/battle/types/BattleParticipant";
 import { BattleStatusEffectService } from "@/domain/battle/services/BattleStatusEffectService";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
 
 type RawFieldOptions = NonNullable<ConstructorParameters<typeof Field>[0]>;
 type SmogonWeather = NonNullable<RawFieldOptions["weather"]>;
@@ -33,7 +34,6 @@ function toSmogonStatus(
   };
   return map[status.toLowerCase()];
 }
-
 function toSmogonWeather(weather: string): SmogonWeather | undefined {
   if (!weather || weather === "none") return undefined;
   const map: Record<string, SmogonWeather> = {
@@ -45,7 +45,6 @@ function toSmogonWeather(weather: string): SmogonWeather | undefined {
   };
   return map[weather] ?? map[weather.toLowerCase()];
 }
-
 function toSmogonTerrain(terrain: string): SmogonTerrain | undefined {
   if (!terrain || terrain === "none") return undefined;
   const map: Record<string, SmogonTerrain> = {
@@ -56,12 +55,10 @@ function toSmogonTerrain(terrain: string): SmogonTerrain | undefined {
   };
   return map[terrain] ?? map[terrain.toLowerCase()];
 }
-
 function computePercent(damage: number, defenderMaxHp: number): number {
   if (defenderMaxHp <= 0) return 0;
   return Math.floor((damage / defenderMaxHp) * 1000) / 10;
 }
-
 function buildActiveModifiers(
   scenario: IResolvedBattleScenario,
   moveType: string,
@@ -85,9 +82,8 @@ function buildActiveModifiers(
     );
     mods.push(`Crítico x${mult.toFixed(1)}`);
   }
-  if (scenario.attacker.status === "burn" && moveCategory === "Physical") {
+  if (scenario.attacker.status === "burn" && moveCategory === "Physical")
     mods.push(`Quemadura x0.5 (Físico reducido)`);
-  }
   return mods;
 }
 
@@ -95,12 +91,22 @@ export class SmogonCalculatorAdapter implements BattleCalculator {
   calculate(scenario: IResolvedBattleScenario): BattleResult {
     const gen = Generations.get(scenario.generation as GenerationNum);
 
+    // FASE 1 FINAL: Id-First estricto
+    const attackerIdentity = parsePokemonIdentity(
+      scenario.attacker.id,
+      scenario.attacker.name,
+    );
+    const defenderIdentity = parsePokemonIdentity(
+      scenario.defender.id,
+      scenario.defender.name,
+    );
+
     const attackerResolved = SmogonSpeciesMapper.resolve(
-      { id: scenario.attacker.id, name: scenario.attacker.name },
+      attackerIdentity,
       scenario.generation,
     );
     const defenderResolved = SmogonSpeciesMapper.resolve(
-      { id: scenario.defender.id, name: scenario.defender.name },
+      defenderIdentity,
       scenario.generation,
     );
 

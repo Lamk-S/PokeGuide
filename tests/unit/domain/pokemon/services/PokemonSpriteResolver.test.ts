@@ -4,7 +4,7 @@ import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIden
 
 describe("PokemonSpriteResolver", () => {
   it("usa ID como identidad", () => {
-    const identity = parsePokemonIdentity({ id: 10007, name: "giratina-origin" });
+    const identity = parsePokemonIdentity(10007, "giratina-origin");
     const resolved = resolvePokemonSprite(identity);
     expect(resolved.chain[0]).toContain("/10007.png");
   });
