@@ -35,7 +35,7 @@ export function PokemonSelect({
     if (!q) return pokemonList.slice(0, 50);
     return pokemonList
       .filter((p) => {
-        const id = parsePokemonIdentity({ id: p.id, name: p.name });
+        const id = parsePokemonIdentity(p.id, p.name);
         return (
           formatPokemonDisplayName(p.name).toLowerCase().includes(q) ||
           id.speciesId.includes(q) ||

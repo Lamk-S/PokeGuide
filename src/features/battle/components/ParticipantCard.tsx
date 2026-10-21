@@ -128,13 +128,11 @@ export const ParticipantCard = memo(function ParticipantCard({
     () => pokemonList.find((p) => p.id === input?.pokemonId),
     [pokemonList, input?.pokemonId],
   );
+
   const identity = useMemo(
     () =>
       currentPokemon
-        ? parsePokemonIdentity({
-            id: currentPokemon.id,
-            name: currentPokemon.name,
-          })
+        ? parsePokemonIdentity(currentPokemon.id, currentPokemon.name)
         : null,
     [currentPokemon],
   );
@@ -142,7 +140,7 @@ export const ParticipantCard = memo(function ParticipantCard({
     () =>
       identity
         ? resolvePokemonForm(
-            identity,
+            identity as never,
             pokemonList as unknown as FormResolverPokemon[],
           )
         : null,
@@ -294,11 +292,9 @@ export const ParticipantCard = memo(function ParticipantCard({
           Cambiar
         </button>
       </div>
-
       <div className="px-3 pb-3">
         <CompactStatGrid liveStats={liveStats} />
       </div>
-
       <div className="px-3 pb-3 space-y-3">
         <div className="space-y-1">
           <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
@@ -319,7 +315,6 @@ export const ParticipantCard = memo(function ParticipantCard({
             }}
           />
         </div>
-
         <div className="grid grid-cols-2 gap-2.5">
           <div className="space-y-1">
             <Label
@@ -361,7 +356,6 @@ export const ParticipantCard = memo(function ParticipantCard({
             />
           </div>
         </div>
-
         {isAttacker &&
           availableMoves &&
           onMoveChange &&
@@ -387,7 +381,6 @@ export const ParticipantCard = memo(function ParticipantCard({
               </div>
             </div>
           )}
-
         <div className="grid grid-cols-2 gap-2.5">
           <div className="space-y-1">
             <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
@@ -425,7 +418,6 @@ export const ParticipantCard = memo(function ParticipantCard({
           </div>
         </div>
       </div>
-
       <div className="border-t border-[#F0EDE6] divide-y divide-[#F0EDE6]">
         <div>
           <button

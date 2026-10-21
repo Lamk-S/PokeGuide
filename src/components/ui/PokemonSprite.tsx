@@ -1,60 +1,62 @@
 "use client";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
-import {
-  getOfficialArtworkUrl,
-  resolvePokemonSprite,
-  type SpriteResult,
-} from "@/domain/pokemon/services/PokemonSpriteResolver";
+import { resolvePokemonSprite } from "@/domain/pokemon/services/PokemonSpriteResolver";
+
+type Pokemon = { id: number; name: string };
 
 type Props = {
-  pokemon: { id: number; name: string };
+  pokemon: Pokemon;
   size?: number;
+  shiny?: boolean;
   className?: string;
   facing?: "left" | "right";
 };
 
 export function PokemonSprite({
   pokemon,
-  size = 48,
+  size = 64,
+  shiny = false,
   className,
-  facing,
+  facing: _facing,
 }: Props) {
   const identity = useMemo(
-    () => parsePokemonIdentity({ id: pokemon.id, name: pokemon.name }),
+    () => parsePokemonIdentity(pokemon.id, pokemon.name),
     [pokemon.id, pokemon.name],
   );
-  const resolved: SpriteResult = useMemo(
-    () => resolvePokemonSprite(identity),
-    [identity],
+  const resolved = useMemo(
+    () => resolvePokemonSprite(identity, { shiny }),
+    [identity, shiny],
   );
-  const official = useMemo(
-    () => getOfficialArtworkUrl(pokemon.id),
-    [pokemon.id],
-  );
-  const candidates = useMemo(() => {
-    const chain = resolved.chain;
-    return chain && chain.length > 0 ? chain : [official];
-  }, [resolved, official]);
-  const [idx, setIdx] = useState(0);
-  const current = candidates[idx] ?? official;
-  const facingClass = facing === "right" ? "scale-x-[-1]" : "";
-  const combined = [className ?? "object-contain", facingClass]
-    .filter(Boolean)
-    .join(" ");
+
+  const src =
+    resolved.chain[0] ??
+    resolved.primary ??
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`;
+
   return (
-    <Image
-      src={current}
-      alt={pokemon.name}
-      width={size}
-      height={size}
-      unoptimized
-      onError={() => {
-        if (idx + 1 < candidates.length) setIdx((p) => p + 1);
-      }}
-      className={combined}
-    />
+    <div
+      className={className}
+      style={{ width: size, height: size, position: "relative" }}
+    >
+      <Image
+        src={src}
+        alt={pokemon.name}
+        width={size}
+        height={size}
+        unoptimized
+        style={{ objectFit: "contain" }}
+        onError={(e) => {
+          const img = e.currentTarget as HTMLImageElement;
+          const chain = resolved.chain;
+          const currentIndex = chain.indexOf(img.src);
+          const next = chain[currentIndex + 1] ?? chain[0];
+          if (next && img.src !== next) img.src = next;
+        }}
+      />
+    </div>
   );
 }
+
 export default PokemonSprite;
