@@ -1,30 +1,41 @@
-import type { StatName } from "../types/StatTypes";
-
-export type IV = number;
+export type StatName =
+  | "hp"
+  | "attack"
+  | "defense"
+  | "special-attack"
+  | "special-defense"
+  | "speed";
+export const STAT_NAMES: StatName[] = [
+  "hp",
+  "attack",
+  "defense",
+  "special-attack",
+  "special-defense",
+  "speed",
+];
 export type IVSet = Record<StatName, number>;
 
-/**
- * Value Object para gestionar la integridad de los IVs.
- */
-export const IV = {
-  MIN: 0,
-  MAX: 31,
+export class IV {
+  private constructor(public readonly value: number) {
+    Object.freeze(this);
+  }
 
-  /**
-   * Valida y normaliza un IV numérico individual.
-   */
-  create(value: number): IV {
-    let normalized = Math.floor(value);
-    if (Number.isNaN(normalized) || normalized < this.MIN)
-      normalized = this.MIN;
-    if (normalized > this.MAX) normalized = this.MAX;
-    return normalized;
-  },
+  static create(value: number): IV {
+    const num = Number.isFinite(value) ? Math.floor(value) : 0;
+    return new IV(Math.max(0, Math.min(31, num)));
+  }
 
-  /**
-   * Genera el set estándar competitivo perfecto.
-   */
-  createPerfectSet(): IVSet {
+  static createSet(input: Partial<Record<StatName, number | IV>> = {}): IVSet {
+    const result = {} as IVSet;
+    for (const stat of STAT_NAMES) {
+      const raw = input[stat];
+      const num = raw instanceof IV ? raw.value : (raw as number | undefined);
+      result[stat] = IV.create(num ?? 31).value;
+    }
+    return result;
+  }
+
+  static createPerfectSet(): IVSet {
     return {
       hp: 31,
       attack: 31,
@@ -33,25 +44,26 @@ export const IV = {
       "special-defense": 31,
       speed: 31,
     };
-  },
+  }
 
-  /**
-   * Set completo a partir de un objeto parcial,
-   * aplicando defaults perfectos y validando.
-   */
-  createSet(raw: Partial<IVSet>): IVSet {
-    const perfect = this.createPerfectSet();
+  static createEmptySet(): IVSet {
     return {
-      hp: this.create(raw.hp ?? perfect.hp),
-      attack: this.create(raw.attack ?? perfect.attack),
-      defense: this.create(raw.defense ?? perfect.defense),
-      "special-attack": this.create(
-        raw["special-attack"] ?? perfect["special-attack"],
-      ),
-      "special-defense": this.create(
-        raw["special-defense"] ?? perfect["special-defense"],
-      ),
-      speed: this.create(raw.speed ?? perfect.speed),
+      hp: 0,
+      attack: 0,
+      defense: 0,
+      "special-attack": 0,
+      "special-defense": 0,
+      speed: 0,
     };
-  },
-} as const;
+  }
+
+  toNumber(): number {
+    return this.value;
+  }
+  equals(other: IV): boolean {
+    return this.value === other.value;
+  }
+  toString(): string {
+    return `${this.value}`;
+  }
+}

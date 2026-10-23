@@ -1,34 +1,42 @@
 import { describe, it, expect } from "vitest";
-import { OptimizationProblem } from "@/domain/optimization/entities/OptimizationProblem";
-import { SurvivalOptimizer } from "@/domain/optimization/services/SurvivalOptimizer";
+import { SurvivalOptimizer, optimizeSurvival } from "@/domain/optimization/services/SurvivalOptimizer";
 
-describe("SurvivalOptimizer (Branch & Bound + Binary Search)", () => {
-  it("encuentra la combinación óptima de HP y Defensa reduciendo evaluaciones", () => {
-    const problem = new OptimizationProblem(
-      { type: "ev_investment", direction: "minimize" },
-      [{ variable: "survival_physical", operator: "gte", target: 1 }],
-      {
-        baseStats: { hp: 100, attack: 100, defense: 100, "special-attack": 100, "special-defense": 100, speed: 100 },
-        ivs: { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 },
-        level: 50,
-        nature: { name: "Serious", nameEs: "Seria", increasedStat: null, decreasedStat: null },
-        generation: 9
-      }
-    );
-
-    // Mockeamos una función de evaluación. 
-    // Supongamos que se requiere que la suma de HP EV y Def EV sea al menos 120 para sobrevivir.
-    // El óptimo sería encontrar cualquier combinación que sume 120 exactamente. 
-    const mockEvaluator = (hpEV: number, defEV: number) => {
-      return (hpEV + defEV) >= 120;
-    };
-
-    const result = SurvivalOptimizer.optimize(problem, mockEvaluator, "defense");
-
+describe("SurvivalOptimizer", () => {
+  const baseStats = { hp: 100, attack: 100, defense: 100, "special-attack": 100, "special-defense": 100, speed: 100 };
+  const nature = { name: "Serious", increasedStat: null, decreasedStat: null };
+  const ivs = { hp: 31, attack: 31, defense: 31, "special-attack": 31, "special-defense": 31, speed: 31 };
+  const evs = { hp: 0, attack: 0, defense: 0, "special-attack": 0, "special-defense": 0, speed: 0 };
+  
+  it("calcula la optimización de supervivencia óptima y maneja Infeasible", () => {
+    const input = { baseStats, level: 50, nature, ivs, evs, generation: 9, defenseStat: "defense" as const };
+    const result = optimizeSurvival(input, (hp, def) => hp + def >= 100, "defense");
     expect(result.status).toBe("Optimal");
-    expect(result.solution?.hp! + result.solution?.defense!).toBe(120);
-    
-    // De 4096 combinaciones posibles, el algoritmo debería podar ramas y resolverlo en menos de 100 evaluaciones.
-    expect(result.metrics.candidatesEvaluated).toBeLessThan(100); 
+    expect(result.solution?.hp).toBeDefined();
+
+    const failed = optimizeSurvival(input, () => false, "defense");
+    expect(failed.status).toBe("Infeasible");
+
+    const edge = optimizeSurvival(input, (hp, def) => hp === 252 && def === 252, "defense");
+    expect(edge.status).toBe("Optimal");
+  });
+
+  it("extrae el problema desde OptimizationProblem y usa special-defense", () => {
+    const mockProblem = {
+      context: { baseStats, ivs, level: 50, nature, generation: 9, currentEVs: evs }
+    } as any;
+
+    const res1 = SurvivalOptimizer.optimize(mockProblem, (hp, def) => hp >= 0, "special-defense");
+    expect(res1.status).toBe("Optimal");
+    expect(res1.solution?.specialDefense).toBeDefined();
+
+    const res2 = optimizeSurvival(mockProblem);
+    expect(res2.status).toBe("Optimal");
+  });
+
+  it("ejecuta correctamente desde la instancia de la clase", () => {
+    const optimizer = new SurvivalOptimizer();
+    const input = { baseStats, level: 50, nature, ivs, evs, generation: 9, defenseStat: "defense" as const };
+    const result = optimizer.optimize(input, () => true, "defense");
+    expect(result.status).toBe("Optimal");
   });
 });

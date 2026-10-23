@@ -7,11 +7,10 @@ import type { StatName } from "@/domain/pokemon/types/pokemon";
 
 export class Gen3PlusStatRules implements GenerationRules {
   calculateHp(base: number, iv: IV, ev: EV, level: Level): number {
-    // Excepción conocida en la mecánica: Shedinja (Base HP = 1) siempre tiene 1 HP.
-    if (base === 1) return 1;
-
-    // Fórmula: Math.floor(0.01 * (2 * Base + IV + Math.floor(EV / 4)) * Level) + Level + 10
-    const core = 2 * base + iv + Math.floor(ev / 4);
+    if (base === 1) return 1; // Shedinja
+    const ivNum = iv.value;
+    const evNum = ev.value;
+    const core = 2 * base + ivNum + Math.floor(evNum / 4);
     return Math.floor(0.01 * core * level.value) + level.value + 10;
   }
 
@@ -23,10 +22,10 @@ export class Gen3PlusStatRules implements GenerationRules {
     level: Level,
     nature: Nature,
   ): number {
-    // Fórmula base: Math.floor(0.01 * (2 * Base + IV + Math.floor(EV / 4)) * Level) + 5
-    const core = 2 * base + iv + Math.floor(ev / 4);
+    const ivNum = iv.value;
+    const evNum = ev.value;
+    const core = 2 * base + ivNum + Math.floor(evNum / 4);
     const preNatureStat = Math.floor(0.01 * core * level.value) + 5;
-
     return Math.floor(preNatureStat * this.getNatureModifier(statName, nature));
   }
 
