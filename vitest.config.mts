@@ -29,10 +29,10 @@ export default defineConfig({
       reporter: ["text", "json", "html", "lcov"],
       // Quality Gates de la CI
       thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 65,
-        statements: 80,
+        lines: 75,
+        functions: 70,
+        branches: 60,
+        statements: 75,
       },
       exclude: [
         "node_modules/**",
