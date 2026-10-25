@@ -1,83 +1,108 @@
-import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import type {
   TypeExposure,
   TeamRecommendation,
+  RecommendationCategory,
   Severity,
   RecommendationIssueCode,
-  RecommendationCategory,
-  TeamMember,
-} from "../types/TeamTypes";
-import type { BattleRuleset } from "../config/battleFormat";
+} from "@/domain/team/types/TeamTypes";
 
-const SEVERITY_ORDER: Record<Severity, number> = {
-  Critical: 0,
-  High: 1,
-  Medium: 2,
-  Low: 3,
-  Info: 4,
-};
+export type RecommendationSeverity = Severity;
+export type { RecommendationCategory, RecommendationIssueCode };
 
-function createId(prefix: string, type: PokemonType): string {
-  return `${prefix}-${type}`;
+export interface PureTeamRecommendation extends TeamRecommendation {
+  weak: number;
+  resist: number;
+  immune: number;
+  neutral: number;
 }
 
-export function generate(
-  coverage: Record<string, TypeExposure>,
-  _members?: readonly TeamMember[] | unknown,
-  _ruleset?: BattleRuleset | unknown,
-): TeamRecommendation[] {
-  const recommendations: TeamRecommendation[] = [];
+type CoverageMap = Record<string, TypeExposure>;
 
-  for (const [rawType, exposure] of Object.entries(coverage)) {
-    if (!exposure) continue;
-    const attackingType = rawType as PokemonType;
-    const { weak, resist, immune } = exposure;
-    const totalResist = resist + immune;
+function buildId(
+  attackingType: string,
+  issueCode: string,
+  weak: number,
+  resist: number,
+): string {
+  return `${attackingType}-${issueCode}-${weak}-${resist}`;
+}
 
-    if (weak >= 3 && totalResist <= 1) {
-      recommendations.push({
-        id: createId("massive-weakness", attackingType),
-        severity: "Critical",
-        issueCode: "massive_weakness" as RecommendationIssueCode,
-        category: "defensive_gap" as RecommendationCategory,
-        attackingType,
-        targetType: attackingType,
-        evidence: { ...exposure },
-      });
+function createRecommendation(
+  attackingType: string,
+  exposure: TypeExposure,
+  severity: Severity,
+  issueCode: RecommendationIssueCode,
+  category: RecommendationCategory,
+): PureTeamRecommendation {
+  const id = buildId(attackingType, issueCode, exposure.weak, exposure.resist);
+  const evidence = {
+    weak: exposure.weak,
+    resist: exposure.resist,
+    immune: exposure.immune,
+    neutral: exposure.neutral,
+  };
+
+  return {
+    id,
+    severity,
+    issueCode,
+    category,
+    attackingType,
+    targetType: attackingType,
+    evidence,
+    weak: exposure.weak,
+    resist: exposure.resist,
+    immune: exposure.immune,
+    neutral: exposure.neutral,
+  } as PureTeamRecommendation;
+}
+
+function generate(coverage: CoverageMap): PureTeamRecommendation[] {
+  const recommendations: PureTeamRecommendation[] = [];
+
+  for (const [attackingType, exposure] of Object.entries(coverage)) {
+    const totalResist = exposure.resist + exposure.immune;
+
+    if (exposure.weak >= 3 && totalResist <= 1) {
+      recommendations.push(
+        createRecommendation(
+          attackingType,
+          exposure,
+          "Critical" as Severity,
+          "massive_weakness" as RecommendationIssueCode,
+          "defensive_gap" as RecommendationCategory,
+        ),
+      );
       continue;
     }
 
-    if (weak === 2 && totalResist <= 1) {
-      recommendations.push({
-        id: createId("single-point", attackingType),
-        severity: "High",
-        issueCode: "single_point_failure" as RecommendationIssueCode,
-        category: "dependency" as RecommendationCategory,
-        attackingType,
-        targetType: attackingType,
-        evidence: { ...exposure },
-      });
+    if (exposure.weak === 2 && exposure.resist === 1 && exposure.immune === 0) {
+      recommendations.push(
+        createRecommendation(
+          attackingType,
+          exposure,
+          "High" as Severity,
+          "single_point_failure" as RecommendationIssueCode,
+          "dependency" as RecommendationCategory,
+        ),
+      );
       continue;
     }
 
-    if (weak > 2 && totalResist === 0) {
-      recommendations.push({
-        id: createId("redundant", attackingType),
-        severity: "High",
-        issueCode: "redundant_weakness" as RecommendationIssueCode,
-        category: "defensive_gap" as RecommendationCategory,
-        attackingType,
-        targetType: attackingType,
-        evidence: { ...exposure },
-      });
+    if (exposure.weak >= 2 && totalResist === 0) {
+      recommendations.push(
+        createRecommendation(
+          attackingType,
+          exposure,
+          "High" as Severity,
+          "massive_weakness" as RecommendationIssueCode,
+          "defensive_gap" as RecommendationCategory,
+        ),
+      );
     }
   }
 
-  return recommendations.sort((a, b) => {
-    const sevDiff = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
-    if (sevDiff !== 0) return sevDiff;
-    return a.targetType.localeCompare(b.targetType);
-  });
+  return recommendations;
 }
 
 export const RecommendationEngine = {

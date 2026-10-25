@@ -1,73 +1,85 @@
-import type { MoveCategory } from "../value-objects/MoveCategory";
-import { isPhysicalCategory } from "../value-objects/MoveCategory";
-import { isGutsAbility } from "../value-objects/AbilityId";
-import { isFacadeMove } from "../value-objects/MoveId";
+import { normalizeId } from "@/domain/shared/utils/normalizeId";
 
-export type StatusEffectResult = {
-  applies: boolean;
-  multiplier: number;
-  log: string;
-  explanation: string;
-};
+export type BurnReasonCode =
+  | "NOT_PHYSICAL"
+  | "GUTS_IGNORES_BURN"
+  | "FACADE_IGNORES_BURN_DROP"
+  | "BURN_HALVES_PHYSICAL";
 
-export interface BurnContext {
+export interface BurnEvaluationInput {
   moveId: string;
-  moveName?: string | undefined;
-  moveCategory: MoveCategory;
-  abilityId?: string | undefined;
-  abilityName?: string | undefined;
+  moveCategory: string;
+  abilityId?: string | null;
 }
 
-export function evaluateBurn(context: BurnContext): StatusEffectResult {
-  const { moveId, moveCategory, abilityId } = context;
+export interface BurnEvaluationResult {
+  applies: boolean;
+  multiplier: number;
+  reason: BurnReasonCode;
+  log: string;
+}
 
-  if (!isPhysicalCategory(moveCategory)) {
+function buildLog(reason: BurnReasonCode, multiplier: number): string {
+  return `[${reason}] multiplier:${multiplier.toFixed(1)}`;
+}
+
+export function evaluateBurn(input: BurnEvaluationInput): BurnEvaluationResult {
+  const normalizedMoveId = normalizeId(input.moveId);
+  const normalizedAbilityId = input.abilityId
+    ? normalizeId(input.abilityId)
+    : "";
+  const isPhysical = input.moveCategory === "Physical";
+
+  if (!isPhysical) {
+    const reason: BurnReasonCode = "NOT_PHYSICAL";
     return {
       applies: false,
       multiplier: 1.0,
-      log: "Quemadura no afecta (mov. especial/estado)",
-      explanation: "La quemadura solo reduce daño físico.",
+      reason,
+      log: buildLog(reason, 1.0),
     };
   }
 
-  if (isFacadeMove(moveId)) {
-    return {
-      applies: true,
-      multiplier: 2.0,
-      log: "Facade x2.0 (potenciado por quemadura)",
-      explanation: "Facade duplica potencia cuando el atacante está quemado.",
-    };
-  }
-
-  if (isGutsAbility(abilityId)) {
+  if (normalizedAbilityId === "guts") {
+    const reason: BurnReasonCode = "GUTS_IGNORES_BURN";
     return {
       applies: true,
       multiplier: 1.0,
-      log: "Guts ignora quemadura + x1.5 ATQ",
-      explanation:
-        "Guts ignora la reducción de quemadura y potencia el ataque.",
+      reason,
+      log: buildLog(reason, 1.0),
     };
   }
 
-  return {
-    applies: true,
-    multiplier: 0.5,
-    log: "Quemadura Atacante x0.5 (solo físico)",
-    explanation: "Quemadura reduce a la mitad el daño físico.",
-  };
+  if (normalizedMoveId === "facade") {
+    const reason: BurnReasonCode = "FACADE_IGNORES_BURN_DROP";
+    return {
+      applies: true,
+      multiplier: 1.0,
+      reason,
+      log: buildLog(reason, 1.0),
+    };
+  }
+
+  const reason: BurnReasonCode = "BURN_HALVES_PHYSICAL";
+  return { applies: true, multiplier: 0.5, reason, log: buildLog(reason, 0.5) };
 }
 
 export function getCriticalMultiplier(generation: number): number {
-  return generation >= 6 ? 1.5 : 2.0;
+  return generation < 6 ? 2.0 : 1.5;
 }
 
-export function getCriticalLog(generation: number): string {
+export function getCriticalModifierCode(generation: number): string {
   const mult = getCriticalMultiplier(generation);
-  return `Golpe Crítico x${mult.toFixed(1)}`;
+  return `CRITICAL_x${mult.toFixed(1)}`;
+}
+
+export function getCriticalLog(_generation: number): string {
+  return "CRITICAL_HIT";
 }
 
 export const BattleStatusEffectService = {
   evaluateBurn,
   getCriticalMultiplier,
   getCriticalLog,
+  getCriticalModifierCode,
 };

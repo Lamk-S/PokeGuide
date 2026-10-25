@@ -57,6 +57,6 @@ export class AnalyzeTeamUseCase {
       effectiveMaxSpeed,
       recommendations,
       teamSize: members.length,
-    });
+    }) as TeamAnalysis;
   }
 }
