@@ -1,8 +1,14 @@
 import {
-  OptimizeSpeedUseCase,
+  optimizeSpeedUseCase,
   type OptimizeSpeedInput,
+  type OptimizeSpeedOutput,
 } from "./OptimizeSpeedUseCase";
 
-export async function OptimizeBuildUseCase(input: OptimizeSpeedInput) {
-  return OptimizeSpeedUseCase(input);
+export async function OptimizeBuildUseCase(
+  input: OptimizeSpeedInput,
+): Promise<OptimizeSpeedOutput> {
+  return optimizeSpeedUseCase.execute(input);
 }
+
+export type OptimizeBuildInput = OptimizeSpeedInput;
+export type OptimizeBuildOutput = OptimizeSpeedOutput;

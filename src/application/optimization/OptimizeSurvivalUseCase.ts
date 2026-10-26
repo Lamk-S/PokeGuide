@@ -1,53 +1,91 @@
-import { OptimizationProblem } from "@/domain/optimization/entities/OptimizationProblem";
-import {
-  optimizeSurvival,
-  type SurvivalEvaluator,
-} from "@/domain/optimization/services/SurvivalOptimizer";
+import { OptimizationWorkerClient } from "@/infrastructure/workers/OptimizationWorkerClient";
 import type {
-  StatName,
-  DefenseStat,
-} from "@/domain/optimization/types/OptimizationTypes";
-import type { NatureContext } from "@/domain/optimization/entities/OptimizationProblem";
+  SurvivalOptimizationPayload,
+  SurvivalOptimizationResult,
+  StatSetPayload,
+} from "@/infrastructure/workers/optimization.types";
 
-export type OptimizeSurvivalInput = {
-  readonly baseStats: Record<StatName, number>;
-  readonly ivs: Record<StatName, number>;
-  readonly nature: {
-    name: string;
-    nameEs?: string;
-    increasedStat: StatName | null;
-    decreasedStat: StatName | null;
-  };
-  readonly level: number;
-  readonly generation: number;
-  readonly defenseStat: DefenseStat;
-  readonly currentEVs?: Partial<Record<StatName, number>>;
-  readonly evaluator: SurvivalEvaluator;
-};
-
-function toNatureContext(n: OptimizeSurvivalInput["nature"]): NatureContext {
-  return {
-    name: n.name,
-    nameEs: n.nameEs ?? n.name,
-    increasedStat: n.increasedStat,
-    decreasedStat: n.decreasedStat,
+export interface OptimizeSurvivalInput {
+  baseStats: StatSetPayload;
+  level: number;
+  natureName: string;
+  ivs: StatSetPayload;
+  evsBudget: number;
+  generation: number;
+  survivalTarget: {
+    incomingMovePower: number;
+    incomingMoveType: string;
+    attackerLevel: number;
+    attackerBaseStats: StatSetPayload;
+    attackerNatureName: string;
+    requiredSurvivalPercent: number;
+    weather?: string;
+    terrain?: string;
   };
 }
 
-export function OptimizeSurvivalUseCase(input: OptimizeSurvivalInput) {
-  const survivalVar =
-    input.defenseStat === "defense" ? "survival_physical" : "survival_special";
-  const problem = new OptimizationProblem(
-    { type: "ev_investment", direction: "minimize" },
-    [{ variable: survivalVar, operator: "gte", target: 1 }],
-    {
+export type OptimizeSurvivalOutput = SurvivalOptimizationResult;
+
+export class OptimizeSurvivalUseCase {
+  private readonly workerClient: OptimizationWorkerClient;
+
+  constructor(
+    workerClient: OptimizationWorkerClient = OptimizationWorkerClient.getInstance(),
+  ) {
+    this.workerClient = workerClient;
+  }
+
+  async execute(input: OptimizeSurvivalInput): Promise<OptimizeSurvivalOutput> {
+    if (!input) {
+      throw new Error("INVALID_INPUT: Survival optimization input requerido");
+    }
+
+    if (input.level <= 0 || input.level > 100) {
+      throw new Error(`INVALID_LEVEL: ${input.level}`);
+    }
+
+    if (
+      input.survivalTarget.requiredSurvivalPercent <= 0 ||
+      input.survivalTarget.requiredSurvivalPercent > 100
+    ) {
+      throw new Error(
+        `INVALID_SURVIVAL_PERCENT: ${input.survivalTarget.requiredSurvivalPercent}`,
+      );
+    }
+
+    if (input.survivalTarget.incomingMovePower <= 0) {
+      throw new Error(
+        `INVALID_MOVE_POWER: ${input.survivalTarget.incomingMovePower}`,
+      );
+    }
+
+    const payload: SurvivalOptimizationPayload = {
       baseStats: input.baseStats,
-      ivs: input.ivs,
       level: input.level,
-      nature: toNatureContext(input.nature),
+      natureName: input.natureName,
+      ivs: input.ivs,
+      evsBudget: input.evsBudget,
       generation: input.generation,
-      currentEVs: input.currentEVs ?? {},
-    },
-  );
-  return optimizeSurvival(problem, input.evaluator, input.defenseStat);
+      survivalTarget: {
+        incomingMovePower: input.survivalTarget.incomingMovePower,
+        incomingMoveType: input.survivalTarget.incomingMoveType,
+        attackerLevel: input.survivalTarget.attackerLevel,
+        attackerBaseStats: input.survivalTarget.attackerBaseStats,
+        attackerNatureName: input.survivalTarget.attackerNatureName,
+        requiredSurvivalPercent: input.survivalTarget.requiredSurvivalPercent,
+        weather: input.survivalTarget.weather,
+        terrain: input.survivalTarget.terrain,
+      },
+    };
+
+    try {
+      const result = await this.workerClient.optimizeSurvival(payload);
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`OPTIMIZE_SURVIVAL_FAILED: ${message}`);
+    }
+  }
 }
+
+export const optimizeSurvivalUseCase = new OptimizeSurvivalUseCase();

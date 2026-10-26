@@ -1,58 +1,100 @@
-import { OptimizationProblem } from "@/domain/optimization/entities/OptimizationProblem";
-import {
-  optimizeDamage,
-  type DamageEvaluator,
-} from "@/domain/optimization/services/DamageOptimizer";
+import { OptimizationWorkerClient } from "@/infrastructure/workers/OptimizationWorkerClient";
 import type {
-  StatName,
-  OffensiveStat,
-} from "@/domain/optimization/types/OptimizationTypes";
-import type { NatureContext } from "@/domain/optimization/entities/OptimizationProblem";
+  DamageOptimizationPayload,
+  DamageOptimizationResult,
+  StatSetPayload,
+} from "@/infrastructure/workers/optimization.types";
 
-export type OptimizeDamageInput = {
-  readonly baseStats: Record<StatName, number>;
-  readonly ivs: Record<StatName, number>;
-  readonly nature: {
-    name: string;
-    nameEs?: string;
-    increasedStat: StatName | null;
-    decreasedStat: StatName | null;
-  };
-  readonly level: number;
-  readonly generation: number;
-  readonly targetPercent: number;
-  readonly offensiveStat: OffensiveStat;
-  readonly currentEVs?: Partial<Record<StatName, number>>;
-  readonly evaluator: DamageEvaluator;
-};
-
-function toNatureContext(n: OptimizeDamageInput["nature"]): NatureContext {
-  return {
-    name: n.name,
-    nameEs: n.nameEs ?? n.name,
-    increasedStat: n.increasedStat,
-    decreasedStat: n.decreasedStat,
+export interface OptimizeDamageInput {
+  baseStats: StatSetPayload;
+  level: number;
+  natureName: string;
+  ivs: StatSetPayload;
+  evsBudget: number;
+  generation: number;
+  damageTarget: {
+    defenderBaseStats: StatSetPayload;
+    defenderLevel: number;
+    defenderNatureName: string;
+    movePower: number;
+    moveType: string;
+    moveCategory: "Physical" | "Special";
+    requiredDamagePercent: number;
+    weather?: string;
+    terrain?: string;
   };
 }
 
-export function OptimizeDamageUseCase(input: OptimizeDamageInput) {
-  const problem = new OptimizationProblem(
-    { type: "ev_investment", direction: "minimize" },
-    [
-      {
-        variable: input.offensiveStat,
-        operator: "gte",
-        target: input.targetPercent,
-      },
-    ],
-    {
+export type OptimizeDamageOutput = DamageOptimizationResult;
+
+export class OptimizeDamageUseCase {
+  private readonly workerClient: OptimizationWorkerClient;
+
+  constructor(
+    workerClient: OptimizationWorkerClient = OptimizationWorkerClient.getInstance(),
+  ) {
+    this.workerClient = workerClient;
+  }
+
+  async execute(input: OptimizeDamageInput): Promise<OptimizeDamageOutput> {
+    if (!input) {
+      throw new Error("INVALID_INPUT: Damage optimization input requerido");
+    }
+
+    if (input.level <= 0 || input.level > 100) {
+      throw new Error(`INVALID_LEVEL: ${input.level}`);
+    }
+
+    if (
+      input.damageTarget.requiredDamagePercent <= 0 ||
+      input.damageTarget.requiredDamagePercent > 100
+    ) {
+      throw new Error(
+        `INVALID_DAMAGE_PERCENT: ${input.damageTarget.requiredDamagePercent}`,
+      );
+    }
+
+    if (input.damageTarget.movePower <= 0) {
+      throw new Error(`INVALID_MOVE_POWER: ${input.damageTarget.movePower}`);
+    }
+
+    if (
+      input.damageTarget.moveCategory !== "Physical" &&
+      input.damageTarget.moveCategory !== "Special"
+    ) {
+      throw new Error(
+        `INVALID_MOVE_CATEGORY: ${input.damageTarget.moveCategory}`,
+      );
+    }
+
+    const payload: DamageOptimizationPayload = {
       baseStats: input.baseStats,
-      ivs: input.ivs,
       level: input.level,
-      nature: toNatureContext(input.nature),
+      natureName: input.natureName,
+      ivs: input.ivs,
+      evsBudget: input.evsBudget,
       generation: input.generation,
-      currentEVs: input.currentEVs ?? {},
-    },
-  );
-  return optimizeDamage(problem, input.evaluator, input.offensiveStat);
+      damageTarget: {
+        defenderBaseStats: input.damageTarget.defenderBaseStats,
+        defenderLevel: input.damageTarget.defenderLevel,
+        defenderNatureName: input.damageTarget.defenderNatureName,
+        movePower: input.damageTarget.movePower,
+        moveType: input.damageTarget.moveType,
+        moveCategory: input.damageTarget.moveCategory,
+        requiredDamagePercent: input.damageTarget.requiredDamagePercent,
+        weather: input.damageTarget.weather,
+        terrain: input.damageTarget.terrain,
+      },
+    };
+
+    try {
+      const result = await this.workerClient.optimizeDamage(payload);
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`OPTIMIZE_DAMAGE_FAILED: ${message}`);
+    }
+  }
 }
+
+export const optimizeDamageUseCase = new OptimizeDamageUseCase();
