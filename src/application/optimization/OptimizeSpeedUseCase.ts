@@ -1,44 +1,60 @@
-import { OptimizationProblem } from "@/domain/optimization/entities/OptimizationProblem";
-import { optimizeSpeed } from "@/domain/optimization/services/SpeedOptimizer";
-import type { StatName } from "@/domain/optimization/types/OptimizationTypes";
-import type { NatureContext } from "@/domain/optimization/entities/OptimizationProblem";
+import { OptimizationWorkerClient } from "@/infrastructure/workers/OptimizationWorkerClient";
+import type {
+  SpeedOptimizationPayload,
+  SpeedOptimizationResult,
+} from "@/infrastructure/workers/optimization.types";
 
-export type OptimizeSpeedInput = {
-  readonly baseStats: Record<StatName, number>;
-  readonly ivs: Record<StatName, number>;
-  readonly nature: {
-    name: string;
-    nameEs?: string;
-    increasedStat: StatName | null;
-    decreasedStat: StatName | null;
-  };
-  readonly level: number;
-  readonly generation: number;
-  readonly targetSpeed: number;
-  readonly currentEVs?: Partial<Record<StatName, number>>;
-};
+export type OptimizeSpeedInput = SpeedOptimizationPayload;
+export type OptimizeSpeedOutput = SpeedOptimizationResult;
 
-function toNatureContext(n: OptimizeSpeedInput["nature"]): NatureContext {
-  return {
-    name: n.name,
-    nameEs: n.nameEs ?? n.name,
-    increasedStat: n.increasedStat,
-    decreasedStat: n.decreasedStat,
-  };
+export class OptimizeSpeedUseCase {
+  private readonly workerClient: OptimizationWorkerClient;
+
+  constructor(
+    workerClient: OptimizationWorkerClient = OptimizationWorkerClient.getInstance(),
+  ) {
+    this.workerClient = workerClient;
+  }
+
+  async execute(input: OptimizeSpeedInput): Promise<OptimizeSpeedOutput> {
+    if (!input) {
+      throw new Error("INVALID_INPUT: Speed optimization input requerido");
+    }
+
+    if (input.level <= 0 || input.level > 100) {
+      throw new Error(`INVALID_LEVEL: ${input.level} debe estar entre 1 y 100`);
+    }
+
+    if (input.targetSpeed <= 0) {
+      throw new Error(
+        `INVALID_TARGET_SPEED: ${input.targetSpeed} debe ser > 0`,
+      );
+    }
+
+    if (input.evsBudget < 0 || input.evsBudget > 510) {
+      throw new Error(
+        `INVALID_EVS_BUDGET: ${input.evsBudget} debe estar entre 0 y 510`,
+      );
+    }
+
+    try {
+      const result = await this.workerClient.optimizeSpeed(input);
+      return result;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`OPTIMIZE_SPEED_FAILED: ${message}`);
+    }
+  }
+
+  async call(input: OptimizeSpeedInput): Promise<OptimizeSpeedOutput> {
+    return this.execute(input);
+  }
 }
 
-export function OptimizeSpeedUseCase(input: OptimizeSpeedInput) {
-  const problem = new OptimizationProblem(
-    { type: "ev_investment", direction: "minimize" },
-    [{ variable: "speed", operator: "gte", target: input.targetSpeed }],
-    {
-      baseStats: input.baseStats,
-      ivs: input.ivs,
-      level: input.level,
-      nature: toNatureContext(input.nature),
-      generation: input.generation,
-      currentEVs: input.currentEVs ?? {},
-    },
-  );
-  return optimizeSpeed(problem);
+export const optimizeSpeedUseCase = new OptimizeSpeedUseCase();
+
+export async function OptimizeSpeedUseCaseFn(
+  input: OptimizeSpeedInput,
+): Promise<OptimizeSpeedOutput> {
+  return optimizeSpeedUseCase.execute(input);
 }
