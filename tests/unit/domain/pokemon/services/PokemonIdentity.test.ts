@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { PokemonIdentity, parsePokemonIdentity, inferFormFromDisplayName, normalizeFormId } from "@/domain/pokemon/value-objects/PokemonIdentity";
 
-describe("PokemonIdentity - FASE 1 coverage estricto", () => {
+describe("PokemonIdentity - coverage estricto", () => {
   it("fromDexId con id conocido 487 altered", () => {
     const id = PokemonIdentity.fromDexId(487);
     expect(id.numericId).toBe(487);
