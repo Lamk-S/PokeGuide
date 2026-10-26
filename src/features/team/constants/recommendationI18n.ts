@@ -18,7 +18,6 @@ function getTypeEs(typeId: string): string {
   return dict[normalized] ?? typeId;
 }
 
-// --- FASE 3: API pura - cubre TODOS los issueCode de TeamTypes ---
 type TemplateFn = (
   typeEs: string,
   rec: PureTeamRecommendation,
@@ -75,7 +74,6 @@ export const RECOMMENDATION_I18N = {
   get: getRecommendationI18n,
 };
 
-// --- COMPATIBILIDAD UI EXISTENTE ---
 export const SEVERITY_I18N: Record<
   Severity,
   { label: string; descripcion: string }

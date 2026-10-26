@@ -1,195 +1,205 @@
+import { NATURES } from "@/domain/stats/constants/natures";
+import type { Nature } from "@/domain/stats/types/StatTypes";
 import type {
-  OptimizationWorkerRequest,
-  OptimizationWorkerResponse,
   SpeedOptimizationPayload,
-  SurvivalOptimizationPayload,
-  DamageOptimizationPayload,
   SpeedOptimizationResult,
-  SurvivalOptimizationResult,
+  DamageOptimizationPayload,
   DamageOptimizationResult,
-  OptimizationType,
+  SurvivalOptimizationPayload,
+  SurvivalOptimizationResult,
 } from "./optimization.types";
 
-type PendingCallback = {
-  resolve: (value: unknown) => void;
-  reject: (reason: Error) => void;
-  type: OptimizationType;
-  timestamp: number;
-};
+export interface WorkerOptimizeInput {
+  pokemonId: number;
+  level: number;
+  buildConfiguration?: unknown;
+  objective: unknown;
+  currentEvs?: Record<string, number>;
+  currentIvs?: Record<string, number>;
+  baseStats?: Record<string, number>;
+  natureId?: string;
+  generation: number;
+  moveId?: string;
+  type?: "speed" | "damage" | "survival" | "build";
+}
 
-function generateId(): string {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+export interface WorkerOptimizeResult {
+  status: "Optimal" | "Infeasible" | "Unsupported" | "Error";
+  solution?: unknown;
+  cost?: number;
+  explanation?: {
+    evidence: string[];
+    summary?: string;
+    proof?: unknown;
+  };
+}
+
+function getNatureById(id?: string): Nature {
+  if (!id) return NATURES.find((n) => n.name === "Serious") as Nature;
+  const found = NATURES.find(
+    (n) =>
+      n.name.toLowerCase() === id.toLowerCase() ||
+      n.name.toLowerCase() === id.replace("-", "").toLowerCase(),
+  );
+  return (found ?? NATURES.find((n) => n.name === "Serious")) as Nature;
 }
 
 export class OptimizationWorkerClient {
-  private static instance: OptimizationWorkerClient | null = null;
+  private static _instance: OptimizationWorkerClient | null = null;
   private worker: Worker | null = null;
-  private pendingCallbacks: Map<string, PendingCallback> = new Map();
-  private isInitialized = false;
 
-  private constructor() {}
-
-  public static getInstance(): OptimizationWorkerClient {
-    if (!OptimizationWorkerClient.instance) {
-      OptimizationWorkerClient.instance = new OptimizationWorkerClient();
-    }
-    return OptimizationWorkerClient.instance;
-  }
-
-  private ensureWorker(): Worker {
-    if (typeof window === "undefined") {
-      throw new Error(
-        "WORKER_NOT_AVAILABLE_IN_SSR: OptimizationWorkerClient solo puede usarse en el navegador",
-      );
-    }
-
-    if (typeof Worker === "undefined") {
-      throw new Error(
-        "WORKER_API_NOT_SUPPORTED: Web Workers no soportados en este entorno",
-      );
-    }
-
-    if (this.worker && this.isInitialized) {
-      return this.worker;
-    }
-
-    try {
-      this.worker = new Worker(
-        new URL("./optimization.worker.ts", import.meta.url),
-      );
-      this.isInitialized = true;
-
-      this.worker.addEventListener("message", this.handleMessage);
-      this.worker.addEventListener("error", this.handleWorkerError);
-
-      return this.worker;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`WORKER_INIT_FAILED: ${message}`);
-    }
-  }
-
-  private handleMessage = (
-    event: MessageEvent<OptimizationWorkerResponse>,
-  ): void => {
-    const response = event.data;
-    const callback = this.pendingCallbacks.get(response.id);
-
-    if (!callback) {
-      return;
-    }
-
-    this.pendingCallbacks.delete(response.id);
-
-    if (response.status === "SUCCESS") {
-      callback.resolve(response.data);
-    } else {
-      callback.reject(new Error(response.error));
-    }
-  };
-
-  private handleWorkerError = (event: ErrorEvent): void => {
-    const error = new Error(`WORKER_RUNTIME_ERROR: ${event.message}`);
-    for (const [, callback] of this.pendingCallbacks) {
-      callback.reject(error);
-    }
-    this.pendingCallbacks.clear();
-    this.terminate();
-  };
-
-  private postRequest<T>(request: OptimizationWorkerRequest): Promise<T> {
-    const worker = this.ensureWorker();
-
-    return new Promise<T>((resolve, reject) => {
-      this.pendingCallbacks.set(request.id, {
-        resolve: resolve as (value: unknown) => void,
-        reject,
-        type: request.type,
-        timestamp: Date.now(),
-      });
-
+  private constructor() {
+    if (typeof window !== "undefined" && typeof Worker !== "undefined") {
       try {
-        worker.postMessage(request);
-      } catch (error) {
-        this.pendingCallbacks.delete(request.id);
-        const message = error instanceof Error ? error.message : String(error);
-        reject(new Error(`WORKER_POST_MESSAGE_FAILED: ${message}`));
+        this.worker = new Worker(
+          new URL("./optimization.worker.ts", import.meta.url),
+        );
+      } catch {
+        this.worker = null;
       }
+    }
+  }
 
-      setTimeout(() => {
-        if (this.pendingCallbacks.has(request.id)) {
-          this.pendingCallbacks.delete(request.id);
-          reject(
-            new Error(`WORKER_TIMEOUT [${request.type}]: id=${request.id}`),
-          );
-        }
-      }, 30000);
+  static getInstance(): OptimizationWorkerClient {
+    if (!OptimizationWorkerClient._instance) {
+      OptimizationWorkerClient._instance = new OptimizationWorkerClient();
+    }
+    return OptimizationWorkerClient._instance;
+  }
+
+  async optimizeSpeed(
+    input: SpeedOptimizationPayload,
+  ): Promise<SpeedOptimizationResult> {
+    const result = await this.executeInternal({
+      ...input,
+      type: "speed",
+    } as unknown as WorkerOptimizeInput);
+    return result as unknown as SpeedOptimizationResult;
+  }
+
+  async optimizeDamage(
+    input: DamageOptimizationPayload,
+  ): Promise<DamageOptimizationResult> {
+    const result = await this.executeInternal({
+      ...input,
+      type: "damage",
+    } as unknown as WorkerOptimizeInput);
+    return result as unknown as DamageOptimizationResult;
+  }
+
+  async optimizeSurvival(
+    input: SurvivalOptimizationPayload,
+  ): Promise<SurvivalOptimizationResult> {
+    const result = await this.executeInternal({
+      ...input,
+      type: "survival",
+    } as unknown as WorkerOptimizeInput);
+    return result as unknown as SurvivalOptimizationResult;
+  }
+
+  async run(input: WorkerOptimizeInput): Promise<WorkerOptimizeResult> {
+    return this.executeInternal(input);
+  }
+
+  async execute(input: WorkerOptimizeInput): Promise<WorkerOptimizeResult> {
+    return this.executeInternal(input);
+  }
+
+  async optimize(input: WorkerOptimizeInput): Promise<WorkerOptimizeResult> {
+    return this.executeInternal(input);
+  }
+
+  private async executeInternal(
+    input: WorkerOptimizeInput,
+  ): Promise<WorkerOptimizeResult> {
+    if (!this.worker) {
+      try {
+        const { SpeedOptimizer } = await import(
+          "@/domain/optimization/services/SpeedOptimizer"
+        );
+        const { OptimizationProblem } = await import(
+          "@/domain/optimization/entities/OptimizationProblem"
+        );
+
+        const nature = getNatureById((input as { natureId?: string }).natureId);
+
+        const context = {
+          baseStats: (input as { baseStats?: Record<string, number> })
+            .baseStats ?? {
+            hp: 100,
+            attack: 100,
+            defense: 100,
+            "special-attack": 100,
+            "special-defense": 100,
+            speed: 100,
+          },
+          ivs: (input as { currentIvs?: Record<string, number> })
+            .currentIvs ?? {
+            hp: 31,
+            attack: 31,
+            defense: 31,
+            "special-attack": 31,
+            "special-defense": 31,
+            speed: 31,
+          },
+          level: input.level ?? 50,
+          generation: input.generation ?? 9,
+          currentEVs: input.currentEvs ?? {},
+          nature,
+        };
+
+        const problem = new OptimizationProblem(
+          { type: "ev_investment", direction: "minimize" },
+          [{ variable: "speed", operator: "gte", target: 100 }],
+          context as never,
+        );
+
+        const result = SpeedOptimizer.optimize(problem as never);
+        return {
+          status: result.status as WorkerOptimizeResult["status"],
+          solution: (result as { solution?: unknown }).solution,
+          cost: (result as { cost?: number }).cost,
+          explanation:
+            result.explanation as WorkerOptimizeResult["explanation"],
+        };
+      } catch (e) {
+        return {
+          status: "Error",
+          explanation: {
+            evidence: [(e as Error).message],
+            summary: "Fallback error",
+          },
+        };
+      }
+    }
+
+    return new Promise<WorkerOptimizeResult>((resolve, reject) => {
+      const worker = this.worker as Worker;
+      const timeout = setTimeout(
+        () => reject(new Error("Worker timeout")),
+        15000,
+      );
+
+      const handleMessage = (event: MessageEvent<WorkerOptimizeResult>) => {
+        clearTimeout(timeout);
+        worker.removeEventListener("message", handleMessage);
+        resolve(event.data);
+      };
+
+      const handleError = (event: ErrorEvent) => {
+        clearTimeout(timeout);
+        worker.removeEventListener("message", handleMessage);
+        reject(new Error(event.message));
+      };
+
+      worker.addEventListener("message", handleMessage);
+      worker.addEventListener("error", handleError, { once: true });
+      worker.postMessage(input);
     });
   }
 
-  public async optimizeSpeed(
-    payload: SpeedOptimizationPayload,
-  ): Promise<SpeedOptimizationResult> {
-    const request: OptimizationWorkerRequest = {
-      id: generateId(),
-      type: "SPEED",
-      payload,
-    };
-
-    return this.postRequest<SpeedOptimizationResult>(request);
-  }
-
-  public async optimizeSurvival(
-    payload: SurvivalOptimizationPayload,
-  ): Promise<SurvivalOptimizationResult> {
-    const request: OptimizationWorkerRequest = {
-      id: generateId(),
-      type: "SURVIVAL",
-      payload,
-    };
-
-    return this.postRequest<SurvivalOptimizationResult>(request);
-  }
-
-  public async optimizeDamage(
-    payload: DamageOptimizationPayload,
-  ): Promise<DamageOptimizationResult> {
-    const request: OptimizationWorkerRequest = {
-      id: generateId(),
-      type: "DAMAGE",
-      payload,
-    };
-
-    return this.postRequest<DamageOptimizationResult>(request);
-  }
-
-  public terminate(): void {
-    if (this.worker) {
-      this.worker.removeEventListener("message", this.handleMessage);
-      this.worker.removeEventListener("error", this.handleWorkerError);
-      this.worker.terminate();
-      this.worker = null;
-      this.isInitialized = false;
-    }
-    this.pendingCallbacks.clear();
-  }
-
-  public getPendingCount(): number {
-    return this.pendingCallbacks.size;
-  }
-
-  public static resetInstance(): void {
-    if (OptimizationWorkerClient.instance) {
-      OptimizationWorkerClient.instance.terminate();
-      OptimizationWorkerClient.instance = null;
-    }
+  terminate() {
+    this.worker?.terminate();
+    this.worker = null;
   }
 }
-
-export const optimizationWorkerClient = OptimizationWorkerClient.getInstance();

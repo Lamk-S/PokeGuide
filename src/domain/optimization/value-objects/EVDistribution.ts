@@ -1,41 +1,47 @@
-export type EVStatName =
+export type StatKey =
   | "hp"
   | "attack"
   | "defense"
   | "special-attack"
   | "special-defense"
   | "speed";
+export type EVRecord = Record<StatKey, number>;
 
-export const EV_STATS: readonly EVStatName[] = [
+const STAT_KEYS: StatKey[] = [
   "hp",
   "attack",
   "defense",
   "special-attack",
   "special-defense",
   "speed",
-] as const;
-
-const STAT_SET = new Set<string>(EV_STATS);
-const MAX_SINGLE = 252;
+];
+const MAX_PER_STAT = 252;
 const MAX_TOTAL = 510;
 
-function assertFinite(n: number, label: string): void {
-  if (!Number.isFinite(n))
-    throw new Error(`EV ${label} debe ser finito, recibido ${n}`);
+function clamp(v: number): number {
+  return Math.max(0, Math.min(MAX_PER_STAT, Math.floor(v)));
 }
-function assertInt(n: number, label: string): void {
-  if (!Number.isInteger(n))
-    throw new Error(`EV ${label} debe ser entero, recibido ${n}`);
+
+function normalize(record: EVRecord): EVRecord {
+  let total = (Object.values(record) as number[]).reduce((a, b) => a + b, 0);
+  if (total <= MAX_TOTAL) return record;
+  const res = { ...record };
+  for (let i = STAT_KEYS.length - 1; i >= 0 && total > MAX_TOTAL; i--) {
+    const k = STAT_KEYS[i] as StatKey;
+    const over = total - MAX_TOTAL;
+    const cur = res[k] ?? 0;
+    const red = Math.min(cur, over);
+    res[k] = cur - red;
+    total -= red;
+  }
+  return res;
 }
 
 export class EVDistribution {
-  private readonly evs: Record<EVStatName, number>;
+  private readonly _evs: EVRecord;
 
-  constructor(input: Partial<Record<EVStatName, number>> = {}) {
-    for (const k of Object.keys(input)) {
-      if (!STAT_SET.has(k)) throw new Error(`Stat desconocida: ${k}`);
-    }
-    const normalized: Record<EVStatName, number> = {
+  constructor(evs: Partial<EVRecord> | EVRecord) {
+    const base: EVRecord = {
       hp: 0,
       attack: 0,
       defense: 0,
@@ -43,68 +49,84 @@ export class EVDistribution {
       "special-defense": 0,
       speed: 0,
     };
-    for (const stat of EV_STATS) {
-      const raw = input[stat];
-      const v = raw ?? 0;
-      assertFinite(v, stat);
-      assertInt(v, stat);
-      if (v < 0) throw new Error(`EV ${stat} no puede ser negativo (${v})`);
-      if (v > MAX_SINGLE)
-        throw new Error(`EV ${stat} excede ${MAX_SINGLE} (${v})`);
-      if (v % 4 !== 0)
-        throw new Error(`EV ${stat} debe ser múltiplo de 4 (${v})`);
-      normalized[stat] = v;
+    for (const k of STAT_KEYS) {
+      const raw = (evs as EVRecord)[k] ?? 0;
+      base[k] = clamp(raw);
     }
-    const total = Object.values(normalized).reduce((a, b) => a + b, 0);
-    if (total > MAX_TOTAL)
-      throw new Error(`Total EVs ${total} excede ${MAX_TOTAL}`);
-    this.evs = normalized;
+    this._evs = normalize(base);
   }
 
-  static empty(): EVDistribution {
-    return new EVDistribution({});
+  get evs(): EVRecord {
+    return { ...this._evs };
   }
 
-  static fromRecord(r: Record<string, number>): EVDistribution {
-    const parsed: Partial<Record<EVStatName, number>> = {};
-    for (const s of EV_STATS) {
-      if (typeof r[s] === "number") parsed[s] = r[s];
-    }
-    return new EVDistribution(parsed);
+  get(stat: StatKey): number {
+    return this._evs[stat] ?? 0;
   }
 
-  get(stat: EVStatName): number {
-    if (!STAT_SET.has(stat)) throw new Error(`Stat desconocida: ${stat}`);
-    return this.evs[stat];
-  }
-
-  getAll(): Record<EVStatName, number> {
-    return { ...this.evs };
+  getAll(): EVRecord {
+    return { ...this._evs };
   }
 
   total(): number {
-    return (Object.values(this.evs) as number[]).reduce((a, b) => a + b, 0);
+    return (Object.values(this._evs) as number[]).reduce((a, b) => a + b, 0);
   }
 
   remaining(): number {
     return MAX_TOTAL - this.total();
   }
 
-  with(stat: EVStatName, value: number): EVDistribution {
-    if (!STAT_SET.has(stat)) throw new Error(`Stat desconocida: ${stat}`);
-    assertFinite(value, stat);
-    assertInt(value, stat);
-    if (value < 0 || value > MAX_SINGLE)
-      throw new Error(`EV ${stat} fuera de rango`);
-    if (value % 4 !== 0) throw new Error(`EV ${stat} debe ser múltiplo de 4`);
-    return new EVDistribution({ ...this.evs, [stat]: value });
+  toRecord(): EVRecord {
+    return this.getAll();
   }
 
-  merge(p: Partial<Record<EVStatName, number>>): EVDistribution {
-    return new EVDistribution({ ...this.evs, ...p });
+  toObject(): EVRecord {
+    return this.getAll();
   }
 
-  equals(o: EVDistribution): boolean {
-    return EV_STATS.every((s) => this.evs[s] === o.evs[s]);
+  equals(other: EVDistribution): boolean {
+    return STAT_KEYS.every((k) => this._evs[k] === other._evs[k]);
+  }
+
+  with(stat: StatKey, value: number): EVDistribution {
+    return new EVDistribution({ ...this._evs, [stat]: value });
+  }
+
+  isValid(): boolean {
+    const t = this.total();
+    return (
+      t <= MAX_TOTAL &&
+      STAT_KEYS.every((k) => {
+        const v = this._evs[k] ?? 0;
+        return v >= 0 && v <= MAX_PER_STAT;
+      })
+    );
+  }
+
+  static empty(): EVDistribution {
+    return new EVDistribution({
+      hp: 0,
+      attack: 0,
+      defense: 0,
+      "special-attack": 0,
+      "special-defense": 0,
+      speed: 0,
+    });
+  }
+
+  static create(record: Partial<EVRecord> | EVRecord): EVDistribution {
+    return new EVDistribution(record);
+  }
+
+  static createEmpty(): EVDistribution {
+    return EVDistribution.empty();
+  }
+
+  static createEmptySet(): EVDistribution {
+    return EVDistribution.empty();
+  }
+
+  static createSet(record: Partial<EVRecord> | EVRecord): EVDistribution {
+    return new EVDistribution(record);
   }
 }

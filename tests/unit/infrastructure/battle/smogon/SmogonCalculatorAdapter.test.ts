@@ -46,10 +46,10 @@ const baseGarchomp: IResolvedParticipant = {
   baseStats: createStatSet(100),
 };
 
-describe("SmogonCalculatorAdapter - FASE 3 Pura", () => {
+describe("SmogonCalculatorAdapter", () => {
   const adapter = new SmogonCalculatorAdapter();
 
-  it("calcula correctamente la inmunidad (eléctrico vs tierra) - código puro", () => {
+  it("calcula correctamente la inmunidad (eléctrico vs tierra)", () => {
     const scenario: IResolvedBattleScenario = {
       generation: 9,
       attacker: basePikachu,

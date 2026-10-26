@@ -3,7 +3,7 @@ import { Level } from "@/domain/stats/value-objects/Level";
 import { IV } from "@/domain/stats/value-objects/IV";
 import { EV } from "@/domain/stats/value-objects/EV";
 
-describe("Stat Value Objects - Validaciones de límites FASE 2", () => {
+describe("Stat Value Objects - Validaciones de límites", () => {
   it("Level debe lanzar error si está fuera del rango permitido", () => {
     expect(() => Level.create(0)).toThrow();
     expect(() => Level.create(101)).toThrow();

@@ -1,4 +1,5 @@
 "use client";
+
 import type { StatName } from "@/domain/optimization/types/OptimizationTypes";
 import type { EVDistribution } from "@/domain/optimization/value-objects/EVDistribution";
 import { calculateStats } from "@/domain/stats/services/StatCalculator";
@@ -30,6 +31,60 @@ function toCalcNature(n: Props["nature"]) {
   };
 }
 
+function StatBadge({
+  label,
+  value,
+  ev,
+  highlighted,
+}: {
+  label: string;
+  value: number;
+  ev: number;
+  highlighted?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-lg border bg-white px-2 py-1.5 ${highlighted ? "border-[#111] bg-[#F8F5F0] ring-1 ring-[#111]" : "border-[#E5E2DA]"}`}
+    >
+      <p className="text-[10px] uppercase tracking-widest text-zinc-500">
+        {label}
+      </p>
+      <p className="text-[13px] font-semibold tabular-nums text-[#111]">
+        {value}
+      </p>
+      <p className="text-[10px] tabular-nums text-zinc-500">{ev} EVs</p>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="rounded-xl border border-dashed border-[#E5E2DA] bg-[#FFFEFB] p-4">
+      <p className="text-[11px] text-zinc-500">
+        Selecciona un Pokémon para ver la vista previa.
+      </p>
+    </div>
+  );
+}
+
+function LoadingStats() {
+  const skeletonKeys = [
+    "hp-skeleton",
+    "atk-skeleton",
+    "def-skeleton",
+    "spa-skeleton",
+    "spd-skeleton",
+    "spe-skeleton",
+  ] as const;
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {skeletonKeys.map((key) => (
+        <div key={key} className="h-13 animate-pulse rounded-lg bg-zinc-100" />
+      ))}
+    </div>
+  );
+}
+
 export function BuildPreview({
   pokemonId,
   evs,
@@ -41,10 +96,28 @@ export function BuildPreview({
   title = "Propuesta",
   highlightStat,
 }: Props) {
+  if (!pokemonId || pokemonId === 0) {
+    return <EmptyState />;
+  }
+
+  if (!evs || !baseStats || !ivs) {
+    return (
+      <div className="rounded-xl border border-[#E5E2DA] bg-[#FFFEFB] p-4">
+        <p className="text-[10px] uppercase tracking-widest text-zinc-500">
+          {title}
+        </p>
+        <div className="mt-3">
+          <LoadingStats />
+        </div>
+      </div>
+    );
+  }
+
   const total = evs.total();
   const libres = evs.remaining();
+  const isOver = total > 510;
 
-  const initialStats: Record<StatName, number> = {
+  let stats: Record<StatName, number> = {
     hp: 0,
     attack: 0,
     defense: 0,
@@ -52,8 +125,6 @@ export function BuildPreview({
     "special-defense": 0,
     speed: 0,
   };
-
-  let stats: Record<StatName, number> = initialStats;
 
   try {
     const computed = calculateStats({
@@ -65,9 +136,7 @@ export function BuildPreview({
       generation,
     });
     stats = computed as Record<StatName, number>;
-  } catch {
-    stats = initialStats;
-  }
+  } catch {}
 
   return (
     <div className="rounded-xl border border-[#E5E2DA] bg-[#FFFEFB] p-4">
@@ -75,10 +144,13 @@ export function BuildPreview({
         <p className="text-[10px] uppercase tracking-widest text-zinc-500">
           {title}
         </p>
-        <p className="text-[10px] tabular-nums text-zinc-500">
+        <p
+          className={`text-[10px] tabular-nums ${isOver ? "text-red-500 font-medium" : "text-zinc-500"}`}
+        >
           {total}/510 • libres {libres}
         </p>
       </div>
+
       <div className="mt-3 flex gap-3">
         <div className="flex flex-col items-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-[#E5E2DA] bg-white">
@@ -88,31 +160,21 @@ export function BuildPreview({
             />
           </div>
           <span className="mt-1 text-[10px] text-zinc-500">#{pokemonId}</span>
+          <span className="mt-0.5 text-[9px] uppercase tracking-widest text-zinc-400">
+            {nature.name}
+          </span>
         </div>
+
         <div className="grid flex-1 grid-cols-3 gap-2">
-          {(Object.keys(stats) as StatName[]).map((s) => {
-            const isHighlighted = highlightStat === s;
-            return (
-              <div
-                key={s}
-                className={`rounded-lg border bg-white px-2 py-1.5 ${
-                  isHighlighted
-                    ? "border-[#111] bg-[#F8F5F0] ring-1 ring-[#111]"
-                    : "border-[#E5E2DA]"
-                }`}
-              >
-                <p className="text-[10px] uppercase tracking-widest text-zinc-500">
-                  {s}
-                </p>
-                <p className="text-[13px] font-semibold tabular-nums text-[#111]">
-                  {stats[s] ?? 0}
-                </p>
-                <p className="text-[10px] tabular-nums text-zinc-500">
-                  {evs.get(s)} EVs
-                </p>
-              </div>
-            );
-          })}
+          {(Object.keys(stats) as StatName[]).map((s) => (
+            <StatBadge
+              key={s}
+              label={s}
+              value={stats[s] ?? 0}
+              ev={evs.get(s)}
+              highlighted={highlightStat === s}
+            />
+          ))}
         </div>
       </div>
     </div>
