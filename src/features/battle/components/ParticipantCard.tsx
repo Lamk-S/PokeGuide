@@ -35,7 +35,9 @@ import {
 } from "@/domain/pokemon/utils/pokemonHelpers";
 import type { BaseStats } from "@/domain/stats/types/StatTypes";
 
-const SERIOUS = NATURES.find((n) => n.name === "Serious") || NATURES[0];
+const seriousFound = NATURES.find((n) => n.name === "Serious");
+const SERIOUS = seriousFound ?? NATURES[0];
+
 const STAT_ORDER: StatName[] = [
   "hp",
   "attack",
@@ -129,6 +131,8 @@ export const ParticipantCard = memo(function ParticipantCard({
     [pokemonList, input?.pokemonId],
   );
 
+  const isShedinja = input?.pokemonId === 292;
+
   const identity = useMemo(
     () =>
       currentPokemon
@@ -156,7 +160,7 @@ export const ParticipantCard = memo(function ParticipantCard({
       resolvedForm?.basePokemon?.baseStats;
     if (!base) return null;
     try {
-      return calculateStats({
+      const calculated = calculateStats({
         baseStats: base as unknown as BaseStats,
         level: input.level,
         nature: input.nature as unknown as never,
@@ -164,10 +168,18 @@ export const ParticipantCard = memo(function ParticipantCard({
         evs: input.evs as unknown as Record<StatName, number>,
         generation,
       }) as Record<StatName, number>;
+      if (isShedinja) {
+        return { ...calculated, hp: 1 };
+      }
+      return calculated;
     } catch {
-      return base as unknown as Record<StatName, number>;
+      const fallback = base as unknown as Record<StatName, number>;
+      if (isShedinja) {
+        return { ...fallback, hp: 1 };
+      }
+      return fallback;
     }
-  }, [currentPokemon, resolvedForm, input, generation]);
+  }, [currentPokemon, resolvedForm, input, generation, isShedinja]);
 
   const evTotal = useMemo(() => {
     if (!input) return 0;
@@ -203,14 +215,26 @@ export const ParticipantCard = memo(function ParticipantCard({
     const select = (id: number) => {
       const p = pokemonList.find((x) => x.id === id);
       if (!p) return;
+      const isShed = id === 292;
+      const emptyEvs = EV.createEmptySet() as unknown as Record<string, number>;
+      const perfectIvs = IV.createPerfectSet() as unknown as Record<
+        string,
+        number
+      >;
+      if (isShed) {
+        emptyEvs.hp = 0;
+        perfectIvs.hp = 0;
+      }
       onChange({
         pokemonId: id,
         level: 50,
         nature: SERIOUS,
-        evs: EV.createEmptySet(),
-        ivs: IV.createPerfectSet(),
+        evs: emptyEvs,
+        ivs: perfectIvs,
         ability: p.abilities?.[0]?.name || "",
-        status: "none",
+        status: "healthy",
+        moves: [],
+        item: null,
       } as unknown as BattleParticipantInput);
     };
     return (
@@ -307,11 +331,28 @@ export const ParticipantCard = memo(function ParticipantCard({
               const id = Number.parseInt(val, 10);
               const p = pokemonList.find((x) => x.id === id);
               if (!p) return;
+              const isNewShedinja = id === 292;
+              const nextEvs = {
+                ...(input.evs as unknown as Record<string, number>),
+              };
+              const nextIvs = {
+                ...(input.ivs as unknown as Record<string, number>),
+              };
+              if (isNewShedinja) {
+                nextEvs.hp = 0;
+                nextIvs.hp = 0;
+              }
               onChange({
                 ...input,
                 pokemonId: id,
-                ability: p.abilities?.[0]?.name || input.ability,
-              } as BattleParticipantInput);
+                ability: p.abilities?.[0]?.name || "",
+                moves: [],
+                item: null,
+                status: "healthy",
+                nature: SERIOUS,
+                evs: nextEvs,
+                ivs: nextIvs,
+              } as unknown as BattleParticipantInput);
             }}
           />
         </div>
@@ -393,7 +434,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                 if (val) onChange({ ...input, ability: val });
                 else {
                   const { ability: _a, ...rest } = input;
-                  onChange(rest as BattleParticipantInput);
+                  onChange(rest as unknown as BattleParticipantInput);
                 }
               }}
               placeholder="—"
@@ -410,7 +451,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                 if (val) onChange({ ...input, item: val });
                 else {
                   const { item: _i, ...rest } = input;
-                  onChange(rest as BattleParticipantInput);
+                  onChange(rest as unknown as BattleParticipantInput);
                 }
               }}
               placeholder="—"
@@ -426,7 +467,8 @@ export const ParticipantCard = memo(function ParticipantCard({
             className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-[#F8F5F0]"
           >
             <span className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#1A1A1A]">
-              Valores Individuales 0–31
+              Valores Individuales 0–31{" "}
+              {isShedinja ? "· PS bloqueado en 0" : ""}
             </span>
             <ChevronDown
               className={`size-3.5 text-[#9A9590] transition-transform ${openIV ? "rotate-180" : ""}`}
@@ -435,10 +477,12 @@ export const ParticipantCard = memo(function ParticipantCard({
           {openIV && (
             <div className="px-3 pb-3 grid grid-cols-3 gap-2">
               {STAT_ORDER.map((st) => {
+                const isHpAndShedinja = st === "hp" && isShedinja;
                 const iv =
                   getStatNumber(
                     (input.ivs as unknown as Record<string, StatValue>)[st],
                   ) || 31;
+                const displayIv = isHpAndShedinja ? 0 : iv;
                 return (
                   <div key={st} className="space-y-1">
                     <span className="text-[10px] font-mono text-[#9A9590] uppercase">
@@ -448,8 +492,10 @@ export const ParticipantCard = memo(function ParticipantCard({
                       type="number"
                       min={0}
                       max={31}
-                      value={iv}
+                      disabled={isHpAndShedinja}
+                      value={displayIv}
                       onChange={(e) => {
+                        if (isHpAndShedinja) return;
                         const v = Math.min(
                           31,
                           Math.max(0, Number.parseInt(e.target.value, 10) || 0),
@@ -467,7 +513,12 @@ export const ParticipantCard = memo(function ParticipantCard({
                           });
                         }
                       }}
-                      className="h-7 w-full px-2 rounded-md border border-[#E8E0D6] text-[12px] font-mono"
+                      className="h-7 w-full px-2 rounded-md border border-[#E8E0D6] text-[12px] font-mono disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[#F8F5F0]"
+                      title={
+                        isHpAndShedinja
+                          ? "Shedinja: PS siempre 1, IV bloqueado en 0"
+                          : `${STAT_LABELS[st].abbr} IV`
+                      }
                     />
                   </div>
                 );
@@ -483,7 +534,7 @@ export const ParticipantCard = memo(function ParticipantCard({
           >
             <span className="flex items-center gap-2">
               <span className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#1A1A1A]">
-                Esfuerzo
+                Esfuerzo {isShedinja ? "· PS bloqueado" : ""}
               </span>
               <span
                 className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full border ${evTotal > 510 ? "bg-[#FEF2F2] border-[#FECACA] text-[#991B1B]" : "bg-[#F8F5F0] border-[#EDE8E0] text-[#9A9590]"}`}
@@ -498,10 +549,12 @@ export const ParticipantCard = memo(function ParticipantCard({
           {openEV && (
             <div className="px-3 pb-3 space-y-2.5">
               {STAT_ORDER.map((st) => {
+                const isHpAndShedinja = st === "hp" && isShedinja;
                 const ev =
                   getStatNumber(
                     (input.evs as unknown as Record<string, StatValue>)[st],
                   ) || 0;
+                const displayEv = isHpAndShedinja ? 0 : ev;
                 const remaining = 510 - (evTotal - ev);
                 const maxFor = Math.min(252, remaining);
                 return (
@@ -514,8 +567,10 @@ export const ParticipantCard = memo(function ParticipantCard({
                       min={0}
                       max={252}
                       step={4}
-                      value={ev}
+                      disabled={isHpAndShedinja}
+                      value={displayEv}
                       onChange={(e) => {
+                        if (isHpAndShedinja) return;
                         const v = Math.min(
                           maxFor,
                           Math.max(0, Number.parseInt(e.target.value, 10)),
@@ -533,14 +588,16 @@ export const ParticipantCard = memo(function ParticipantCard({
                           });
                         }
                       }}
-                      className="flex-1 accent-[#111] h-1"
+                      className="flex-1 accent-[#111] h-1 disabled:opacity-30"
                     />
                     <input
                       type="number"
                       min={0}
-                      max={maxFor}
-                      value={ev}
+                      max={isHpAndShedinja ? 0 : maxFor}
+                      disabled={isHpAndShedinja}
+                      value={displayEv}
                       onChange={(e) => {
+                        if (isHpAndShedinja) return;
                         const v = Math.min(
                           maxFor,
                           Math.max(0, Number.parseInt(e.target.value, 10) || 0),
@@ -558,7 +615,12 @@ export const ParticipantCard = memo(function ParticipantCard({
                           });
                         }
                       }}
-                      className="h-6 w-12 px-1 rounded-md border border-[#E8E0D6] text-[11px] font-mono text-center"
+                      className="h-6 w-12 px-1 rounded-md border border-[#E8E0D6] text-[11px] font-mono text-center disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[#F8F5F0]"
+                      title={
+                        isHpAndShedinja
+                          ? "Shedinja: PS siempre 1, EV bloqueado en 0"
+                          : `${STAT_LABELS[st].abbr} EV`
+                      }
                     />
                   </div>
                 );
