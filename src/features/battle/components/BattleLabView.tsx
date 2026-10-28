@@ -87,6 +87,7 @@ interface Props {
   evTotalAtk: number;
   evTotalDef: number;
   localError: string | null;
+  error?: string | null;
   activeTab: TabId;
   onActiveTabChange: (tab: TabId) => void;
   onAttackerChange: (input: BattleParticipantInput | null) => void;
@@ -116,6 +117,7 @@ export function BattleLabView({
   evTotalAtk,
   evTotalDef,
   localError,
+  error,
   activeTab,
   onActiveTabChange,
   onAttackerChange,
@@ -269,7 +271,25 @@ export function BattleLabView({
           <section
             className={`${activeTab !== "result" ? "hidden lg:block" : "block"} lg:col-span-4 xl:col-span-4 self-start`}
           >
-            {result ? (
+            {error ? (
+              <BattleResultCard
+                result={null}
+                error={error}
+                attackerPokemon={attackerPokemon as never}
+                defenderPokemon={defenderPokemon as never}
+                attackerInput={attackerInput}
+                defenderInput={defenderInput}
+                conditions={conditions}
+                moveName={resolvedMoveName}
+                generation={generation}
+                moveType={moveName ? moveList[moveName]?.type : undefined}
+                movePower={
+                  moveName
+                    ? ((moveList[moveName]?.power as number) ?? null)
+                    : undefined
+                }
+              />
+            ) : result ? (
               <BattleResultCard
                 result={result}
                 attackerPokemon={attackerPokemon as never}
@@ -289,7 +309,7 @@ export function BattleLabView({
             ) : (
               <ResultEmptyState missing={missing} />
             )}
-            {localError && (
+            {localError && !error && (
               <p className="mt-3 text-[12px] text-[#991B1B] p-3 bg-[#FEF2F2] rounded-xl border border-[#FECACA] font-mono">
                 {localError}
               </p>

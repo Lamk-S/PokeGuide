@@ -10,7 +10,7 @@ type PokemonLike =
   | undefined;
 
 interface Props {
-  readonly result: BattleResult;
+  readonly result: BattleResult | null;
   readonly attackerPokemon?: PokemonLike | undefined;
   readonly defenderPokemon?: PokemonLike | undefined;
   readonly attackerInput?: unknown | null | undefined;
@@ -20,6 +20,7 @@ interface Props {
   readonly moveType?: string | undefined;
   readonly movePower?: number | null | undefined;
   readonly generation?: number | undefined;
+  readonly error?: string | null | undefined;
 }
 
 interface EmptyProps {
@@ -65,6 +66,22 @@ export function ResultEmptyState({ missing }: EmptyProps) {
   );
 }
 
+export function ResultErrorState({ error }: { readonly error: string }) {
+  return (
+    <div className="bg-[#FFFEFB] rounded-xl border border-dashed border-[#EDE8E0] p-6 text-center">
+      <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
+        Daño estimado
+      </div>
+      <p className="mt-2 text-[12px] leading-normal text-[#991B1B] font-medium">
+        {error}
+      </p>
+      <p className="mt-2 text-[11px] leading-normal text-[#7A7570]">
+        Prueba cambiando la generación o eligiendo otra forma del Pokémon.
+      </p>
+    </div>
+  );
+}
+
 export const BattleResultCard = memo(function BattleResultCard({
   result,
   attackerPokemon,
@@ -73,33 +90,40 @@ export const BattleResultCard = memo(function BattleResultCard({
   moveType,
   movePower,
   generation = 9,
+  error,
 }: Props) {
-  const minDmg = result.damage.minDamage;
-  const maxDmg = result.damage.maxDamage;
-  const minPct = result.damage.minPercent;
-  const maxPct = result.damage.maxPercent;
-  const defenderHp = result.defenderMaxHp;
+  const minDmg = result?.damage.minDamage ?? 0;
+  const maxDmg = result?.damage.maxDamage ?? 0;
+  const minPct = result?.damage.minPercent ?? 0;
+  const maxPct = result?.damage.maxPercent ?? 0;
+  const defenderHp = result?.defenderMaxHp ?? 0;
 
   const remainingMax = Math.max(0, 100 - minPct);
   const remainingMin = Math.max(0, 100 - maxPct);
-  const overkillRaw = ((defenderHp - maxDmg) / defenderHp) * 100;
-  const overkillMinRaw = ((defenderHp - minDmg) / defenderHp) * 100;
+  const overkillRaw =
+    defenderHp > 0 ? ((defenderHp - maxDmg) / defenderHp) * 100 : 0;
+  const overkillMinRaw =
+    defenderHp > 0 ? ((defenderHp - minDmg) / defenderHp) * 100 : 0;
 
-  const isGuaranteed = result.koAnalysis.guaranteed || minPct >= 100;
-  const isPossible = !isGuaranteed && maxPct >= 100;
-  const hits = result.koAnalysis.hitsToKO;
-  const prob = result.koAnalysis.probability;
+  const isGuaranteed = result
+    ? result.koAnalysis.guaranteed || minPct >= 100
+    : false;
+  const isPossible = result ? !isGuaranteed && maxPct >= 100 : false;
+  const hits = result?.koAnalysis.hitsToKO ?? 0;
+  const prob = result?.koAnalysis.probability ?? 0;
 
   const attackerName = getName(attackerPokemon) ?? "Atacante";
   const defenderName = getName(defenderPokemon) ?? "Defensor";
 
   const koExplain = useMemo(() => {
+    if (!result) return "";
     if (isGuaranteed)
       return `Roll mínimo (${minDmg}) ya hace ${minPct.toFixed(1)}% > 100% de ${defenderHp} PS. Los 16 rolls (85%-100%) matan.`;
     if (isPossible)
       return `Min ${minPct.toFixed(1)}% no mata, max ${maxPct.toFixed(1)}% sí. ${prob}% de rolls son KO → ${hits}HKO con chance.`;
     return `Max ${maxDmg} / ${maxPct.toFixed(1)}% no alcanza 100%. Necesita ${hits} golpes.`;
   }, [
+    result,
     isGuaranteed,
     isPossible,
     minDmg,
@@ -112,6 +136,7 @@ export const BattleResultCard = memo(function BattleResultCard({
   ]);
 
   const effectivenessNote = useMemo(() => {
+    if (!result) return "";
     const eff = (result as { effectiveness?: number }).effectiveness;
     if (eff === 0) return "Inmune (0x).";
     if (eff === 0.25) return "Doble resistencia (0.25x).";
@@ -120,6 +145,14 @@ export const BattleResultCard = memo(function BattleResultCard({
     if (eff === 4) return "Doble debilidad (4x).";
     return "Neutro (1x) + STAB 1.5x.";
   }, [result]);
+
+  if (error) {
+    return <ResultErrorState error={error} />;
+  }
+
+  if (!result) {
+    return <ResultEmptyState />;
+  }
 
   return (
     <div className="flex flex-col gap-3">
