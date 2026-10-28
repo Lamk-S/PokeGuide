@@ -63,6 +63,7 @@ export function BattleLabContainer() {
   const conditions = useBattleStore((s) => s.conditions);
   const isCalculating = useBattleStore((s) => s.isCalculating);
   const generation = useBattleStore((s) => s.generation);
+  const error = useBattleStore((s) => s.error);
   const setAttacker = useBattleStore((s) => s.setAttacker);
   const setDefender = useBattleStore((s) => s.setDefender);
   const setMoveNameStore = useBattleStore((s) => s.setMoveName);
@@ -364,6 +365,7 @@ export function BattleLabContainer() {
       evTotalAtk={evTotalAtk}
       evTotalDef={evTotalDef}
       localError={localError}
+      error={error}
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}
       onAttackerChange={setAttacker}
