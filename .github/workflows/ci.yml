@@ -7,49 +7,34 @@ on:
     branches: ["main"]
 
 concurrency:
-  group: ${{ 【entity-github¦canonical_name=GitHub】.workflow }}-${{ 【entity-github¦canonical_name=GitHub】.ref }}
+  group: ${{ 【entity-github¦canonical_name=github】.workflow }}-${{ 【entity-github¦canonical_name=github】.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   quality-hardening:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v5
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4.2.0
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
-          version: 10
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+          version: 10.14.0
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: "pnpm"
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Lint & Format Check
-        run: |
-          pnpm lint
-          pnpm format:check
-
-      - name: Unit, Integration & Regression Tests (with Coverage)
-        run: pnpm test -- --coverage
-
-      - name: Upload Coverage Artifact
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm test -- --coverage
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v5
         with:
           name: coverage-report
           path: coverage/
           if-no-files-found: warn
-
-      - name: Production Build
-        run: pnpm build
+      - run: pnpm build
