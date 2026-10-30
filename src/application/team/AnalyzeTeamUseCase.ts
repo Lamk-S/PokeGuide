@@ -1,12 +1,12 @@
+import { normalizeId } from "@/domain/shared/utils/normalizeId";
+import {
+  type BattleRuleset,
+  DEFAULT_BATTLE_RULESET,
+} from "@/domain/team/config/battleFormat";
 import type { PokemonTeam } from "@/domain/team/entities/PokemonTeam";
-import type { TeamAnalysis } from "@/domain/team/types/TeamTypes";
 import { DefensiveAnalyzer } from "@/domain/team/services/analyzers/DefensiveAnalyzer";
 import { RecommendationEngine } from "@/domain/team/services/RecommendationEngine";
-import {
-  DEFAULT_BATTLE_RULESET,
-  type BattleRuleset,
-} from "@/domain/team/config/battleFormat";
-import { normalizeId } from "@/domain/shared/utils/normalizeId";
+import type { TeamAnalysis } from "@/domain/team/types/TeamTypes";
 
 export class AnalyzeTeamUseCase {
   private readonly ruleset: BattleRuleset;

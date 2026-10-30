@@ -1,9 +1,9 @@
-import { EV_STEPS } from "../types/OptimizationTypes";
 import type {
   DefenseStat,
   SurvivalOptimizationResult,
   SurvivalSolution,
 } from "../types/OptimizationTypes";
+import { EV_STEPS } from "../types/OptimizationTypes";
 export type BattleAwareEvaluator = (hpEV: number, defEV: number) => boolean;
 
 export function optimizeSurvivalBattleAware(

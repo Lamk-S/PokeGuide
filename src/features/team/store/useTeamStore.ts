@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { container } from "@/infrastructure/composition/container";
 import type { TeamAnalysis, TeamMember } from "@/domain/team/types/TeamTypes";
+import { container } from "@/infrastructure/composition/container";
 
 type TeamMemberInput = TeamMember & {
   id: string;

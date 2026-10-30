@@ -1,13 +1,13 @@
+import type { NatureContext } from "@/domain/optimization/entities/OptimizationProblem";
 import { OptimizationProblem } from "@/domain/optimization/entities/OptimizationProblem";
 import {
   optimizeSurvival,
   type SurvivalEvaluator,
 } from "@/domain/optimization/services/SurvivalOptimizer";
 import type {
-  StatName,
   DefenseStat,
+  StatName,
 } from "@/domain/optimization/types/OptimizationTypes";
-import type { NatureContext } from "@/domain/optimization/entities/OptimizationProblem";
 
 export type OptimizeSurvivalWithBattleInput = {
   readonly baseStats: Record<StatName, number>;

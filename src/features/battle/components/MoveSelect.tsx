@@ -1,9 +1,9 @@
 "use client";
-import { useState, useMemo, useRef, useEffect } from "react";
-import { TypeBadge, translateTypeUpper } from "@/components/ui/TypeBadge";
-import { TypeEffectiveness } from "@/domain/types/TypeChart";
-import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import { ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { TypeBadge, translateTypeUpper } from "@/components/ui/TypeBadge";
+import type { PokemonType } from "@/domain/pokemon/types/pokemon";
+import { TypeEffectiveness } from "@/domain/types/TypeChart";
 
 interface MoveOption {
   value: string;

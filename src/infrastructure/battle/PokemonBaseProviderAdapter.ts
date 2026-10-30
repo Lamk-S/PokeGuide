@@ -1,9 +1,9 @@
-import type { PokemonRepository } from "@/domain/pokemon/repositories/pokemon-repository";
 import type {
-  IPokemonBaseProvider,
   IPokemonBaseData,
+  IPokemonBaseProvider,
   StatSet,
 } from "@/domain/battle/types/BattleParticipant";
+import type { PokemonRepository } from "@/domain/pokemon/repositories/pokemon-repository";
 
 export class PokemonBaseProviderAdapter implements IPokemonBaseProvider {
   constructor(private readonly pokemonRepository: PokemonRepository) {}

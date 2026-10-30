@@ -1,7 +1,7 @@
 "use client";
-import { useState, useMemo, useRef, useEffect, useLayoutEffect } from "react";
+import { Check, ChevronDown, Search } from "lucide-react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Search, Check } from "lucide-react";
 
 type Option = { value: string; label: string };
 

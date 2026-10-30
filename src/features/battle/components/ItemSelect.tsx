@@ -1,12 +1,12 @@
 "use client";
-import { useState, useMemo, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ItemSprite } from "@/components/ui/ItemSprite";
 import {
-  filterCompetitiveItems,
   COMPETITIVE_ITEMS,
   type CompetitiveItem,
+  filterCompetitiveItems,
 } from "../constants/competitiveItems";
-import { ItemSprite } from "@/components/ui/ItemSprite";
 
 interface ItemSelectProps {
   itemList: CompetitiveItem[];

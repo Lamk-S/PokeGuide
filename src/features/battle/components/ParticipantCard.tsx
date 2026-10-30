@@ -1,39 +1,39 @@
 "use client";
-import { memo, useId, useMemo, useState } from "react";
 import { ChevronDown, Info } from "lucide-react";
+import { memo, useId, useMemo, useState } from "react";
 import { Combobox } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
 import { TypeBadge } from "@/components/ui/TypeBadge";
-import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
-import type {
-  Pokemon,
-  PokemonAbilityRef,
-} from "@/domain/pokemon/types/pokemon";
-import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
-import type { StatName } from "@/domain/pokemon/types/pokemon";
-import { calculateStats } from "@/domain/stats/services/StatCalculator";
-import { NATURES } from "@/domain/stats/constants/natures";
-import { IV } from "@/domain/stats/value-objects/IV";
-import { EV } from "@/domain/stats/value-objects/EV";
-import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
-import { useItemStore } from "@/features/items/store/useItemStore";
-import { PokemonSelect } from "./PokemonSelect";
-import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
-import { resolvePokemonForm } from "@/domain/pokemon/services/PokemonFormResolver";
-import { MoveSelect } from "./MoveSelect";
-import { ItemSelect } from "./ItemSelect";
 import {
   Status,
   type StatusId,
 } from "@/domain/battle/value-objects/BattleModifiers";
+import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
+import { resolvePokemonForm } from "@/domain/pokemon/services/PokemonFormResolver";
+import type {
+  Pokemon,
+  PokemonAbilityRef,
+  StatName,
+} from "@/domain/pokemon/types/pokemon";
 import {
-  getStatNumber,
   extractTypeName,
-  type StatValue,
+  getStatNumber,
   type PokemonTypeRef,
+  type StatValue,
 } from "@/domain/pokemon/utils/pokemonHelpers";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
+import { NATURES } from "@/domain/stats/constants/natures";
+import { calculateStats } from "@/domain/stats/services/StatCalculator";
 import type { BaseStats } from "@/domain/stats/types/StatTypes";
+import { EV } from "@/domain/stats/value-objects/EV";
+import { IV } from "@/domain/stats/value-objects/IV";
+import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
+import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
+import { useItemStore } from "@/features/items/store/useItemStore";
+import { ItemSelect } from "./ItemSelect";
+import { MoveSelect } from "./MoveSelect";
+import { PokemonSelect } from "./PokemonSelect";
 
 const seriousFound = NATURES.find((n) => n.name === "Serious");
 const SERIOUS = seriousFound ?? NATURES[0];

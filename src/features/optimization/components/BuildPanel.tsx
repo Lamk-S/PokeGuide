@@ -1,24 +1,24 @@
 "use client";
 
-import { useOptimizerStore } from "@/features/optimization/store/useOptimizerStore";
+import { AlertTriangle, Loader2, Zap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { PokemonPicker } from "@/features/optimization/components/PokemonPicker";
-import { ObjectiveConfigurator } from "@/features/optimization/components/ObjectiveConfigurator";
-import { BuildPreview } from "@/features/optimization/components/BuildPreview";
-import { MovePicker } from "@/features/optimization/components/MovePicker";
-import { OptimizationResultCard } from "@/features/optimization/components/OptimizationResultCard";
-import { Loader2, AlertTriangle, Zap } from "lucide-react";
 import { NATURES } from "@/domain/stats/constants/natures";
 import type { Nature } from "@/domain/stats/types/StatTypes";
+import { BuildPreview } from "@/features/optimization/components/BuildPreview";
+import { MovePicker } from "@/features/optimization/components/MovePicker";
+import { ObjectiveConfigurator } from "@/features/optimization/components/ObjectiveConfigurator";
+import { OptimizationResultCard } from "@/features/optimization/components/OptimizationResultCard";
+import { PokemonPicker } from "@/features/optimization/components/PokemonPicker";
+import { useOptimizerStore } from "@/features/optimization/store/useOptimizerStore";
 
 function OptimizingState() {
   return (

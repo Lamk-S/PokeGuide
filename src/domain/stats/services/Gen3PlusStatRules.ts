@@ -1,9 +1,9 @@
+import type { StatName } from "@/domain/pokemon/types/pokemon";
 import type { GenerationRules } from "../entities/GenerationRules";
 import type { Nature } from "../types/StatTypes";
-import type { Level } from "../value-objects/Level";
-import type { IV } from "../value-objects/IV";
 import type { EV } from "../value-objects/EV";
-import type { StatName } from "@/domain/pokemon/types/pokemon";
+import type { IV } from "../value-objects/IV";
+import type { Level } from "../value-objects/Level";
 
 export class Gen3PlusStatRules implements GenerationRules {
   calculateHp(base: number, iv: IV, ev: EV, level: Level): number {

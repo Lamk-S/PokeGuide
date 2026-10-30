@@ -1,10 +1,10 @@
 import { NATURES } from "@/domain/stats/constants/natures";
 import type { Nature } from "@/domain/stats/types/StatTypes";
 import type {
-  SpeedOptimizationPayload,
-  SpeedOptimizationResult,
   DamageOptimizationPayload,
   DamageOptimizationResult,
+  SpeedOptimizationPayload,
+  SpeedOptimizationResult,
   SurvivalOptimizationPayload,
   SurvivalOptimizationResult,
 } from "./optimization.types";

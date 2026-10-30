@@ -1,7 +1,7 @@
 "use client";
 import { create } from "zustand";
-import { container } from "@/infrastructure/composition/container";
 import type { Pokemon } from "@/domain/pokemon/types/pokemon";
+import { container } from "@/infrastructure/composition/container";
 
 interface State {
   pokemonList: Pokemon[];

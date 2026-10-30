@@ -1,5 +1,5 @@
-import type { EVDistribution } from "../value-objects/EVDistribution";
 import type { StatName } from "../types/OptimizationTypes";
+import type { EVDistribution } from "../value-objects/EVDistribution";
 
 export type Nature = {
   readonly name: string;

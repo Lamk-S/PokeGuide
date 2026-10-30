@@ -1,8 +1,8 @@
 import { OptimizationWorkerClient } from "@/infrastructure/workers/OptimizationWorkerClient";
 import type {
+  StatSetPayload,
   SurvivalOptimizationPayload,
   SurvivalOptimizationResult,
-  StatSetPayload,
 } from "@/infrastructure/workers/optimization.types";
 
 export interface OptimizeSurvivalInput {

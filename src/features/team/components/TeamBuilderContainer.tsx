@@ -1,9 +1,9 @@
 "use client";
+import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
+import { useTeamStore } from "../store/useTeamStore";
+import { RecommendationList } from "./RecommendationList";
 import { TeamBuilderGrid } from "./TeamBuilderGrid";
 import { TypeExposureMatrix } from "./TypeExposureMatrix";
-import { RecommendationList } from "./RecommendationList";
-import { useTeamStore } from "../store/useTeamStore";
-import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
 
 function EstadoEquipo({ size, risks }: { size: number; risks: number }) {
   if (size === 0)

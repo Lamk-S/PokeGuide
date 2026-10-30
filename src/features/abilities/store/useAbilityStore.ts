@@ -1,6 +1,7 @@
 "use client";
 import { create } from "zustand";
 import { LocalAbilityRepository } from "@/infrastructure/local-data/repositories/local-ability.repository";
+
 type Ability = { name: string; nameEs?: string };
 interface State {
   abilityList: Ability[];

@@ -1,9 +1,9 @@
-import type { BreedingTarget } from "../entities/BreedingTarget";
 import { BreedingState } from "../entities/BreedingState";
+import type { BreedingTarget } from "../entities/BreedingTarget";
 import { GenerationRules } from "../rules/GenerationRules";
 import type {
-  BreedingPlan,
   BreedingParent,
+  BreedingPlan,
   BreedingStep,
   TraitKey,
 } from "../types/BreedingTypes";

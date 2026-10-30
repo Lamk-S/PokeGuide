@@ -1,6 +1,6 @@
 "use client";
-import * as React from "react";
 import { Search } from "lucide-react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const Command = React.forwardRef<
@@ -89,9 +89,9 @@ CommandItem.displayName = "CommandItem";
 
 export {
   Command,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
+  CommandList,
 };

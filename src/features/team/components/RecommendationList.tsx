@@ -1,22 +1,22 @@
 "use client";
-import { useState, useMemo } from "react";
-import { useTeamStore } from "../store/useTeamStore";
+import { useMemo, useState } from "react";
+import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import type {
+  RecommendationCategory,
   Severity,
   TeamMember,
   TeamRecommendation,
-  RecommendationCategory,
 } from "@/domain/team/types/TeamTypes";
 import { TypeEffectiveness } from "@/domain/types/TypeChart";
-import type { PokemonType } from "@/domain/pokemon/types/pokemon";
-import { translateTypeToSpanish } from "../constants/typeTranslations";
 import {
-  SEVERITY_I18N,
   CATEGORY_I18N,
-  getRecommendationTitle,
-  getRecommendationReason,
   getRecommendationAction,
+  getRecommendationReason,
+  getRecommendationTitle,
+  SEVERITY_I18N,
 } from "../constants/recommendationI18n";
+import { translateTypeToSpanish } from "../constants/typeTranslations";
+import { useTeamStore } from "../store/useTeamStore";
 
 type MemberWithMeta = TeamMember & {
   readonly displayNameEs?: string;

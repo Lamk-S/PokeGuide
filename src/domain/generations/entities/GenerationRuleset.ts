@@ -1,6 +1,6 @@
 import type {
-  MechanicStatus,
   BreedingRulesConfig,
+  MechanicStatus,
 } from "../types/GenerationTypes";
 
 export class GenerationRuleset {

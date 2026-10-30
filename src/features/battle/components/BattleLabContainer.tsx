@@ -1,32 +1,32 @@
 "use client";
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
-import { BattleLabView } from "./BattleLabView";
-import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
-import { useMoveStore } from "@/features/moves/store/useMoveStore";
-import { useItemStore } from "@/features/items/store/useItemStore";
-import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
-import { useBattleStore } from "@/features/battle/store/useBattleStore";
-import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
-import { resolvePokemonForm } from "@/domain/pokemon/services/PokemonFormResolver";
-import { resolvePokemonMovesSync } from "@/domain/pokemon/services/PokemonMoveResolver";
-import {
-  validateBattleState,
-  type BattleValidationError,
-} from "@/domain/battle/services/BattleValidation";
-import { SmogonSpeciesMapper } from "@/infrastructure/battle/smogon/SmogonSpeciesMapper";
-import { TypeEffectiveness } from "@/domain/types/TypeChart";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { translateType } from "@/components/ui/TypeBadge";
 import {
-  getStatNumber,
+  type BattleValidationError,
+  validateBattleState,
+} from "@/domain/battle/services/BattleValidation";
+import type {
+  TerrainId,
+  WeatherId,
+} from "@/domain/battle/value-objects/BattleModifiers";
+import { resolvePokemonForm } from "@/domain/pokemon/services/PokemonFormResolver";
+import { resolvePokemonMovesSync } from "@/domain/pokemon/services/PokemonMoveResolver";
+import type { PokemonType } from "@/domain/pokemon/types/pokemon";
+import {
   extractTypeName,
+  getStatNumber,
   type StatValue,
 } from "@/domain/pokemon/utils/pokemonHelpers";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
 import { normalizeId } from "@/domain/shared/utils/normalizeId";
-import type { PokemonType } from "@/domain/pokemon/types/pokemon";
-import type {
-  WeatherId,
-  TerrainId,
-} from "@/domain/battle/value-objects/BattleModifiers";
+import { TypeEffectiveness } from "@/domain/types/TypeChart";
+import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
+import { useBattleStore } from "@/features/battle/store/useBattleStore";
+import { useItemStore } from "@/features/items/store/useItemStore";
+import { useMoveStore } from "@/features/moves/store/useMoveStore";
+import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
+import { SmogonSpeciesMapper } from "@/infrastructure/battle/smogon/SmogonSpeciesMapper";
+import { BattleLabView } from "./BattleLabView";
 
 type TabId = "attacker" | "defender" | "result";
 

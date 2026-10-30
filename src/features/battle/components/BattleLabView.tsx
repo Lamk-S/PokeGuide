@@ -1,21 +1,21 @@
 "use client";
-import { ParticipantCard } from "./ParticipantCard";
-import { BattleFieldControls } from "./BattleFieldControls";
-import { BattleSummary } from "./BattleSummary";
-import { BattleResultCard, ResultEmptyState } from "./BattleResultCard";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Combobox } from "@/components/ui/combobox";
+import { Label } from "@/components/ui/label";
 import type { BattleValidationError } from "@/domain/battle/services/BattleValidation";
-import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
 import type {
   BattleResult,
   IBattleConditions,
 } from "@/domain/battle/types/BattleParticipant";
 import type {
-  WeatherId,
   TerrainId,
+  WeatherId,
 } from "@/domain/battle/value-objects/BattleModifiers";
+import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
+import { BattleFieldControls } from "./BattleFieldControls";
+import { BattleResultCard, ResultEmptyState } from "./BattleResultCard";
+import { BattleSummary } from "./BattleSummary";
+import { ParticipantCard } from "./ParticipantCard";
 
 type MoveOptionRich = {
   value: string;

@@ -1,15 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
+import { compareEVDistributions } from "@/domain/optimization/services/ComparisonService";
+import type { StatName } from "@/domain/optimization/types/OptimizationTypes";
+import type { EVDistribution } from "@/domain/optimization/value-objects/EVDistribution";
+import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
 import {
   useBuild,
   useObjective,
   useOptimizerResults,
 } from "../store/useOptimizerStore";
 import { BuildPreview } from "./BuildPreview";
-import type { EVDistribution } from "@/domain/optimization/value-objects/EVDistribution";
-import { compareEVDistributions } from "@/domain/optimization/services/ComparisonService";
-import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
-import type { StatName } from "@/domain/optimization/types/OptimizationTypes";
 
 type PokemonData = {
   id: number;

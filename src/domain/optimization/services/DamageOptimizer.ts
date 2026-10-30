@@ -1,8 +1,8 @@
+import type { BaseStats, Nature } from "@/domain/stats/services/StatCalculator";
 import {
   calculateStats,
   normalizeEVSet,
 } from "@/domain/stats/services/StatCalculator";
-import type { BaseStats, Nature } from "@/domain/stats/services/StatCalculator";
 import type { StatName } from "@/domain/stats/value-objects/EV";
 import type { OptimizationProblem } from "../entities/OptimizationProblem";
 

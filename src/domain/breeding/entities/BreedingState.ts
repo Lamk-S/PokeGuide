@@ -1,5 +1,4 @@
-import type { BreedingParent } from "../types/BreedingTypes";
-import type { BreedingStep } from "../types/BreedingTypes";
+import type { BreedingParent, BreedingStep } from "../types/BreedingTypes";
 
 export class BreedingState {
   constructor(

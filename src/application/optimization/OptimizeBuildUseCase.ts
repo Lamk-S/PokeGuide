@@ -1,7 +1,7 @@
 import {
-  optimizeSpeedUseCase,
   type OptimizeSpeedInput,
   type OptimizeSpeedOutput,
+  optimizeSpeedUseCase,
 } from "./OptimizeSpeedUseCase";
 
 export async function OptimizeBuildUseCase(

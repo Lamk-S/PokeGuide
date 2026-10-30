@@ -1,5 +1,5 @@
 import { GenerationRulesProvider } from "@/domain/generations/services/GenerationRulesProvider";
-import type { TraitKey, BreedingEvidence } from "../types/BreedingTypes";
+import type { BreedingEvidence, TraitKey } from "../types/BreedingTypes";
 
 export const GenerationRules = {
   isSupported(generation: number): boolean {

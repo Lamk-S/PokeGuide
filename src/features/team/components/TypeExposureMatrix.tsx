@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useTeamStore } from "../store/useTeamStore";
-import { TypeEffectiveness, ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
+import { useMemo, useState } from "react";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import type { TeamMember, TypeExposure } from "@/domain/team/types/TeamTypes";
+import { ALL_POKEMON_TYPES, TypeEffectiveness } from "@/domain/types/TypeChart";
 import { translateTypeToSpanish } from "../constants/typeTranslations";
+import { useTeamStore } from "../store/useTeamStore";
 
 type MemberWithMeta = TeamMember & {
   readonly displayNameEs?: string;

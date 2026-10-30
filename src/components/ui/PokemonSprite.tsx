@@ -1,8 +1,8 @@
 "use client";
 import Image from "next/image";
 import { useMemo } from "react";
-import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
 import { resolvePokemonSprite } from "@/domain/pokemon/services/PokemonSpriteResolver";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
 
 type Pokemon = { id: number; name: string };
 

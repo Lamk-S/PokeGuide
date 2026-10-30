@@ -1,9 +1,9 @@
 import type {
-  TypeExposure,
-  TeamRecommendation,
   RecommendationCategory,
-  Severity,
   RecommendationIssueCode,
+  Severity,
+  TeamRecommendation,
+  TypeExposure,
 } from "@/domain/team/types/TeamTypes";
 
 export type RecommendationSeverity = Severity;

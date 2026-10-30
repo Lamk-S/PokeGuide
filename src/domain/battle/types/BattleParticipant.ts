@@ -1,12 +1,12 @@
+import type {
+  StatusId,
+  TerrainId,
+  WeatherId,
+} from "@/domain/battle/value-objects/BattleModifiers";
 import type { StatName } from "@/domain/pokemon/types/pokemon";
 import type { Nature } from "@/domain/stats/types/StatTypes";
-import type {
-  WeatherId,
-  TerrainId,
-  StatusId,
-} from "@/domain/battle/value-objects/BattleModifiers";
 
-export type { StatName, Nature, WeatherId, TerrainId, StatusId };
+export type { Nature, StatName, StatusId, TerrainId, WeatherId };
 export type IBattleNature = Nature;
 export type StatSet = Record<StatName, number>;
 

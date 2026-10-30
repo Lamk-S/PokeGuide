@@ -1,9 +1,9 @@
 "use client";
 
+import { PokemonSprite } from "@/components/ui/PokemonSprite";
 import type { StatName } from "@/domain/optimization/types/OptimizationTypes";
 import type { EVDistribution } from "@/domain/optimization/value-objects/EVDistribution";
 import { calculateStats } from "@/domain/stats/services/StatCalculator";
-import { PokemonSprite } from "@/components/ui/PokemonSprite";
 
 type Props = {
   pokemonId: number;

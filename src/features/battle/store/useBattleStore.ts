@@ -1,22 +1,21 @@
 "use client";
 import { create } from "zustand";
-import type { Nature } from "@/domain/stats/types/StatTypes";
-import type { StatSet } from "@/domain/battle/types/BattleParticipant";
-import type { StatusId } from "@/domain/battle/value-objects/BattleModifiers";
-import { NATURES } from "@/domain/stats/constants/natures";
-import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
-import { calculateStats } from "@/domain/stats/services/StatCalculator";
 import type {
   BattleResult,
   IBattleConditions,
+  StatSet,
 } from "@/domain/battle/types/BattleParticipant";
 import type {
-  WeatherId,
+  StatusId,
   TerrainId,
+  WeatherId,
 } from "@/domain/battle/value-objects/BattleModifiers";
-import type { BaseStats } from "@/domain/stats/types/StatTypes";
-import type { StatName, PokemonType } from "@/domain/pokemon/types/pokemon";
+import type { PokemonType, StatName } from "@/domain/pokemon/types/pokemon";
+import { NATURES } from "@/domain/stats/constants/natures";
+import { calculateStats } from "@/domain/stats/services/StatCalculator";
+import type { BaseStats, Nature } from "@/domain/stats/types/StatTypes";
 import { TypeEffectiveness } from "@/domain/types/TypeChart";
+import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
 
 function getMoveData(moveName: string): {
   power: number;

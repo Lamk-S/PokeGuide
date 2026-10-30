@@ -1,6 +1,6 @@
 import type {
-  IResolvedBattleScenario,
   BattleResult,
+  IResolvedBattleScenario,
 } from "../types/BattleParticipant";
 
 export interface BattleCalculator {

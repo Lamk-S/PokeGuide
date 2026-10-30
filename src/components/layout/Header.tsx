@@ -1,22 +1,22 @@
 "use client";
 
+import {
+  BookOpen,
+  Egg,
+  Flame,
+  History,
+  Menu,
+  Shield,
+  Swords,
+  X,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  Menu,
-  X,
-  Swords,
-  Shield,
-  Zap,
-  Egg,
-  History,
-  BookOpen,
-  Flame,
-} from "lucide-react";
-import { useUiStore } from "@/stores/ui-store";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useUiStore } from "@/stores/ui-store";
 
 const NAV_LINKS = [
   {

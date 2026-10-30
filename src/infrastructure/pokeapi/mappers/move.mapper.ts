@@ -1,5 +1,5 @@
-import type { PokeApiMoveDto } from "../schemas/move.schema";
 import type { Move } from "@/domain/moves/types/move";
+import type { PokeApiMoveDto } from "../schemas/move.schema";
 
 export function mapMove(dto: PokeApiMoveDto): Move {
   const nameEs =

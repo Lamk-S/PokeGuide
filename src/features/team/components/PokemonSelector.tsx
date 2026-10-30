@@ -1,23 +1,23 @@
 "use client";
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { TeamMember, BaseStats } from "@/domain/team/types/TeamTypes";
+import { PokemonSprite } from "@/components/ui/PokemonSprite";
+import { resolveBaseName } from "@/domain/pokemon/mappers/PokemonIdMapper";
 import type {
   Pokemon,
   PokemonType,
   StatName,
 } from "@/domain/pokemon/types/pokemon";
-import { translateTypeToSpanish } from "../constants/typeTranslations";
-import { PokemonSprite } from "@/components/ui/PokemonSprite";
-import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
-import { calculateStats } from "@/domain/stats/services/StatCalculator";
-import { NATURES } from "@/domain/stats/constants/natures";
-import type { Nature } from "@/domain/stats/types/StatTypes";
-import { IV } from "@/domain/stats/value-objects/IV";
-import { EV } from "@/domain/stats/value-objects/EV";
-import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
 import { normalizeId } from "@/domain/shared/utils/normalizeId";
-import { resolveBaseName } from "@/domain/pokemon/mappers/PokemonIdMapper";
+import { NATURES } from "@/domain/stats/constants/natures";
+import { calculateStats } from "@/domain/stats/services/StatCalculator";
+import type { Nature } from "@/domain/stats/types/StatTypes";
+import { EV } from "@/domain/stats/value-objects/EV";
+import { IV } from "@/domain/stats/value-objects/IV";
+import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
+import type { BaseStats, TeamMember } from "@/domain/team/types/TeamTypes";
+import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
+import { translateTypeToSpanish } from "../constants/typeTranslations";
 
 interface Props {
   readonly open: boolean;

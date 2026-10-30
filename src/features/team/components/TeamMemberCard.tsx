@@ -1,19 +1,19 @@
 "use client";
-import { useState, useMemo } from "react";
-import type { TeamMember } from "@/domain/team/types/TeamTypes";
-import {
-  resolvePokemonNumericId,
-  resolveBaseName,
-} from "@/domain/pokemon/mappers/PokemonIdMapper";
-import { translateTypeToSpanish } from "@/features/team/constants/typeTranslations";
-import { translateItemToSpanish } from "@/features/team/constants/competitiveItems";
-import { translateAbilityToSpanish } from "@/features/team/constants/competitiveAbilities";
-import type { PokemonType } from "@/domain/pokemon/types/pokemon";
+import { useMemo, useState } from "react";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
-import { TypeEffectiveness, ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
+import {
+  resolveBaseName,
+  resolvePokemonNumericId,
+} from "@/domain/pokemon/mappers/PokemonIdMapper";
+import type { PokemonType } from "@/domain/pokemon/types/pokemon";
+import type { TeamMember } from "@/domain/team/types/TeamTypes";
+import { ALL_POKEMON_TYPES, TypeEffectiveness } from "@/domain/types/TypeChart";
+import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
+import { translateAbilityToSpanish } from "@/features/team/constants/competitiveAbilities";
+import { translateItemToSpanish } from "@/features/team/constants/competitiveItems";
+import { translateTypeToSpanish } from "@/features/team/constants/typeTranslations";
 import { useTeamStore } from "../store/useTeamStore";
 import { EditMemberModal } from "./EditMemberModal";
-import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 
 type MemberWithMeta = TeamMember & {
   readonly id?: string;

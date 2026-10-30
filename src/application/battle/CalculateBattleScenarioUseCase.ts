@@ -1,12 +1,12 @@
+import type { BattleCalculator } from "@/domain/battle/repositories/BattleCalculator";
 import type {
-  IPokemonBaseProvider,
-  IBattleParticipantInput,
+  BattleResult,
   IBattleConditions,
+  IBattleParticipantInput,
+  IPokemonBaseProvider,
   IResolvedBattleScenario,
   IResolvedParticipant,
-  BattleResult,
 } from "@/domain/battle/types/BattleParticipant";
-import type { BattleCalculator } from "@/domain/battle/repositories/BattleCalculator";
 import { normalizeId } from "@/domain/shared/utils/normalizeId";
 
 export class CalculateBattleScenarioUseCase {

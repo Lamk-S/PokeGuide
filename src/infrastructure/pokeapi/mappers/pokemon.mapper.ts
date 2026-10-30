@@ -1,9 +1,9 @@
 import type {
   Pokemon,
-  PokemonMoveRef,
   PokemonAbilityRef,
-  StatName,
+  PokemonMoveRef,
   PokemonType,
+  StatName,
 } from "@/domain/pokemon/types/pokemon";
 import type { PokeApiPokemonDto } from "../schemas/pokemon.schema";
 

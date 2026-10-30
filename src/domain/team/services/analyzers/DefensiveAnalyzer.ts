@@ -1,7 +1,7 @@
+import type { PokemonType } from "@/domain/pokemon/types/pokemon";
+import { ALL_POKEMON_TYPES, TypeEffectiveness } from "@/domain/types/TypeChart";
 import type { PokemonTeam } from "../../entities/PokemonTeam";
 import type { TypeExposure } from "../../types/TeamTypes";
-import { TypeEffectiveness, ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
-import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 
 function analyze(team: PokemonTeam): Record<PokemonType, TypeExposure> {
   const coverage = {} as Record<PokemonType, TypeExposure>;

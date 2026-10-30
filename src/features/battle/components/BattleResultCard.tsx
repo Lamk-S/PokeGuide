@@ -1,10 +1,10 @@
 "use client";
 import { memo, useMemo } from "react";
+import { translateTypeUpper } from "@/components/ui/TypeBadge";
 import type {
   BattleResult,
   IBattleConditions,
 } from "@/domain/battle/types/BattleParticipant";
-import { translateTypeUpper } from "@/components/ui/TypeBadge";
 import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
 import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
 

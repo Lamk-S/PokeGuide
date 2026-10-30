@@ -1,20 +1,20 @@
 "use client";
 
-import { useOptimizerStore } from "@/features/optimization/store/useOptimizerStore";
+import { AlertTriangle, CheckCircle2, Copy, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, XCircle, AlertTriangle, Copy } from "lucide-react";
+import type { Proof } from "@/domain/optimization/types/OptimizationTypes";
 import { EvidencePanel } from "@/features/optimization/components/EvidencePanel";
 import { ResultComparison } from "@/features/optimization/components/ResultComparison";
-import type { Proof } from "@/domain/optimization/types/OptimizationTypes";
+import { useOptimizerStore } from "@/features/optimization/store/useOptimizerStore";
 
 function ResultSkeleton() {
   return (

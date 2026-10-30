@@ -1,8 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
-import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
-import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
+import type { Pokemon } from "@/domain/pokemon/types/pokemon";
+import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 
 type PokemonListItem = Pokemon & {
   nameEs?: string;

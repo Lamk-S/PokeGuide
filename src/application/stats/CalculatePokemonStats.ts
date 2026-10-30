@@ -1,7 +1,7 @@
 import { calculateStats } from "@/domain/stats/services/StatCalculator";
 import type {
-  StatCalculationInput,
   CalculatedStats,
+  StatCalculationInput,
 } from "@/domain/stats/types/StatTypes";
 
 export class CalculatePokemonStats {

@@ -1,12 +1,12 @@
 import type { BattleCalculator } from "@/domain/battle/repositories/BattleCalculator";
 import type {
-  IResolvedBattleScenario,
   BattleResult,
+  IResolvedBattleScenario,
   IResolvedParticipant,
 } from "@/domain/battle/types/BattleParticipant";
-import { SmogonSpeciesMapper } from "./SmogonSpeciesMapper";
 import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
 import { normalizeId } from "@/domain/shared/utils/normalizeId";
+import { SmogonSpeciesMapper } from "./SmogonSpeciesMapper";
 
 export type WeatherCode =
   | "none"

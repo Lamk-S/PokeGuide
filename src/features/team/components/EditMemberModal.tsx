@@ -1,31 +1,31 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import type {
-  TeamMember,
-  EVSet,
-  IVSet,
-  BaseStats,
-} from "@/domain/team/types/TeamTypes";
-import type { Nature } from "@/domain/stats/types/StatTypes";
+import type { StatName } from "@/domain/pokemon/types/pokemon";
+import { normalizeId } from "@/domain/shared/utils/normalizeId";
 import { NATURES } from "@/domain/stats/constants/natures";
 import { calculateStats } from "@/domain/stats/services/StatCalculator";
-import { IV } from "@/domain/stats/value-objects/IV";
+import type { Nature } from "@/domain/stats/types/StatTypes";
 import { EV } from "@/domain/stats/value-objects/EV";
+import { IV } from "@/domain/stats/value-objects/IV";
+import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
+import type {
+  BaseStats,
+  EVSet,
+  IVSet,
+  TeamMember,
+} from "@/domain/team/types/TeamTypes";
+import {
+  COMPETITIVE_ABILITIES,
+  type CompetitiveAbility,
+  translateAbilityToSpanish,
+} from "../constants/competitiveAbilities";
+import type { CompetitiveItem } from "../constants/competitiveItems";
 import {
   COMPETITIVE_ITEMS,
   translateItemToSpanish,
 } from "../constants/competitiveItems";
-import {
-  COMPETITIVE_ABILITIES,
-  translateAbilityToSpanish,
-  type CompetitiveAbility,
-} from "../constants/competitiveAbilities";
-import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
-import { normalizeId } from "@/domain/shared/utils/normalizeId";
-import type { StatName } from "@/domain/pokemon/types/pokemon";
-import type { CompetitiveItem } from "../constants/competitiveItems";
 
 interface Props {
   readonly open: boolean;

@@ -1,13 +1,13 @@
 "use client";
 
 import { create } from "zustand";
+import type { BuildConfiguration } from "@/domain/optimization/entities/BuildConfiguration";
+import type { Proof } from "@/domain/optimization/types/OptimizationTypes";
 import { EVDistribution } from "@/domain/optimization/value-objects/EVDistribution";
 import type { Objective } from "@/domain/optimization/value-objects/Objective";
-import type { BuildConfiguration } from "@/domain/optimization/entities/BuildConfiguration";
-import { OptimizationWorkerClient } from "@/infrastructure/workers/OptimizationWorkerClient";
-import type { Proof } from "@/domain/optimization/types/OptimizationTypes";
 import { NATURES } from "@/domain/stats/constants/natures";
 import type { Nature } from "@/domain/stats/types/StatTypes";
+import { OptimizationWorkerClient } from "@/infrastructure/workers/OptimizationWorkerClient";
 
 export type BuildState = {
   pokemonId: number;

@@ -1,17 +1,17 @@
 "use client";
 import { useId } from "react";
-import { useObjective, useOptimizerActions } from "../store/useOptimizerStore";
-import { PokemonPicker } from "./PokemonPicker";
-import { MovePicker } from "./MovePicker";
 import type {
-  OffensiveStat,
   DefenseStat,
+  OffensiveStat,
 } from "@/domain/optimization/types/OptimizationTypes";
 import type {
   DamageObjective,
-  SurvivalObjective,
   SpeedObjective,
+  SurvivalObjective,
 } from "@/domain/optimization/value-objects/Objective";
+import { useObjective, useOptimizerActions } from "../store/useOptimizerStore";
+import { MovePicker } from "./MovePicker";
+import { PokemonPicker } from "./PokemonPicker";
 
 export function ObjectiveConfigurator() {
   const objective = useObjective();

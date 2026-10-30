@@ -1,22 +1,19 @@
-import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
-import { LocalMoveRepository } from "@/infrastructure/local-data/repositories/local-move.repository";
-import { LocalAbilityRepository } from "@/infrastructure/local-data/repositories/local-ability.repository";
-import { LocalItemRepository } from "@/infrastructure/local-data/repositories/local-item.repository";
-
-import { PokemonBaseProviderAdapter } from "@/infrastructure/battle/PokemonBaseProviderAdapter";
-import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCalculatorAdapter";
-
 import { CalculateBattleScenarioUseCase } from "@/application/battle/CalculateBattleScenarioUseCase";
-import { AnalyzeTeamUseCase } from "@/application/team/AnalyzeTeamUseCase";
-import { CompareGenerationsUseCase } from "@/application/generations/CompareGenerationsUseCase";
 import { PlanBreedingUseCase } from "@/application/breeding/PlanBreedingUseCase";
-import { CalculatePokemonStats } from "@/application/stats/CalculatePokemonStats";
-
+import { CompareGenerationsUseCase } from "@/application/generations/CompareGenerationsUseCase";
 import * as OptimizeBuildModule from "@/application/optimization/OptimizeBuildUseCase";
+import * as OptimizeDamageModule from "@/application/optimization/OptimizeDamageUseCase";
 import * as OptimizeSpeedModule from "@/application/optimization/OptimizeSpeedUseCase";
 import * as OptimizeSurvivalModule from "@/application/optimization/OptimizeSurvivalUseCase";
-import * as OptimizeDamageModule from "@/application/optimization/OptimizeDamageUseCase";
 import * as OptimizeSurvivalWithBattleModule from "@/application/optimization/OptimizeSurvivalWithBattleUseCase";
+import { CalculatePokemonStats } from "@/application/stats/CalculatePokemonStats";
+import { AnalyzeTeamUseCase } from "@/application/team/AnalyzeTeamUseCase";
+import { PokemonBaseProviderAdapter } from "@/infrastructure/battle/PokemonBaseProviderAdapter";
+import { SmogonCalculatorAdapter } from "@/infrastructure/battle/smogon/SmogonCalculatorAdapter";
+import { LocalAbilityRepository } from "@/infrastructure/local-data/repositories/local-ability.repository";
+import { LocalItemRepository } from "@/infrastructure/local-data/repositories/local-item.repository";
+import { LocalMoveRepository } from "@/infrastructure/local-data/repositories/local-move.repository";
+import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
 
 type ContainerState = "idle" | "initializing" | "ready" | "failed";
 type Executable = { execute: (input: unknown) => Promise<unknown> };

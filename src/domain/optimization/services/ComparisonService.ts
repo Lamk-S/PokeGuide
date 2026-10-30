@@ -1,5 +1,5 @@
+import type { BuildComparison, StatName } from "../types/OptimizationTypes";
 import type { EVDistribution } from "../value-objects/EVDistribution";
-import type { StatName, BuildComparison } from "../types/OptimizationTypes";
 export function compareEVDistributions(
   original: EVDistribution,
   optimized: EVDistribution,

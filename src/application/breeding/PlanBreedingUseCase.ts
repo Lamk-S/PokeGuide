@@ -1,8 +1,8 @@
 import { BreedingTarget } from "@/domain/breeding/entities/BreedingTarget";
 import { BreedingGraphSearch } from "@/domain/breeding/services/BreedingGraphSearch";
 import type {
-  BreedingRequirements,
   BreedingPlan,
+  BreedingRequirements,
 } from "@/domain/breeding/types/BreedingTypes";
 
 export class PlanBreedingUseCase {

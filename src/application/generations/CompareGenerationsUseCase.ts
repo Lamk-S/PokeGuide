@@ -1,6 +1,6 @@
-import { GenerationRulesProvider } from "@/domain/generations/services/GenerationRulesProvider";
-import { GenerationComparisonService } from "@/domain/generations/services/GenerationComparisonService";
 import { GenerationComparison } from "@/domain/generations/entities/GenerationComparison";
+import { GenerationComparisonService } from "@/domain/generations/services/GenerationComparisonService";
+import { GenerationRulesProvider } from "@/domain/generations/services/GenerationRulesProvider";
 
 export class CompareGenerationsUseCase {
   execute(baseGen: number, targetGen: number): GenerationComparison {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useOptimizerStore } from "@/features/optimization/store/useOptimizerStore";
 import { BuildPanel } from "@/features/optimization/components/BuildPanel";
+import { useOptimizerStore } from "@/features/optimization/store/useOptimizerStore";
 
 export function BuildOptimizerClient() {
   const { reset, clearError } = useOptimizerStore();

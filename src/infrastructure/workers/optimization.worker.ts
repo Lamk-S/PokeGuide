@@ -1,24 +1,23 @@
 /// <reference lib="webworker" />
 
-import type {
-  OptimizationWorkerRequest,
-  OptimizationWorkerResponse,
-  SpeedOptimizationPayload,
-  SurvivalOptimizationPayload,
-  DamageOptimizationPayload,
-  SpeedOptimizationResult,
-  SurvivalOptimizationResult,
-  DamageOptimizationResult,
-} from "./optimization.types";
-
+import { BattleAwareSurvivalOptimizer } from "@/domain/optimization/services/BattleAwareSurvivalOptimizer";
+import { DamageOptimizer } from "@/domain/optimization/services/DamageOptimizer";
 import { SpeedOptimizer } from "@/domain/optimization/services/SpeedOptimizer";
 import { SurvivalOptimizer } from "@/domain/optimization/services/SurvivalOptimizer";
-import { DamageOptimizer } from "@/domain/optimization/services/DamageOptimizer";
-import { BattleAwareSurvivalOptimizer } from "@/domain/optimization/services/BattleAwareSurvivalOptimizer";
 import {
   calculateStats,
   normalizeEVSet,
 } from "@/domain/stats/services/StatCalculator";
+import type {
+  DamageOptimizationPayload,
+  DamageOptimizationResult,
+  OptimizationWorkerRequest,
+  OptimizationWorkerResponse,
+  SpeedOptimizationPayload,
+  SpeedOptimizationResult,
+  SurvivalOptimizationPayload,
+  SurvivalOptimizationResult,
+} from "./optimization.types";
 
 declare const self: DedicatedWorkerGlobalScope;
 const ctx = self as unknown as DedicatedWorkerGlobalScope;

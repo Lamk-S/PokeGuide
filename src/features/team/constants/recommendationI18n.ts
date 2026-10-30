@@ -1,11 +1,11 @@
 import type { PureTeamRecommendation } from "@/domain/team/services/RecommendationEngine";
-import { TYPE_TRANSLATIONS_ES } from "./typeTranslations";
 import type {
-  Severity,
   RecommendationCategory,
-  TeamRecommendation,
   RecommendationIssueCode,
+  Severity,
+  TeamRecommendation,
 } from "@/domain/team/types/TeamTypes";
+import { TYPE_TRANSLATIONS_ES } from "./typeTranslations";
 
 export type RecommendationI18nPayload = {
   title: string;

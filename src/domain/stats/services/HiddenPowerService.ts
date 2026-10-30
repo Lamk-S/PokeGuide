@@ -1,5 +1,5 @@
-import type { IVSet } from "../value-objects/IV";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
+import type { IVSet } from "../value-objects/IV";
 
 export interface HiddenPowerResult {
   available: boolean;

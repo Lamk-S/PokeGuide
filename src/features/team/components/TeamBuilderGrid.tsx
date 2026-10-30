@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useTeamStore } from "../store/useTeamStore";
-import { TeamMemberCard } from "./TeamMemberCard";
-import { PokemonSelector } from "./PokemonSelector";
 import type { TeamMember } from "@/domain/team/types/TeamTypes";
+import { useTeamStore } from "../store/useTeamStore";
+import { PokemonSelector } from "./PokemonSelector";
+import { TeamMemberCard } from "./TeamMemberCard";
 
 type MemberWithMeta = TeamMember & {
   readonly id?: string;

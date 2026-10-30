@@ -1,7 +1,8 @@
-import { LocalPokemonRepository } from "../local-data/repositories/local-pokemon.repository";
+import { CalculateBattleScenarioUseCase } from "@/application/battle/CalculateBattleScenarioUseCase";
 import { PokemonBaseProviderAdapter } from "../battle/PokemonBaseProviderAdapter";
 import { SmogonCalculatorAdapter } from "../battle/smogon/SmogonCalculatorAdapter";
-import { CalculateBattleScenarioUseCase } from "@/application/battle/CalculateBattleScenarioUseCase";
+import { LocalPokemonRepository } from "../local-data/repositories/local-pokemon.repository";
+
 const pokemonRepo = new LocalPokemonRepository();
 const provider = new PokemonBaseProviderAdapter(pokemonRepo as never);
 const calculator = new SmogonCalculatorAdapter();

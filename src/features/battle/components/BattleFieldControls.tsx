@@ -1,11 +1,11 @@
 "use client";
-import {
-  Weather,
-  Terrain,
-  type WeatherId,
-  type TerrainId,
-} from "@/domain/battle/value-objects/BattleModifiers";
 import { Combobox } from "@/components/ui/combobox";
+import {
+  Terrain,
+  type TerrainId,
+  Weather,
+  type WeatherId,
+} from "@/domain/battle/value-objects/BattleModifiers";
 
 const WEATHER_ES: Record<string, string> = {
   none: "Ninguno",

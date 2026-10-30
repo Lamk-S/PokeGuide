@@ -1,11 +1,12 @@
 "use client";
-import { useState, useMemo, useRef, useEffect } from "react";
-import type { Pokemon } from "@/domain/pokemon/types/pokemon";
-import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
-import { TypeBadge } from "@/components/ui/TypeBadge";
-import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
-import { PokemonSprite } from "@/components/ui/PokemonSprite";
 import { ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { PokemonSprite } from "@/components/ui/PokemonSprite";
+import { TypeBadge } from "@/components/ui/TypeBadge";
+import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
+import type { Pokemon } from "@/domain/pokemon/types/pokemon";
+import { parsePokemonIdentity } from "@/domain/pokemon/value-objects/PokemonIdentity";
+
 interface Props {
   pokemonList: Pokemon[];
   value: string;

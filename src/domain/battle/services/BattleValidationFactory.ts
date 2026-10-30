@@ -1,7 +1,7 @@
 import {
-  validateBattleState,
-  type BattleValidationState,
   type BattleValidationResult,
+  type BattleValidationState,
+  validateBattleState,
 } from "./BattleValidation";
 
 export function createBattleValidator(): {

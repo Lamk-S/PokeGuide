@@ -1,11 +1,11 @@
-import { Level } from "../value-objects/Level";
-import { IV } from "../value-objects/IV";
+import type { StatName } from "../value-objects/EV";
 import {
   EVDistribution,
   normalizeEVSet,
   STAT_NAMES,
 } from "../value-objects/EV";
-import type { StatName } from "../value-objects/EV";
+import { IV } from "../value-objects/IV";
+import { Level } from "../value-objects/Level";
 
 export type BaseStats = Record<StatName, number>;
 export type IVSetInput = Partial<Record<StatName, number | IV>>;

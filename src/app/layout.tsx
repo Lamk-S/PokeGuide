@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SkipLink } from "@/components/accessibility/SkipLink";
-import { ReportWebVitals } from "@/infrastructure/performance/ReportWebVitals";
-import { Header } from "@/components/layout/Header";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { SkipLink } from "@/components/accessibility/SkipLink";
+import { Header } from "@/components/layout/Header";
+import { ReportWebVitals } from "@/infrastructure/performance/ReportWebVitals";
 
 const inter = Inter({
   subsets: ["latin"],
