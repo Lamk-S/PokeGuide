@@ -74,11 +74,11 @@ export const COMPETITIVE_ITEMS: CompetitiveItem[] = [
   c("rindo-berry", "Baya Rindo", "Reduce Planta"),
   c("occa-berry", "Baya Occa", "Reduce Fuego"),
   c("passho-berry", "Baya Passho", "Reduce Agua"),
-  c("chople-berry", "Baya Chople", "Reduce Lucha"),
+  c("chople-berry", "Baya Pomaro", "Reduce Lucha"),
   c("kebia-berry", "Baya Kebia", "Reduce Veneno"),
-  c("colbur-berry", "Baya Colbur", "Reduce Siniestro"),
+  c("colbur-berry", "Baya Cumbre", "Reduce Siniestro"),
   c("roseli-berry", "Baya Roseli", "Reduce Hada"),
-  c("charti-berry", "Baya Charti", "Reduce Roca"),
+  c("charti-berry", "Baya Antiara", "Reduce Roca"),
   c("haban-berry", "Baya Haban", "Reduce Dragón"),
   c("kasib-berry", "Baya Kasib", "Reduce Fantasma"),
   c("shed-shell", "Muda Concha", "Permite cambio pese a bloqueo"),
@@ -105,7 +105,7 @@ export const COMPETITIVE_ITEMS: CompetitiveItem[] = [
 ];
 
 export const COMPETITIVE_ITEM_NAMES = new Set(
-  COMPETITIVE_ITEMS.map((i) => i.id),
+  COMPETITIVE_ITEMS.map((i) => normalizeId(i.id)),
 );
 
 const ITEM_ES_MAP = new Map<string, string>(
@@ -120,9 +120,13 @@ export function isCompetitiveItem(itemName: string): boolean {
   return COMPETITIVE_ITEM_NAMES.has(normalizeId(itemName));
 }
 
-export function filterCompetitiveItems<T extends { name: string }>(
-  items: T[],
-): T[] {
-  const filtered = items.filter((i) => isCompetitiveItem(i.name));
+export function filterCompetitiveItems<
+  T extends { name: string; nameEs?: string; id?: string },
+>(items: T[]): T[] {
+  if (!items || items.length === 0) return items;
+  const filtered = items.filter((i) => {
+    const candidate = (i as { id?: string }).id || i.name || i.nameEs || "";
+    return isCompetitiveItem(candidate) || isCompetitiveItem(i.name);
+  });
   return filtered.length >= 5 ? filtered : items;
 }
