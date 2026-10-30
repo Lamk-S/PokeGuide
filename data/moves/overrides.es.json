@@ -1,46 +1,68 @@
 {
+  "karate-chop": {
+    "nameEs": "Golpe Kárate",
+    "effectEs": "Tiene un alto índice de golpe crítico.",
+    "shortEffectEs": "Alto índice de crítico."
+  },
+  "double-slap": {
+    "nameEs": "Doble Bofetón",
+    "effectEs": "Golpea al objetivo de 2 a 5 veces seguidas. Cada golpe con 15 de potencia. Movimiento clásico recortado en Gen 8/9.",
+    "shortEffectEs": "Golpea 2-5 veces."
+  },
+  "comet-punch": {
+    "nameEs": "Puño Cometa",
+    "effectEs": "Golpea de 2 a 5 veces seguidas con puñetazos rápidos. Cada golpe con 18 de potencia.",
+    "shortEffectEs": "Golpea 2-5 veces."
+  },
+  "razor-wind": {
+    "nameEs": "Viento Cortante",
+    "effectEs": "Carga durante un turno y al siguiente ataca con alto índice de golpe crítico. Movimiento clásico recortado en Gen 8/9.",
+    "shortEffectEs": "Alto crítico, carga 1 turno."
+  },
   "pound": {
     "nameEs": "Destructor",
     "effectEs": "Golpea con brazos o patas delanteras. Movimiento básico sin efecto secundario.",
     "shortEffectEs": "Golpea sin efecto."
   },
-  "karate-chop": {
-    "nameEs": "Golpe Kárate",
-    "effectEs": "Golpe con alto índice de crítico.",
-    "shortEffectEs": "Alto crítico."
-  },
-  "double-slap": {
-    "nameEs": "Doble Bofetón"
-  },
-  "comet-punch": {
-    "nameEs": "Puño Cometa"
-  },
   "mega-punch": {
-    "nameEs": "Megapuño"
+    "nameEs": "Megapuño",
+    "effectEs": "Puñetazo muy potente pero poco preciso. 80 pot, 85% precisión.",
+    "shortEffectEs": "80 pot, 85% prec."
   },
   "pay-day": {
-    "nameEs": "Día de Pago"
+    "nameEs": "Día de Pago",
+    "effectEs": "Lanza monedas que dan dinero extra al final del combate.",
+    "shortEffectEs": "Da dinero extra."
   },
   "fire-punch": {
-    "nameEs": "Puño Fuego"
+    "nameEs": "Puño Fuego",
+    "effectEs": "Puñetazo ígneo con 10% de quemar.",
+    "shortEffectEs": "10% quemar."
   },
   "ice-punch": {
-    "nameEs": "Puño Hielo"
+    "nameEs": "Puño Hielo",
+    "effectEs": "Puñetazo gélido con 10% de congelar.",
+    "shortEffectEs": "10% congelar."
   },
   "thunder-punch": {
-    "nameEs": "Puño Trueno"
+    "nameEs": "Puño Trueno",
+    "effectEs": "Puñetazo eléctrico con 10% de paralizar.",
+    "shortEffectEs": "10% paralizar."
   },
   "scratch": {
-    "nameEs": "Arañazo"
+    "nameEs": "Arañazo",
+    "effectEs": "Araña con garras afiladas. Movimiento básico.",
+    "shortEffectEs": "Araña."
   },
   "vice-grip": {
-    "nameEs": "Agarre"
+    "nameEs": "Agarre",
+    "effectEs": "Atrapa con pinzas potentes.",
+    "shortEffectEs": "Atrapa."
   },
   "guillotine": {
-    "nameEs": "Guillotina"
-  },
-  "razor-wind": {
-    "nameEs": "Viento Cortante"
+    "nameEs": "Guillotina",
+    "effectEs": "Movimiento de KO directo si acierta. Precisión baja según nivel.",
+    "shortEffectEs": "KO directo."
   },
   "swords-dance": {
     "nameEs": "Danza Espada",
@@ -59,7 +81,7 @@
   },
   "wing-attack": {
     "nameEs": "Ataque Ala",
-    "effectEs": "Golpea con las alas.",
+    "effectEs": "Golpea con las alas extendidas.",
     "shortEffectEs": "Golpea con alas."
   },
   "whirlwind": {
@@ -84,7 +106,7 @@
   },
   "vine-whip": {
     "nameEs": "Látigo Cepa",
-    "effectEs": "Golpea con lianas.",
+    "effectEs": "Golpea con lianas flexibles.",
     "shortEffectEs": "Golpea con lianas."
   },
   "stomp": {
@@ -94,115 +116,123 @@
   },
   "double-kick": {
     "nameEs": "Doble Patada",
-    "effectEs": "Golpea dos veces.",
+    "effectEs": "Golpea dos veces con 30 de potencia cada una.",
     "shortEffectEs": "Golpea 2 veces."
   },
-  "mega-kick": {
-    "nameEs": "Megapatada",
-    "effectEs": "Patada muy potente pero poco precisa.",
-    "shortEffectEs": "Potente pero imprecisa."
-  },
-  "jump-kick": {
-    "nameEs": "Patada Salto",
-    "effectEs": "Si falla, el usuario recibe daño de retroceso.",
-    "shortEffectEs": "Daño si falla."
-  },
-  "rolling-kick": {
-    "nameEs": "Patada Giro",
-    "effectEs": "30% de hacer retroceder.",
-    "shortEffectEs": "30% retroceso."
-  },
-  "sand-attack": {
-    "nameEs": "Ataque Arena",
-    "effectEs": "Baja 1 nivel precisión del rival.",
-    "shortEffectEs": "Baja precisión."
-  },
-  "headbutt": {
-    "nameEs": "Golpe Cabeza",
-    "effectEs": "30% de hacer retroceder.",
-    "shortEffectEs": "30% retroceso."
-  },
-  "horn-attack": {
-    "nameEs": "Cornada",
-    "effectEs": "Embiste con cuerno.",
+  "tackle": {
+    "nameEs": "Placaje",
+    "effectEs": "Embiste básico sin efecto.",
     "shortEffectEs": "Embiste."
   },
-  "fury-attack": {
-    "nameEs": "Ataque Furia"
-  },
-  "horn-drill": {
-    "nameEs": "Perforador"
-  },
-  "tackle": {
-    "nameEs": "Placaje"
-  },
   "body-slam": {
-    "nameEs": "Golpe Cuerpo"
+    "nameEs": "Golpe Cuerpo",
+    "effectEs": "30% de paralizar.",
+    "shortEffectEs": "30% paralizar."
   },
   "wrap": {
-    "nameEs": "Constricción"
+    "nameEs": "Constricción",
+    "effectEs": "Atrapa 4-5 turnos haciendo daño.",
+    "shortEffectEs": "Atrapa 4-5 turnos."
   },
   "take-down": {
-    "nameEs": "Derribo"
+    "nameEs": "Derribo",
+    "effectEs": "Retroceso de 25% del daño infligido.",
+    "shortEffectEs": "Retroceso 25%."
   },
   "thrash": {
-    "nameEs": "Saña"
+    "nameEs": "Saña",
+    "effectEs": "Ataca 2-3 turnos y luego se confunde.",
+    "shortEffectEs": "2-3 turnos, luego confusión."
   },
   "double-edge": {
-    "nameEs": "Doble Filo"
+    "nameEs": "Doble Filo",
+    "effectEs": "Retroceso de 33%.",
+    "shortEffectEs": "Retroceso 33%."
   },
   "tail-whip": {
-    "nameEs": "Agitacola"
+    "nameEs": "Látigo",
+    "effectEs": "Baja 1 nivel Defensa rival.",
+    "shortEffectEs": "Baja Defensa."
   },
   "poison-sting": {
-    "nameEs": "Picotazo Veneno"
+    "nameEs": "Picotazo Veneno",
+    "effectEs": "30% de envenenar.",
+    "shortEffectEs": "30% envenenar."
   },
   "twineedle": {
-    "nameEs": "Doble Ataque"
+    "nameEs": "Doble Ataque",
+    "effectEs": "Golpea 2 veces, 20% envenenar por golpe.",
+    "shortEffectEs": "Golpea 2 veces, veneno."
   },
   "pin-missile": {
-    "nameEs": "Pin Misil"
+    "nameEs": "Pin Misil",
+    "effectEs": "Golpea 2-5 veces con púas.",
+    "shortEffectEs": "Golpea 2-5 veces."
   },
   "leer": {
-    "nameEs": "Malicioso"
+    "nameEs": "Malicioso",
+    "effectEs": "Baja 1 nivel Defensa rival.",
+    "shortEffectEs": "Baja Defensa."
   },
   "bite": {
-    "nameEs": "Mordisco"
+    "nameEs": "Mordisco",
+    "effectEs": "30% hacer retroceder.",
+    "shortEffectEs": "30% retroceso."
   },
   "growl": {
-    "nameEs": "Gruñido"
+    "nameEs": "Gruñido",
+    "effectEs": "Baja 1 nivel Ataque rival.",
+    "shortEffectEs": "Baja Ataque."
   },
   "roar": {
-    "nameEs": "Rugido"
+    "nameEs": "Rugido",
+    "effectEs": "Fuerza cambio rival.",
+    "shortEffectEs": "Fuerza cambio."
   },
   "sing": {
-    "nameEs": "Canto"
+    "nameEs": "Canto",
+    "effectEs": "Duerme al rival. 55% precisión.",
+    "shortEffectEs": "Duerme."
   },
   "supersonic": {
-    "nameEs": "Supersónico"
+    "nameEs": "Supersónico",
+    "effectEs": "Confunde al rival.",
+    "shortEffectEs": "Confunde."
   },
   "sonic-boom": {
-    "nameEs": "Bomba Sónica"
+    "nameEs": "Bomba Sónica",
+    "effectEs": "Daño fijo 20 PS.",
+    "shortEffectEs": "20 PS fijos."
   },
   "disable": {
-    "nameEs": "Anulación"
+    "nameEs": "Anulación",
+    "effectEs": "Anula último movimiento usado por rival 4 turnos.",
+    "shortEffectEs": "Anula movimiento."
   },
   "acid": {
-    "nameEs": "Ácido"
+    "nameEs": "Ácido",
+    "effectEs": "10% baja Def. Especial rival.",
+    "shortEffectEs": "10% baja Def.Esp."
   },
   "ember": {
-    "nameEs": "Ascuas"
+    "nameEs": "Ascuas",
+    "effectEs": "10% quemar.",
+    "shortEffectEs": "10% quemar."
   },
   "flamethrower": {
     "nameEs": "Lanzallamas",
-    "effectEs": "90 pot, 10% quemar.",
+    "effectEs": "90 pot, 10% quemar. Movimiento fuego estándar competitivo.",
     "shortEffectEs": "10% quemar."
   },
   "mist": {
-    "nameEs": "Neblina"
+    "nameEs": "Neblina",
+    "effectEs": "Protege de bajadas de stats 5 turnos.",
+    "shortEffectEs": "Evita bajada stats."
   },
   "water-gun": {
-    "nameEs": "Pistola Agua"
+    "nameEs": "Pistola Agua",
+    "effectEs": "Disparo básico de agua.",
+    "shortEffectEs": "Disparo agua."
   },
   "hydro-pump": {
     "nameEs": "Hidrobomba",
@@ -211,7 +241,7 @@
   },
   "surf": {
     "nameEs": "Surf",
-    "effectEs": "90 pot, golpea a todos.",
+    "effectEs": "90 pot, golpea a todos adyacentes en dobles.",
     "shortEffectEs": "Golpea a todos."
   },
   "ice-beam": {
@@ -220,82 +250,109 @@
     "shortEffectEs": "10% congelar."
   },
   "blizzard": {
-    "nameEs": "Ventisca"
+    "nameEs": "Ventisca",
+    "effectEs": "110 pot, 70% precisión, 10% congelar. 100% en granizo.",
+    "shortEffectEs": "10% congelar."
   },
   "psybeam": {
-    "nameEs": "Psicorrayo"
+    "nameEs": "Psicorrayo",
+    "effectEs": "10% confusión.",
+    "shortEffectEs": "10% confusión."
   },
   "bubble-beam": {
-    "nameEs": "Rayo Burbuja"
+    "nameEs": "Rayo Burbuja",
+    "effectEs": "65 pot, 10% baja Velocidad.",
+    "shortEffectEs": "10% baja Vel."
   },
   "aurora-beam": {
-    "nameEs": "Rayo Aurora"
+    "nameEs": "Rayo Aurora",
+    "effectEs": "10% baja Ataque.",
+    "shortEffectEs": "10% baja Ataque."
   },
   "hyper-beam": {
-    "nameEs": "Hiperrayo"
+    "nameEs": "Hiperrayo",
+    "effectEs": "150 pot, recarga 1 turno.",
+    "shortEffectEs": "Recarga 1 turno."
   },
   "peck": {
-    "nameEs": "Picotazo"
+    "nameEs": "Picotazo",
+    "effectEs": "Ataque básico de tipo Volador.",
+    "shortEffectEs": "Ataque básico."
   },
   "drill-peck": {
-    "nameEs": "Pico Taladro"
+    "nameEs": "Pico Taladro",
+    "effectEs": "80 pot, sin efecto adicional.",
+    "shortEffectEs": "Sin efecto."
   },
   "submission": {
-    "nameEs": "Sumisión"
+    "nameEs": "Sumisión",
+    "effectEs": "Retroceso 25%.",
+    "shortEffectEs": "Retroceso."
   },
   "low-kick": {
-    "nameEs": "Patada Baja"
+    "nameEs": "Patada Baja",
+    "effectEs": "Más potencia contra rivales pesados.",
+    "shortEffectEs": "Más peso, más pot."
   },
   "counter": {
-    "nameEs": "Contraataque"
+    "nameEs": "Contraataque",
+    "effectEs": "Devuelve x2 daño físico recibido.",
+    "shortEffectEs": "Devuelve x2 físico."
   },
   "seismic-toss": {
-    "nameEs": "Sísmico"
+    "nameEs": "Sísmico",
+    "effectEs": "Daño igual al nivel del usuario en PS.",
+    "shortEffectEs": "Daño = nivel."
   },
   "strength": {
-    "nameEs": "Fuerza"
+    "nameEs": "Fuerza",
+    "effectEs": "80 pot, fuera de combate empuja rocas.",
+    "shortEffectEs": "Empuja rocas."
   },
   "absorb": {
-    "nameEs": "Absorber"
+    "nameEs": "Absorber",
+    "effectEs": "Cura 50% del daño infligido.",
+    "shortEffectEs": "Cura 50% daño."
   },
   "mega-drain": {
-    "nameEs": "Megaagotar"
+    "nameEs": "Megaagotar",
+    "effectEs": "Cura 50% del daño infligido.",
+    "shortEffectEs": "Cura 50% daño."
   },
   "leech-seed": {
-    "nameEs": "Drenadoras"
+    "nameEs": "Drenadoras",
+    "effectEs": "Planta drenadoras que quitan PS cada turno.",
+    "shortEffectEs": "Quita PS cada turno."
   },
   "growth": {
-    "nameEs": "Desarrollo"
+    "nameEs": "Desarrollo",
+    "effectEs": "Sube Ataque y At. Especial 1 nivel, 2 con sol.",
+    "shortEffectEs": "Sube Atq y At.Esp."
   },
   "razor-leaf": {
-    "nameEs": "Hoja Afilada"
+    "nameEs": "Hoja Afilada",
+    "effectEs": "Alto crítico.",
+    "shortEffectEs": "Alto crítico."
   },
   "solar-beam": {
-    "nameEs": "Rayo Solar"
+    "nameEs": "Rayo Solar",
+    "effectEs": "Carga 1 turno, 120 pot. Instantáneo con sol.",
+    "shortEffectEs": "Carga 1 turno."
   },
-  "poison-powder": {
-    "nameEs": "Polvo Veneno"
+  "fury-attack": {
+    "nameEs": "Ataque Furia",
+    "effectEs": "Golpea de 2 a 5 veces seguidas con cuerno o pico.",
+    "shortEffectEs": "Golpea 2-5 veces."
   },
-  "stun-spore": {
-    "nameEs": "Paralizador"
+  "horn-attack": {
+    "nameEs": "Cornada",
+    "effectEs": "Embiste con cuerno afilado.",
+    "shortEffectEs": "Embiste."
   },
-  "sleep-powder": {
-    "nameEs": "Somnífero"
-  },
-  "petal-dance": {
-    "nameEs": "Danza Pétalo"
-  },
-  "string-shot": {
-    "nameEs": "Disparo Demora"
-  },
-  "dragon-rage": {
-    "nameEs": "Furia Dragón"
-  },
-  "fire-spin": {
-    "nameEs": "Giro Fuego"
-  },
-  "thunder-shock": {
-    "nameEs": "Impactrueno"
+  "horn-drill": {
+    "nameEs": "Perforador",
+    "effectEs": "KO directo si acierta.",
+    "shortEffectEs": "KO directo."
   },
   "thunderbolt": {
     "nameEs": "Rayo",
@@ -307,2615 +364,129 @@
     "effectEs": "Paraliza (mitad Velocidad y 25% no actuar).",
     "shortEffectEs": "Paraliza."
   },
-  "thunder": {
-    "nameEs": "Trueno"
-  },
-  "rock-throw": {
-    "nameEs": "Lanzarrocas"
-  },
   "earthquake": {
     "nameEs": "Terremoto",
     "effectEs": "100 pot, golpea a todos adyacentes.",
     "shortEffectEs": "Golpea a todos."
-  },
-  "fissure": {
-    "nameEs": "Fisura"
-  },
-  "dig": {
-    "nameEs": "Excavar"
   },
   "toxic": {
     "nameEs": "Tóxico",
     "effectEs": "Envenena gravemente, daño crece cada turno.",
     "shortEffectEs": "Envenena grave."
   },
-  "confusion": {
-    "nameEs": "Confusión"
-  },
   "psychic": {
-    "nameEs": "Psíquico"
-  },
-  "hypnosis": {
-    "nameEs": "Hipnosis"
-  },
-  "meditate": {
-    "nameEs": "Meditación"
-  },
-  "agility": {
-    "nameEs": "Agilidad"
+    "nameEs": "Psíquico",
+    "effectEs": "90 pot, 10% baja Def. Especial.",
+    "shortEffectEs": "10% baja Def.Esp."
   },
   "quick-attack": {
-    "nameEs": "Ataque Rápido"
-  },
-  "rage": {
-    "nameEs": "Furia"
-  },
-  "teleport": {
-    "nameEs": "Teletransporte"
-  },
-  "night-shade": {
-    "nameEs": "Tinieblas"
-  },
-  "mimic": {
-    "nameEs": "Mimético"
-  },
-  "screech": {
-    "nameEs": "Chirrido"
-  },
-  "double-team": {
-    "nameEs": "Doble Equipo"
+    "nameEs": "Ataque Rápido",
+    "effectEs": "Prioridad +1, 40 pot.",
+    "shortEffectEs": "Prioridad +1."
   },
   "recover": {
-    "nameEs": "Recuperación"
-  },
-  "harden": {
-    "nameEs": "Fortaleza"
-  },
-  "minimize": {
-    "nameEs": "Reducción"
-  },
-  "smokescreen": {
-    "nameEs": "Pantalla de Humo"
-  },
-  "confuse-ray": {
-    "nameEs": "Rayo Confuso"
-  },
-  "withdraw": {
-    "nameEs": "Refugio"
-  },
-  "defense-curl": {
-    "nameEs": "Rizo Defensa"
-  },
-  "barrier": {
-    "nameEs": "Barrera"
-  },
-  "light-screen": {
-    "nameEs": "Pantalla de Luz"
-  },
-  "haze": {
-    "nameEs": "Niebla"
-  },
-  "reflect": {
-    "nameEs": "Reflejo"
-  },
-  "focus-energy": {
-    "nameEs": "Foco Energía"
-  },
-  "bide": {
-    "nameEs": "Venganza"
-  },
-  "metronome": {
-    "nameEs": "Metrónomo"
-  },
-  "mirror-move": {
-    "nameEs": "Espejo"
-  },
-  "self-destruct": {
-    "nameEs": "Autodestrucción"
-  },
-  "egg-bomb": {
-    "nameEs": "Bomba Huevo"
-  },
-  "lick": {
-    "nameEs": "Lengüetazo"
-  },
-  "smog": {
-    "nameEs": "Polución"
-  },
-  "sludge": {
-    "nameEs": "Residuos"
-  },
-  "bone-club": {
-    "nameEs": "Hueso Palo"
-  },
-  "fire-blast": {
-    "nameEs": "Llamarada"
-  },
-  "waterfall": {
-    "nameEs": "Cascada"
-  },
-  "clamp": {
-    "nameEs": "Tenaza"
-  },
-  "swift": {
-    "nameEs": "Meteoros"
-  },
-  "skull-bash": {
-    "nameEs": "Cabezazo"
-  },
-  "spike-cannon": {
-    "nameEs": "Clavo Cañón"
-  },
-  "constrict": {
-    "nameEs": "Restricción"
-  },
-  "amnesia": {
-    "nameEs": "Amnesia"
-  },
-  "kinesis": {
-    "nameEs": "Kinético"
-  },
-  "soft-boiled": {
-    "nameEs": "Ovocuración"
-  },
-  "high-jump-kick": {
-    "nameEs": "Patada Salto Alta"
-  },
-  "glare": {
-    "nameEs": "Deslumbrar"
-  },
-  "dream-eater": {
-    "nameEs": "Comesueños"
-  },
-  "poison-gas": {
-    "nameEs": "Gas Venenoso"
-  },
-  "barrage": {
-    "nameEs": "Bombardeo"
-  },
-  "leech-life": {
-    "nameEs": "Chupavidas"
-  },
-  "lovely-kiss": {
-    "nameEs": "Beso Amoroso"
-  },
-  "sky-attack": {
-    "nameEs": "Ataque Aéreo"
-  },
-  "transform": {
-    "nameEs": "Transformación"
-  },
-  "bubble": {
-    "nameEs": "Burbuja"
-  },
-  "dizzy-punch": {
-    "nameEs": "Puño Mareo"
-  },
-  "spore": {
-    "nameEs": "Espora"
-  },
-  "flash": {
-    "nameEs": "Destello"
-  },
-  "psywave": {
-    "nameEs": "Psicoonda"
-  },
-  "splash": {
-    "nameEs": "Salpicadura"
-  },
-  "acid-armor": {
-    "nameEs": "Armadura Ácida"
-  },
-  "crabhammer": {
-    "nameEs": "Martillazo"
-  },
-  "explosion": {
-    "nameEs": "Explosión"
-  },
-  "fury-swipes": {
-    "nameEs": "Golpes Furia"
-  },
-  "bonemerang": {
-    "nameEs": "Huesomerang"
-  },
-  "rest": {
-    "nameEs": "Descanso"
-  },
-  "rock-slide": {
-    "nameEs": "Avalancha"
-  },
-  "hyper-fang": {
-    "nameEs": "Hipercolmillo"
-  },
-  "sharpen": {
-    "nameEs": "Afilar"
-  },
-  "conversion": {
-    "nameEs": "Conversión"
-  },
-  "tri-attack": {
-    "nameEs": "Triataque"
-  },
-  "super-fang": {
-    "nameEs": "Superdiente"
-  },
-  "slash": {
-    "nameEs": "Cuchillada"
-  },
-  "substitute": {
-    "nameEs": "Sustituto",
-    "effectEs": "Crea sustituto con 25% PS que bloquea estados.",
-    "shortEffectEs": "Sustituto 25% PS."
-  },
-  "struggle": {
-    "nameEs": "Forcejeo"
-  },
-  "sketch": {
-    "nameEs": "Esquema"
-  },
-  "triple-kick": {
-    "nameEs": "Triple Patada"
-  },
-  "thief": {
-    "nameEs": "Ladrón"
-  },
-  "spider-web": {
-    "nameEs": "Telaraña"
-  },
-  "mind-reader": {
-    "nameEs": "Telépata"
-  },
-  "nightmare": {
-    "nameEs": "Pesadilla"
-  },
-  "flame-wheel": {
-    "nameEs": "Rueda Fuego"
-  },
-  "snore": {
-    "nameEs": "Ronquido"
-  },
-  "curse": {
-    "nameEs": "Maldición"
-  },
-  "flail": {
-    "nameEs": "Azote"
-  },
-  "conversion-2": {
-    "nameEs": "Conversión 2"
-  },
-  "aeroblast": {
-    "nameEs": "Aerochorro"
-  },
-  "cotton-spore": {
-    "nameEs": "Esporagodón"
-  },
-  "reversal": {
-    "nameEs": "Inversión"
-  },
-  "spite": {
-    "nameEs": "Rencor"
-  },
-  "powder-snow": {
-    "nameEs": "Nieve Polvo"
+    "nameEs": "Recuperación",
+    "effectEs": "Cura 50% de PS máximos.",
+    "shortEffectEs": "Cura 50% PS."
   },
   "protect": {
     "nameEs": "Protección",
     "effectEs": "Protege de ataques ese turno. Falla más si se usa seguido. Esencial en VGC.",
     "shortEffectEs": "Protege este turno."
   },
-  "mach-punch": {
-    "nameEs": "Ultrapuño"
-  },
-  "scary-face": {
-    "nameEs": "Cara Susto"
-  },
-  "feint-attack": {
-    "nameEs": "Finta"
-  },
-  "sweet-kiss": {
-    "nameEs": "Beso Dulce"
-  },
-  "belly-drum": {
-    "nameEs": "Tambor"
-  },
-  "sludge-bomb": {
-    "nameEs": "Bomba Lodo"
-  },
-  "mud-slap": {
-    "nameEs": "Bofetón Lodo"
-  },
-  "octazooka": {
-    "nameEs": "Pulpocañón"
-  },
-  "spikes": {
-    "nameEs": "Púas",
-    "effectEs": "Coloca hasta 3 capas de Púas que dañan al entrar. Cada capa aumenta daño.",
-    "shortEffectEs": "Daña al entrar, máx 3 capas."
-  },
-  "zap-cannon": {
-    "nameEs": "Electrocañón"
-  },
-  "foresight": {
-    "nameEs": "Profecía"
-  },
-  "destiny-bond": {
-    "nameEs": "Mismo Destino"
-  },
-  "perish-song": {
-    "nameEs": "Canto Mortal"
-  },
-  "icy-wind": {
-    "nameEs": "Viento Hielo"
-  },
-  "detect": {
-    "nameEs": "Detección"
-  },
-  "bone-rush": {
-    "nameEs": "Ataque Óseo"
-  },
-  "lock-on": {
-    "nameEs": "Fijar Blanco"
-  },
-  "outrage": {
-    "nameEs": "Enfado"
-  },
-  "sandstorm": {
-    "nameEs": "Tormenta de Arena"
-  },
-  "giga-drain": {
-    "nameEs": "Gigadrenado"
-  },
-  "endure": {
-    "nameEs": "Aguante"
-  },
-  "charm": {
-    "nameEs": "Encanto"
-  },
-  "rollout": {
-    "nameEs": "Rodar"
-  },
-  "false-swipe": {
-    "nameEs": "Falso Tortazo"
-  },
-  "swagger": {
-    "nameEs": "Fanfarronear"
-  },
-  "milk-drink": {
-    "nameEs": "Batido"
-  },
-  "spark": {
-    "nameEs": "Chispa"
-  },
-  "fury-cutter": {
-    "nameEs": "Corte Furia"
-  },
-  "steel-wing": {
-    "nameEs": "Ala de Acero"
-  },
-  "mean-look": {
-    "nameEs": "Mal de Ojo"
-  },
-  "attract": {
-    "nameEs": "Atracción"
-  },
-  "sleep-talk": {
-    "nameEs": "Sonámbulo"
-  },
-  "heal-bell": {
-    "nameEs": "Cascabel Cura"
-  },
-  "return": {
-    "nameEs": "Retribución"
-  },
-  "present": {
-    "nameEs": "Presente"
-  },
-  "frustration": {
-    "nameEs": "Frustración"
-  },
-  "safeguard": {
-    "nameEs": "Velo Sagrado"
-  },
-  "pain-split": {
-    "nameEs": "Divide Dolor"
-  },
-  "sacred-fire": {
-    "nameEs": "Fuego Sagrado"
-  },
-  "magnitude": {
-    "nameEs": "Magnitud"
-  },
-  "dynamic-punch": {
-    "nameEs": "Puño Dinámico"
-  },
-  "megahorn": {
-    "nameEs": "Megacuerno"
-  },
-  "dragon-breath": {
-    "nameEs": "Dragoaliento"
-  },
-  "baton-pass": {
-    "nameEs": "Relevo"
-  },
-  "encore": {
-    "nameEs": "Otra Vez"
-  },
-  "pursuit": {
-    "nameEs": "Persecución"
-  },
-  "rapid-spin": {
-    "nameEs": "Giro Rápido",
-    "effectEs": "Elimina hazards propios y sube 1 nivel Velocidad.",
-    "shortEffectEs": "Elimina hazards, sube Vel."
-  },
-  "sweet-scent": {
-    "nameEs": "Dulce Aroma"
-  },
-  "iron-tail": {
-    "nameEs": "Cola Férrea"
-  },
-  "metal-claw": {
-    "nameEs": "Garra Metal"
-  },
-  "vital-throw": {
-    "nameEs": "Llave Vital"
-  },
-  "morning-sun": {
-    "nameEs": "Sol Matinal"
-  },
-  "synthesis": {
-    "nameEs": "Fotosíntesis"
-  },
-  "moonlight": {
-    "nameEs": "Luz Lunar"
-  },
-  "hidden-power": {
-    "nameEs": "Poder Oculto"
-  },
-  "cross-chop": {
-    "nameEs": "Tajo Cruzado"
-  },
-  "twister": {
-    "nameEs": "Ciclón"
-  },
-  "rain-dance": {
-    "nameEs": "Danza Lluvia"
-  },
-  "sunny-day": {
-    "nameEs": "Día Soleado"
-  },
-  "crunch": {
-    "nameEs": "Triturar"
-  },
-  "mirror-coat": {
-    "nameEs": "Manto Espejo"
-  },
-  "psych-up": {
-    "nameEs": "Autosugestión"
-  },
-  "extreme-speed": {
-    "nameEs": "Velocidad Extrema"
-  },
-  "ancient-power": {
-    "nameEs": "Poder Pasado"
-  },
-  "shadow-ball": {
-    "nameEs": "Bola Sombra",
-    "effectEs": "80 pot, 20% baja Def. Especial.",
-    "shortEffectEs": "20% baja Def.Esp."
-  },
-  "future-sight": {
-    "nameEs": "Premonición"
-  },
-  "rock-smash": {
-    "nameEs": "Golpe Roca"
-  },
-  "whirlpool": {
-    "nameEs": "Torbellino"
-  },
-  "beat-up": {
-    "nameEs": "Paliza"
-  },
-  "fake-out": {
-    "nameEs": "Sorpresa"
-  },
-  "uproar": {
-    "nameEs": "Alboroto"
-  },
-  "stockpile": {
-    "nameEs": "Reserva"
-  },
-  "spit-up": {
-    "nameEs": "Escupir"
-  },
-  "swallow": {
-    "nameEs": "Tragar"
-  },
-  "heat-wave": {
-    "nameEs": "Onda Ígnea"
-  },
-  "hail": {
-    "nameEs": "Granizo"
-  },
-  "torment": {
-    "nameEs": "Tormento"
-  },
-  "flatter": {
-    "nameEs": "Camelo"
-  },
-  "will-o-wisp": {
-    "nameEs": "Fuego Fatuo",
-    "effectEs": "Quema (mitad Ataque y daño por turno).",
-    "shortEffectEs": "Quema."
-  },
-  "memento": {
-    "nameEs": "Legado"
-  },
-  "facade": {
-    "nameEs": "Fachada"
-  },
-  "focus-punch": {
-    "nameEs": "Puño Certero"
-  },
-  "smelling-salts": {
-    "nameEs": "Estímulo"
-  },
-  "follow-me": {
-    "nameEs": "Señuelo"
-  },
-  "nature-power": {
-    "nameEs": "Adaptación"
-  },
-  "charge": {
-    "nameEs": "Carga"
-  },
-  "taunt": {
-    "nameEs": "Mofa"
-  },
-  "helping-hand": {
-    "nameEs": "Refuerzo"
-  },
-  "trick": {
-    "nameEs": "Truco",
-    "effectEs": "Intercambia objeto con rival. Usado con Llamaesfera, Pañuelo Elegido.",
-    "shortEffectEs": "Intercambia objetos."
-  },
-  "role-play": {
-    "nameEs": "Imitación"
-  },
-  "wish": {
-    "nameEs": "Deseo"
-  },
-  "assist": {
-    "nameEs": "Ayuda"
-  },
-  "ingrain": {
-    "nameEs": "Arraigo"
-  },
-  "superpower": {
-    "nameEs": "Fuerza Bruta"
-  },
-  "magic-coat": {
-    "nameEs": "Capa Mágica"
-  },
-  "recycle": {
-    "nameEs": "Reciclaje"
-  },
-  "revenge": {
-    "nameEs": "Desquite"
-  },
-  "brick-break": {
-    "nameEs": "Demolición"
-  },
-  "yawn": {
-    "nameEs": "Bostezo"
-  },
-  "knock-off": {
-    "nameEs": "Desarme",
-    "effectEs": "Quita objeto rival y hace 50% más daño si tiene objeto. Movimiento más spameado en OU.",
-    "shortEffectEs": "Quita objeto, más daño."
-  },
-  "endeavor": {
-    "nameEs": "Esfuerzo"
-  },
-  "eruption": {
-    "nameEs": "Estallido"
-  },
-  "skill-swap": {
-    "nameEs": "Intercambio"
-  },
-  "imprison": {
-    "nameEs": "Sellar"
-  },
-  "refresh": {
-    "nameEs": "Alivio"
-  },
-  "grudge": {
-    "nameEs": "Rabia"
-  },
-  "snatch": {
-    "nameEs": "Robo"
-  },
-  "secret-power": {
-    "nameEs": "Daño Secreto"
-  },
-  "dive": {
-    "nameEs": "Buceo"
-  },
-  "arm-thrust": {
-    "nameEs": "Empujón"
-  },
-  "camouflage": {
-    "nameEs": "Camuflaje"
-  },
-  "tail-glow": {
-    "nameEs": "Luminicola"
-  },
-  "luster-purge": {
-    "nameEs": "Resplandor"
-  },
-  "mist-ball": {
-    "nameEs": "Bola Neblina"
-  },
-  "feather-dance": {
-    "nameEs": "Danza Pluma"
-  },
-  "teeter-dance": {
-    "nameEs": "Danza Caos"
-  },
-  "blaze-kick": {
-    "nameEs": "Patada Ígnea"
-  },
-  "mud-sport": {
-    "nameEs": "Chapoteo Lodo"
-  },
-  "ice-ball": {
-    "nameEs": "Bola Hielo"
-  },
-  "needle-arm": {
-    "nameEs": "Brazo Pincho"
-  },
-  "slack-off": {
-    "nameEs": "Relajo"
-  },
-  "hyper-voice": {
-    "nameEs": "Vozarrón"
-  },
-  "poison-fang": {
-    "nameEs": "Colmillo Veneno"
-  },
-  "crush-claw": {
-    "nameEs": "Garra Brutal"
-  },
-  "blast-burn": {
-    "nameEs": "Anillo Ígneo"
-  },
-  "hydro-cannon": {
-    "nameEs": "Hidrocañón"
-  },
-  "meteor-mash": {
-    "nameEs": "Puño Meteoro"
-  },
-  "astonish": {
-    "nameEs": "Impresionar"
-  },
-  "weather-ball": {
-    "nameEs": "Meteorobola"
-  },
-  "aromatherapy": {
-    "nameEs": "Aromaterapia"
-  },
-  "fake-tears": {
-    "nameEs": "Llanto Falso"
-  },
-  "air-cutter": {
-    "nameEs": "Aire Afilado"
-  },
-  "overheat": {
-    "nameEs": "Sofoco"
-  },
-  "odor-sleuth": {
-    "nameEs": "Rastreo"
-  },
-  "rock-tomb": {
-    "nameEs": "Tumba Rocas"
-  },
-  "silver-wind": {
-    "nameEs": "Viento Plata"
-  },
-  "metal-sound": {
-    "nameEs": "Eco Metálico"
-  },
-  "grass-whistle": {
-    "nameEs": "Silbato"
-  },
-  "tickle": {
-    "nameEs": "Cosquillas"
-  },
-  "cosmic-power": {
-    "nameEs": "Masa Cósmica"
-  },
-  "water-spout": {
-    "nameEs": "Salpicar"
-  },
-  "signal-beam": {
-    "nameEs": "Rayo Señal"
-  },
-  "shadow-punch": {
-    "nameEs": "Puño Sombra"
-  },
-  "extrasensory": {
-    "nameEs": "Paranormal"
-  },
-  "sky-uppercut": {
-    "nameEs": "Gancho Alto"
-  },
-  "sand-tomb": {
-    "nameEs": "Bucle Arena"
-  },
-  "sheer-cold": {
-    "nameEs": "Frío Polar"
-  },
-  "muddy-water": {
-    "nameEs": "Agua Lodosa"
-  },
-  "bullet-seed": {
-    "nameEs": "Semilladora"
-  },
-  "aerial-ace": {
-    "nameEs": "Golpe Aéreo"
-  },
-  "icicle-spear": {
-    "nameEs": "Carámbano"
-  },
-  "iron-defense": {
-    "nameEs": "Defensa Férrea"
-  },
-  "block": {
-    "nameEs": "Bloqueo"
-  },
-  "howl": {
-    "nameEs": "Aullido"
-  },
-  "dragon-claw": {
-    "nameEs": "Garra Dragón"
-  },
-  "frenzy-plant": {
-    "nameEs": "Planta Feroz"
-  },
-  "bulk-up": {
-    "nameEs": "Corpulencia"
-  },
-  "bounce": {
-    "nameEs": "Bote"
-  },
-  "mud-shot": {
-    "nameEs": "Disparo Lodo"
-  },
-  "poison-tail": {
-    "nameEs": "Cola Veneno"
-  },
-  "covet": {
-    "nameEs": "Antojo"
-  },
-  "volt-tackle": {
-    "nameEs": "Placaje Eléctrico"
-  },
-  "magical-leaf": {
-    "nameEs": "Hoja Mágica"
-  },
-  "water-sport": {
-    "nameEs": "Hidrochorro"
-  },
-  "calm-mind": {
-    "nameEs": "Paz Mental",
-    "effectEs": "Sube At. Especial y Def. Especial 1 nivel.",
-    "shortEffectEs": "Sube At.Esp y Def.Esp."
-  },
-  "leaf-blade": {
-    "nameEs": "Hoja Aguda"
-  },
-  "dragon-dance": {
-    "nameEs": "Danza Dragón",
-    "effectEs": "Sube Ataque y Velocidad 1 nivel. Setup físico por excelencia.",
-    "shortEffectEs": "Sube Atq y Vel."
-  },
-  "rock-blast": {
-    "nameEs": "Pedrada"
-  },
-  "shock-wave": {
-    "nameEs": "Onda Voltio"
-  },
-  "water-pulse": {
-    "nameEs": "Hidropulso"
-  },
-  "doom-desire": {
-    "nameEs": "Deseo Oculto"
-  },
-  "psycho-boost": {
-    "nameEs": "Psicoataque"
-  },
-  "roost": {
-    "nameEs": "Respiro"
-  },
-  "gravity": {
-    "nameEs": "Gravedad"
-  },
-  "miracle-eye": {
-    "nameEs": "Gran Ojo"
-  },
-  "wake-up-slap": {
-    "nameEs": "Espabila"
-  },
-  "hammer-arm": {
-    "nameEs": "Machada"
-  },
-  "gyro-ball": {
-    "nameEs": "Giro Bola"
-  },
-  "healing-wish": {
-    "nameEs": "Deseo Cura"
-  },
-  "brine": {
-    "nameEs": "Salmuera"
-  },
-  "natural-gift": {
-    "nameEs": "Don Natural"
-  },
-  "feint": {
-    "nameEs": "Amago"
-  },
-  "pluck": {
-    "nameEs": "Picoteo"
-  },
-  "tailwind": {
-    "nameEs": "Viento Afín"
-  },
-  "acupressure": {
-    "nameEs": "Acupresión"
-  },
-  "metal-burst": {
-    "nameEs": "Represión Metal"
-  },
   "u-turn": {
     "nameEs": "Ida y Vuelta",
     "effectEs": "Ataca y cambia por otro Pokémon. Movimiento pivote más usado.",
     "shortEffectEs": "Ataca y cambia."
   },
-  "close-combat": {
-    "nameEs": "A Bocajarro",
-    "effectEs": "120 pot, baja defensas.",
-    "shortEffectEs": "Baja defensas."
-  },
-  "payback": {
-    "nameEs": "Vendetta"
-  },
-  "assurance": {
-    "nameEs": "Buena Baza"
-  },
-  "embargo": {
-    "nameEs": "Embargo"
-  },
-  "fling": {
-    "nameEs": "Lanzamiento"
-  },
-  "psycho-shift": {
-    "nameEs": "Psicocambio"
-  },
-  "trump-card": {
-    "nameEs": "As Oculto"
-  },
-  "heal-block": {
-    "nameEs": "Anticura"
-  },
-  "wring-out": {
-    "nameEs": "Estrujón"
-  },
-  "power-trick": {
-    "nameEs": "Truco Fuerza"
-  },
-  "gastro-acid": {
-    "nameEs": "Bilis"
-  },
-  "lucky-chant": {
-    "nameEs": "Conjuro"
-  },
-  "me-first": {
-    "nameEs": "Yo Primero"
-  },
-  "copycat": {
-    "nameEs": "Copión"
-  },
-  "power-swap": {
-    "nameEs": "Cambiafuerza"
-  },
-  "guard-swap": {
-    "nameEs": "Cambiadefensa"
-  },
-  "punishment": {
-    "nameEs": "Castigo"
-  },
-  "last-resort": {
-    "nameEs": "Última Baza"
-  },
-  "worry-seed": {
-    "nameEs": "Abatidoras"
-  },
-  "sucker-punch": {
-    "nameEs": "Golpe Bajo"
-  },
-  "toxic-spikes": {
-    "nameEs": "Púas Tóxicas",
-    "effectEs": "1 capa envenena, 2 capas envenena gravemente al entrar.",
-    "shortEffectEs": "Envenena al entrar."
-  },
-  "heart-swap": {
-    "nameEs": "Cambiaalmas"
-  },
-  "aqua-ring": {
-    "nameEs": "Acua Aro"
-  },
-  "magnet-rise": {
-    "nameEs": "Levitón"
-  },
-  "flare-blitz": {
-    "nameEs": "Envite Ígneo",
-    "effectEs": "120 pot, retroceso 33%, 10% quemar.",
-    "shortEffectEs": "Retroceso."
-  },
-  "force-palm": {
-    "nameEs": "Palmeo"
-  },
-  "aura-sphere": {
-    "nameEs": "Esfera Aural"
-  },
-  "rock-polish": {
-    "nameEs": "Pulimento"
-  },
-  "poison-jab": {
-    "nameEs": "Puya Nociva"
-  },
-  "dark-pulse": {
-    "nameEs": "Pulso Umbrío"
-  },
-  "night-slash": {
-    "nameEs": "Tajo Umbrío"
-  },
-  "aqua-tail": {
-    "nameEs": "Acua Cola"
-  },
-  "seed-bomb": {
-    "nameEs": "Bomba Germen"
-  },
-  "air-slash": {
-    "nameEs": "Tajo Aéreo"
-  },
-  "x-scissor": {
-    "nameEs": "Tijera X"
-  },
-  "bug-buzz": {
-    "nameEs": "Zumbido"
-  },
-  "dragon-pulse": {
-    "nameEs": "Pulso Dragón"
-  },
-  "dragon-rush": {
-    "nameEs": "Carga Dragón"
-  },
-  "power-gem": {
-    "nameEs": "Joya de Luz"
-  },
-  "drain-punch": {
-    "nameEs": "Puño Drenaje"
-  },
-  "vacuum-wave": {
-    "nameEs": "Onda Vacío"
-  },
-  "focus-blast": {
-    "nameEs": "Onda Certera"
-  },
-  "energy-ball": {
-    "nameEs": "Energibola"
-  },
-  "brave-bird": {
-    "nameEs": "Pájaro Osado",
-    "effectEs": "120 pot, retroceso 33%.",
-    "shortEffectEs": "Retroceso 33%."
-  },
-  "earth-power": {
-    "nameEs": "Tierra Viva"
-  },
-  "switcheroo": {
-    "nameEs": "Trapicheo"
-  },
-  "giga-impact": {
-    "nameEs": "Gigaimpacto"
-  },
-  "nasty-plot": {
-    "nameEs": "Maquinación",
-    "effectEs": "Sube 2 niveles At. Especial.",
-    "shortEffectEs": "Sube 2 At. Especial."
-  },
-  "bullet-punch": {
-    "nameEs": "Puño Bala"
-  },
-  "avalanche": {
-    "nameEs": "Alud"
-  },
-  "ice-shard": {
-    "nameEs": "Esquirla Helada"
-  },
-  "shadow-claw": {
-    "nameEs": "Garra Umbría"
-  },
-  "thunder-fang": {
-    "nameEs": "Colmillo Rayo"
-  },
-  "ice-fang": {
-    "nameEs": "Colmillo Hielo"
-  },
-  "fire-fang": {
-    "nameEs": "Colmillo Ígneo"
-  },
-  "shadow-sneak": {
-    "nameEs": "Sombra Vil"
-  },
-  "mud-bomb": {
-    "nameEs": "Bomba Fango"
-  },
-  "psycho-cut": {
-    "nameEs": "Psicocorte"
-  },
-  "zen-headbutt": {
-    "nameEs": "Cabezazo Zen"
-  },
-  "mirror-shot": {
-    "nameEs": "Disparo Espejo"
-  },
-  "flash-cannon": {
-    "nameEs": "Cañón Resplandor"
-  },
-  "rock-climb": {
-    "nameEs": "Treparrocas"
-  },
-  "defog": {
-    "nameEs": "Despejar",
-    "effectEs": "Elimina hazards, pantallas y terrenos de ambos lados. Baja Evasión rival.",
-    "shortEffectEs": "Elimina hazards y pantallas."
-  },
-  "trick-room": {
-    "nameEs": "Espacio Raro"
-  },
-  "draco-meteor": {
-    "nameEs": "Cometa Draco",
-    "effectEs": "130 pot, baja 2 At. Especial.",
-    "shortEffectEs": "Baja 2 At.Esp."
-  },
-  "discharge": {
-    "nameEs": "Chispazo"
-  },
-  "lava-plume": {
-    "nameEs": "Humareda"
-  },
-  "leaf-storm": {
-    "nameEs": "Lluevehojas"
-  },
-  "power-whip": {
-    "nameEs": "Latigazo"
-  },
-  "rock-wrecker": {
-    "nameEs": "Romperrocas"
-  },
-  "cross-poison": {
-    "nameEs": "Veneno X"
-  },
-  "gunk-shot": {
-    "nameEs": "Lanzamugre"
-  },
-  "iron-head": {
-    "nameEs": "Cabeza de Hierro"
-  },
-  "magnet-bomb": {
-    "nameEs": "Bomba Imán"
-  },
-  "stone-edge": {
-    "nameEs": "Roca Afilada"
-  },
-  "captivate": {
-    "nameEs": "Seducción"
-  },
-  "stealth-rock": {
-    "nameEs": "Trampa Rocas",
-    "effectEs": "Coloca Trampa Rocas que daña al rival al entrar según debilidad a Roca. Fundamental en competitivo.",
-    "shortEffectEs": "Daña al entrar según Roca."
-  },
-  "grass-knot": {
-    "nameEs": "Hierba Lazo"
-  },
-  "chatter": {
-    "nameEs": "Cháchara"
-  },
-  "judgment": {
-    "nameEs": "Sentencia"
-  },
-  "bug-bite": {
-    "nameEs": "Picadura"
-  },
-  "charge-beam": {
-    "nameEs": "Rayo Carga"
-  },
-  "wood-hammer": {
-    "nameEs": "Mazazo"
-  },
-  "aqua-jet": {
-    "nameEs": "Acua Jet"
-  },
-  "attack-order": {
-    "nameEs": "Al Ataque"
-  },
-  "defend-order": {
-    "nameEs": "A Defender"
-  },
-  "heal-order": {
-    "nameEs": "Auxilio"
-  },
-  "head-smash": {
-    "nameEs": "Testarazo"
-  },
-  "double-hit": {
-    "nameEs": "Doble Golpe"
-  },
-  "roar-of-time": {
-    "nameEs": "Distorsión"
-  },
-  "spacial-rend": {
-    "nameEs": "Corte Vacío"
-  },
-  "lunar-dance": {
-    "nameEs": "Danza Lunar"
-  },
-  "crush-grip": {
-    "nameEs": "Agarrón"
-  },
-  "magma-storm": {
-    "nameEs": "Lluvia Ígnea"
-  },
-  "dark-void": {
-    "nameEs": "Brecha Negra"
-  },
-  "seed-flare": {
-    "nameEs": "Fulgor Semilla"
-  },
-  "ominous-wind": {
-    "nameEs": "Viento Aciago"
-  },
-  "shadow-force": {
-    "nameEs": "Golpe Umbrío"
-  },
-  "hone-claws": {
-    "nameEs": "Afilagarras"
-  },
-  "wide-guard": {
-    "nameEs": "Vasta Guardia"
-  },
-  "guard-split": {
-    "nameEs": "Isoguardia"
-  },
-  "power-split": {
-    "nameEs": "Isofuerza"
-  },
-  "wonder-room": {
-    "nameEs": "Zona Extraña"
-  },
-  "psyshock": {
-    "nameEs": "Psicocarga"
-  },
-  "venoshock": {
-    "nameEs": "Carga Tóxica"
-  },
-  "autotomize": {
-    "nameEs": "Aligerar"
-  },
-  "rage-powder": {
-    "nameEs": "Polvo Ira"
-  },
-  "telekinesis": {
-    "nameEs": "Telequinesis"
-  },
-  "magic-room": {
-    "nameEs": "Zona Mágica"
-  },
-  "smack-down": {
-    "nameEs": "Antiaéreo"
-  },
-  "storm-throw": {
-    "nameEs": "Llave Corsé"
-  },
-  "flame-burst": {
-    "nameEs": "Pirotecnia"
-  },
-  "sludge-wave": {
-    "nameEs": "Onda Tóxica"
-  },
-  "quiver-dance": {
-    "nameEs": "Danza Aleteo"
-  },
-  "heavy-slam": {
-    "nameEs": "Cuerpo Pesado"
-  },
-  "synchronoise": {
-    "nameEs": "Sincrorruido"
-  },
-  "electro-ball": {
-    "nameEs": "Bola Voltio"
-  },
-  "soak": {
-    "nameEs": "Empapar"
-  },
-  "flame-charge": {
-    "nameEs": "Nitrocarga"
-  },
-  "coil": {
-    "nameEs": "Enrosque"
-  },
-  "low-sweep": {
-    "nameEs": "Puntapié"
-  },
-  "acid-spray": {
-    "nameEs": "Bomba Ácida"
-  },
-  "foul-play": {
-    "nameEs": "Juego Sucio"
-  },
-  "simple-beam": {
-    "nameEs": "Onda Simple"
-  },
-  "entrainment": {
-    "nameEs": "Danza Amiga"
-  },
-  "after-you": {
-    "nameEs": "Cede Paso"
-  },
-  "round": {
-    "nameEs": "Canon"
-  },
-  "echoed-voice": {
-    "nameEs": "Eco Voz"
-  },
-  "chip-away": {
-    "nameEs": "Guardia Baja"
-  },
-  "clear-smog": {
-    "nameEs": "Niebla Clara"
-  },
-  "stored-power": {
-    "nameEs": "Poder Reserva"
-  },
-  "quick-guard": {
-    "nameEs": "Anticipo"
-  },
-  "ally-switch": {
-    "nameEs": "Cambio de Banda"
+  "knock-off": {
+    "nameEs": "Desarme",
+    "effectEs": "Quita objeto rival y hace 50% más daño si tiene objeto.",
+    "shortEffectEs": "Quita objeto, más daño."
   },
   "scald": {
     "nameEs": "Escaldar",
     "effectEs": "80 pot, 30% quemar. Mejor movimiento Agua competitivo.",
     "shortEffectEs": "30% quemar."
   },
-  "shell-smash": {
-    "nameEs": "Rompecoraza",
-    "effectEs": "Baja defensas 1 nivel, sube Ataque, At.Esp y Vel 2 niveles. Setup más peligroso.",
-    "shortEffectEs": "Baja defs, sube ofensas x2 y Vel."
+  "stealth-rock": {
+    "nameEs": "Trampa Rocas",
+    "effectEs": "Coloca Trampa Rocas que daña al entrar según debilidad a Roca.",
+    "shortEffectEs": "Daña al entrar según Roca."
   },
-  "heal-pulse": {
-    "nameEs": "Pulso Cura"
+  "will-o-wisp": {
+    "nameEs": "Fuego Fatuo",
+    "effectEs": "Quema (mitad Ataque y daño por turno).",
+    "shortEffectEs": "Quema."
   },
-  "hex": {
-    "nameEs": "Infortunio"
+  "dragon-dance": {
+    "nameEs": "Danza Dragón",
+    "effectEs": "Sube Ataque y Velocidad 1 nivel. Setup físico por excelencia.",
+    "shortEffectEs": "Sube Atq y Vel."
   },
-  "sky-drop": {
-    "nameEs": "Caída Libre"
+  "calm-mind": {
+    "nameEs": "Paz Mental",
+    "effectEs": "Sube At. Especial y Def. Especial 1 nivel.",
+    "shortEffectEs": "Sube At.Esp y Def.Esp."
   },
-  "shift-gear": {
-    "nameEs": "Cambio de Marcha"
+  "nasty-plot": {
+    "nameEs": "Maquinación",
+    "effectEs": "Sube 2 niveles At. Especial.",
+    "shortEffectEs": "Sube 2 At. Especial."
   },
-  "circle-throw": {
-    "nameEs": "Llave Giro"
-  },
-  "incinerate": {
-    "nameEs": "Calcinación"
-  },
-  "quash": {
-    "nameEs": "Último Lugar"
-  },
-  "acrobatics": {
-    "nameEs": "Acróbata"
-  },
-  "reflect-type": {
-    "nameEs": "Clonatipo"
-  },
-  "retaliate": {
-    "nameEs": "Represalia"
-  },
-  "final-gambit": {
-    "nameEs": "Sacrificio"
-  },
-  "bestow": {
-    "nameEs": "Ofrenda"
-  },
-  "inferno": {
-    "nameEs": "Infierno"
-  },
-  "water-pledge": {
-    "nameEs": "Voto Agua"
-  },
-  "fire-pledge": {
-    "nameEs": "Voto Fuego"
-  },
-  "grass-pledge": {
-    "nameEs": "Voto Planta"
+  "close-combat": {
+    "nameEs": "A Bocajarro",
+    "effectEs": "120 pot, baja defensas tras atacar.",
+    "shortEffectEs": "Baja defensas."
   },
   "volt-switch": {
     "nameEs": "Voltiocambio",
     "effectEs": "Versión Eléctrica de Ida y Vuelta.",
     "shortEffectEs": "Ataca y cambia."
   },
-  "struggle-bug": {
-    "nameEs": "Estoicismo"
+  "flip-turn": {
+    "nameEs": "Viraje",
+    "effectEs": "Versión Agua de Ida y Vuelta.",
+    "shortEffectEs": "Ataca y cambia."
   },
-  "bulldoze": {
-    "nameEs": "Terratemblor"
+  "defog": {
+    "nameEs": "Despejar",
+    "effectEs": "Elimina hazards, pantallas y terrenos.",
+    "shortEffectEs": "Elimina hazards y pantallas."
   },
-  "frost-breath": {
-    "nameEs": "Vaho Gélido"
+  "rapid-spin": {
+    "nameEs": "Giro Rápido",
+    "effectEs": "Elimina hazards propios y sube 1 nivel Velocidad.",
+    "shortEffectEs": "Elimina hazards, sube Vel."
   },
-  "dragon-tail": {
-    "nameEs": "Cola Dragón"
+  "spikes": {
+    "nameEs": "Púas",
+    "effectEs": "Coloca hasta 3 capas de Púas que dañan al entrar.",
+    "shortEffectEs": "Daña al entrar, máx 3 capas."
   },
-  "work-up": {
-    "nameEs": "Avivar"
-  },
-  "electroweb": {
-    "nameEs": "Electrotela"
-  },
-  "wild-charge": {
-    "nameEs": "Voltio Cruel"
-  },
-  "drill-run": {
-    "nameEs": "Taladradora"
-  },
-  "dual-chop": {
-    "nameEs": "Golpe Bis"
-  },
-  "heart-stamp": {
-    "nameEs": "Arrumaco"
-  },
-  "horn-leech": {
-    "nameEs": "Asta Drenaje"
-  },
-  "sacred-sword": {
-    "nameEs": "Espada Santa"
-  },
-  "razor-shell": {
-    "nameEs": "Concha Filo"
-  },
-  "heat-crash": {
-    "nameEs": "Golpe Calor"
-  },
-  "leaf-tornado": {
-    "nameEs": "Ciclón de Hojas"
-  },
-  "steamroller": {
-    "nameEs": "Rodillo de Púas"
-  },
-  "cotton-guard": {
-    "nameEs": "Rizo Algodón"
-  },
-  "night-daze": {
-    "nameEs": "Pulso Noche"
-  },
-  "psystrike": {
-    "nameEs": "Onda Mental"
-  },
-  "tail-slap": {
-    "nameEs": "Plumerazo"
-  },
-  "hurricane": {
-    "nameEs": "Vendaval"
-  },
-  "head-charge": {
-    "nameEs": "Ariete"
-  },
-  "gear-grind": {
-    "nameEs": "Rueda Doble"
-  },
-  "searing-shot": {
-    "nameEs": "Bomba Ígnea"
-  },
-  "techno-blast": {
-    "nameEs": "Tecno Shock"
-  },
-  "relic-song": {
-    "nameEs": "Canto Arcaico"
-  },
-  "secret-sword": {
-    "nameEs": "Sable Místico"
-  },
-  "glaciate": {
-    "nameEs": "Mundo Gélido"
-  },
-  "bolt-strike": {
-    "nameEs": "Ataque Fulgor"
-  },
-  "blue-flare": {
-    "nameEs": "Llama Azul"
-  },
-  "fiery-dance": {
-    "nameEs": "Danza Llama"
-  },
-  "freeze-shock": {
-    "nameEs": "Rayo Gélido"
-  },
-  "ice-burn": {
-    "nameEs": "Llama Gélida"
-  },
-  "snarl": {
-    "nameEs": "Alarido"
-  },
-  "icicle-crash": {
-    "nameEs": "Chuzos"
-  },
-  "v-create": {
-    "nameEs": "V de Fuego"
-  },
-  "fusion-flare": {
-    "nameEs": "Llama Fusión"
-  },
-  "fusion-bolt": {
-    "nameEs": "Rayo Fusión"
-  },
-  "flying-press": {
-    "nameEs": "Plancha Voladora"
-  },
-  "mat-block": {
-    "nameEs": "Escudo Tatami"
-  },
-  "belch": {
-    "nameEs": "Eructo"
-  },
-  "rototiller": {
-    "nameEs": "Fertilizante"
+  "toxic-spikes": {
+    "nameEs": "Púas Tóxicas",
+    "effectEs": "1 capa envenena, 2 capas envenena gravemente al entrar.",
+    "shortEffectEs": "Envenena al entrar."
   },
   "sticky-web": {
     "nameEs": "Red Viscosa",
     "effectEs": "Baja 1 nivel Velocidad de rivales que entran.",
     "shortEffectEs": "Baja Vel al entrar."
   },
-  "fell-stinger": {
-    "nameEs": "Aguijón Letal"
-  },
-  "phantom-force": {
-    "nameEs": "Golpe Fantasma"
-  },
-  "trick-or-treat": {
-    "nameEs": "Halloween"
-  },
-  "noble-roar": {
-    "nameEs": "Rugido de Guerra"
-  },
-  "ion-deluge": {
-    "nameEs": "Cortina Plasma"
-  },
-  "parabolic-charge": {
-    "nameEs": "Carga Parábola"
-  },
-  "forests-curse": {
-    "nameEs": "Condena Silvana"
-  },
-  "petal-blizzard": {
-    "nameEs": "Tormenta Floral"
-  },
-  "freeze-dry": {
-    "nameEs": "Liofilización"
-  },
-  "disarming-voice": {
-    "nameEs": "Voz Cautivadora"
-  },
-  "parting-shot": {
-    "nameEs": "Última Palabra",
-    "effectEs": "Baja Ataque y At. Especial y cambia.",
-    "shortEffectEs": "Baja ofensas y cambia."
-  },
-  "topsy-turvy": {
-    "nameEs": "Reversión"
-  },
-  "draining-kiss": {
-    "nameEs": "Beso Drenaje"
-  },
-  "crafty-shield": {
-    "nameEs": "Truco Defensa"
-  },
-  "flower-shield": {
-    "nameEs": "Defensa Floral"
-  },
-  "grassy-terrain": {
-    "nameEs": "Campo de Hierba"
-  },
-  "misty-terrain": {
-    "nameEs": "Campo de Niebla"
-  },
-  "electrify": {
-    "nameEs": "Electrificación"
-  },
-  "play-rough": {
-    "nameEs": "Juego Sucio",
-    "effectEs": "90 pot, 10% baja Ataque.",
-    "shortEffectEs": "10% baja Ataque."
-  },
-  "fairy-wind": {
-    "nameEs": "Viento Feérico"
-  },
-  "moonblast": {
-    "nameEs": "Fuerza Lunar",
-    "effectEs": "95 pot, 30% baja At. Especial.",
-    "shortEffectEs": "30% baja At.Esp."
-  },
-  "boomburst": {
-    "nameEs": "Estruendo"
-  },
-  "fairy-lock": {
-    "nameEs": "Cerrojo Feérico"
-  },
-  "kings-shield": {
-    "nameEs": "Escudo Real"
-  },
-  "play-nice": {
-    "nameEs": "Camaradería"
-  },
-  "confide": {
-    "nameEs": "Confidencia"
-  },
-  "diamond-storm": {
-    "nameEs": "Tormenta de Diamantes"
-  },
-  "steam-eruption": {
-    "nameEs": "Chorro de Vapor"
-  },
-  "hyperspace-hole": {
-    "nameEs": "Paso Dimensional"
-  },
-  "water-shuriken": {
-    "nameEs": "Shuriken de Agua"
-  },
-  "mystical-fire": {
-    "nameEs": "Llama Embrujada"
-  },
-  "spiky-shield": {
-    "nameEs": "Barrera Espinosa"
-  },
-  "aromatic-mist": {
-    "nameEs": "Niebla Aromática"
-  },
-  "eerie-impulse": {
-    "nameEs": "Onda Anómala"
-  },
-  "venom-drench": {
-    "nameEs": "Trampa Venenosa"
-  },
-  "powder": {
-    "nameEs": "Polvo Explosivo"
-  },
-  "geomancy": {
-    "nameEs": "Geocontrol"
-  },
-  "magnetic-flux": {
-    "nameEs": "Aura Magnética"
-  },
-  "happy-hour": {
-    "nameEs": "Paga Extra"
-  },
-  "electric-terrain": {
-    "nameEs": "Campo Eléctrico"
-  },
-  "dazzling-gleam": {
-    "nameEs": "Brillo Mágico"
-  },
-  "celebrate": {
-    "nameEs": "Celebración"
-  },
-  "hold-hands": {
-    "nameEs": "Manos Juntas"
-  },
-  "baby-doll-eyes": {
-    "nameEs": "Ojitos Tiernos"
-  },
-  "nuzzle": {
-    "nameEs": "Moflete Estático"
-  },
-  "hold-back": {
-    "nameEs": "Clemencia"
-  },
-  "infestation": {
-    "nameEs": "Acoso"
-  },
-  "power-up-punch": {
-    "nameEs": "Puño Incremento"
-  },
-  "oblivion-wing": {
-    "nameEs": "Ala Mortífera"
-  },
-  "thousand-arrows": {
-    "nameEs": "Mil Flechas"
-  },
-  "thousand-waves": {
-    "nameEs": "Mil Temblores"
-  },
-  "lands-wrath": {
-    "nameEs": "Fuerza Telúrica"
-  },
-  "light-of-ruin": {
-    "nameEs": "Luz Aniquiladora"
-  },
-  "origin-pulse": {
-    "nameEs": "Pulso Primigenio"
-  },
-  "precipice-blades": {
-    "nameEs": "Filo del Abismo"
-  },
-  "dragon-ascent": {
-    "nameEs": "Ascenso Draco"
-  },
-  "hyperspace-fury": {
-    "nameEs": "Cerco Dimensión"
-  },
-  "breakneck-blitz--physical": {
-    "nameEs": "Carrera Arrolladora"
-  },
-  "breakneck-blitz--special": {
-    "nameEs": "Carrera Arrolladora"
-  },
-  "all-out-pummeling--physical": {
-    "nameEs": "Ráfaga Demoledora"
-  },
-  "all-out-pummeling--special": {
-    "nameEs": "Ráfaga Demoledora"
-  },
-  "supersonic-skystrike--physical": {
-    "nameEs": "Picado Supersónico"
-  },
-  "supersonic-skystrike--special": {
-    "nameEs": "Picado Supersónico"
-  },
-  "acid-downpour--physical": {
-    "nameEs": "Diluvio Corrosivo"
-  },
-  "acid-downpour--special": {
-    "nameEs": "Diluvio Corrosivo"
-  },
-  "tectonic-rage--physical": {
-    "nameEs": "Barrena Telúrica"
-  },
-  "tectonic-rage--special": {
-    "nameEs": "Barrena Telúrica"
-  },
-  "continental-crush--physical": {
-    "nameEs": "Aplastamiento Gigalítico"
-  },
-  "continental-crush--special": {
-    "nameEs": "Aplastamiento Gigalítico"
-  },
-  "savage-spin-out--physical": {
-    "nameEs": "Guadaña Sedosa"
-  },
-  "savage-spin-out--special": {
-    "nameEs": "Guadaña Sedosa"
-  },
-  "never-ending-nightmare--physical": {
-    "nameEs": "Presa Espectral"
-  },
-  "never-ending-nightmare--special": {
-    "nameEs": "Presa Espectral"
-  },
-  "corkscrew-crash--physical": {
-    "nameEs": "Hélice Trepanadora"
-  },
-  "corkscrew-crash--special": {
-    "nameEs": "Hélice Trepanadora"
-  },
-  "inferno-overdrive--physical": {
-    "nameEs": "Hecatombe Pírica"
-  },
-  "inferno-overdrive--special": {
-    "nameEs": "Hecatombe Pírica"
-  },
-  "hydro-vortex--physical": {
-    "nameEs": "Hidrovórtice Abisal"
-  },
-  "hydro-vortex--special": {
-    "nameEs": "Hidrovórtice Abisal"
-  },
-  "bloom-doom--physical": {
-    "nameEs": "Megatón Floral"
-  },
-  "bloom-doom--special": {
-    "nameEs": "Megatón Floral"
-  },
-  "gigavolt-havoc--physical": {
-    "nameEs": "Gigavoltio Destructor"
-  },
-  "gigavolt-havoc--special": {
-    "nameEs": "Gigavoltio Destructor"
-  },
-  "shattered-psyche--physical": {
-    "nameEs": "Disruptor Psíquico"
-  },
-  "shattered-psyche--special": {
-    "nameEs": "Disruptor Psíquico"
-  },
-  "subzero-slammer--physical": {
-    "nameEs": "Crioaliento Despiadado"
-  },
-  "subzero-slammer--special": {
-    "nameEs": "Crioaliento Despiadado"
-  },
-  "devastating-drake--physical": {
-    "nameEs": "Dracoaliento Devastador"
-  },
-  "devastating-drake--special": {
-    "nameEs": "Dracoaliento Devastador"
-  },
-  "black-hole-eclipse--physical": {
-    "nameEs": "Agujero Negro Aniquilador"
-  },
-  "black-hole-eclipse--special": {
-    "nameEs": "Agujero Negro Aniquilador"
-  },
-  "twinkle-tackle--physical": {
-    "nameEs": "Arrumaco Sideral"
-  },
-  "twinkle-tackle--special": {
-    "nameEs": "Arrumaco Sideral"
-  },
-  "catastropika": {
-    "nameEs": "Pikavoltio Letal"
-  },
-  "shore-up": {
-    "nameEs": "Recogearena"
-  },
-  "first-impression": {
-    "nameEs": "Escaramuza"
-  },
-  "baneful-bunker": {
-    "nameEs": "Búnker"
-  },
-  "spirit-shackle": {
-    "nameEs": "Puntada Sombría"
-  },
-  "darkest-lariat": {
-    "nameEs": "Lariat Oscuro"
-  },
-  "sparkling-aria": {
-    "nameEs": "Aria Burbuja"
-  },
-  "ice-hammer": {
-    "nameEs": "Martillo Hielo"
-  },
-  "floral-healing": {
-    "nameEs": "Cura Floral"
-  },
-  "high-horsepower": {
-    "nameEs": "Fuerza Equina"
-  },
-  "strength-sap": {
-    "nameEs": "Absorbefuerza"
-  },
-  "solar-blade": {
-    "nameEs": "Cuchilla Solar"
-  },
-  "leafage": {
-    "nameEs": "Follaje"
-  },
-  "spotlight": {
-    "nameEs": "Foco"
-  },
-  "toxic-thread": {
-    "nameEs": "Hilo Venenoso"
-  },
-  "laser-focus": {
-    "nameEs": "Aguzar"
-  },
-  "gear-up": {
-    "nameEs": "Piñón Auxiliar"
-  },
-  "throat-chop": {
-    "nameEs": "Golpe Mordaza"
-  },
-  "pollen-puff": {
-    "nameEs": "Bola de Polen"
-  },
-  "anchor-shot": {
-    "nameEs": "Anclaje"
-  },
-  "psychic-terrain": {
-    "nameEs": "Campo Psíquico"
-  },
-  "lunge": {
-    "nameEs": "Plancha"
-  },
-  "fire-lash": {
-    "nameEs": "Látigo Ígneo"
-  },
-  "power-trip": {
-    "nameEs": "Chulería"
-  },
-  "burn-up": {
-    "nameEs": "Llama Final"
-  },
-  "speed-swap": {
-    "nameEs": "Cambiavelocidad"
-  },
-  "smart-strike": {
-    "nameEs": "Cuerno Certero"
-  },
-  "purify": {
-    "nameEs": "Purificación"
-  },
-  "revelation-dance": {
-    "nameEs": "Danza Despertar"
-  },
-  "core-enforcer": {
-    "nameEs": "Núcleo Castigo"
-  },
-  "trop-kick": {
-    "nameEs": "Patada Tropical"
-  },
-  "instruct": {
-    "nameEs": "Mandato"
-  },
-  "beak-blast": {
-    "nameEs": "Pico Cañón"
-  },
-  "clanging-scales": {
-    "nameEs": "Fragor Escamas"
-  },
-  "dragon-hammer": {
-    "nameEs": "Martillo Dragón"
-  },
-  "brutal-swing": {
-    "nameEs": "Giro Vil"
-  },
-  "aurora-veil": {
-    "nameEs": "Velo Aurora"
-  },
-  "sinister-arrow-raid": {
-    "nameEs": "Aluvión de Flechas Sombrías"
-  },
-  "malicious-moonsault": {
-    "nameEs": "Hiperplancha Oscura"
-  },
-  "oceanic-operetta": {
-    "nameEs": "Sinfonía de la Diva Marina"
-  },
-  "guardian-of-alola": {
-    "nameEs": "Cólera del Guardián"
-  },
-  "soul-stealing-7-star-strike": {
-    "nameEs": "Constelación Robaalmas"
-  },
-  "stoked-sparksurfer": {
-    "nameEs": "Surfeo Galvánico"
-  },
-  "pulverizing-pancake": {
-    "nameEs": "Arrojo Intempestivo"
-  },
-  "extreme-evoboost": {
-    "nameEs": "Novena Potencia"
-  },
-  "genesis-supernova": {
-    "nameEs": "Supernova Original"
-  },
-  "shell-trap": {
-    "nameEs": "Coraza Trampa"
-  },
-  "fleur-cannon": {
-    "nameEs": "Cañón Floral"
-  },
-  "psychic-fangs": {
-    "nameEs": "Psicocolmillo"
-  },
-  "stomping-tantrum": {
-    "nameEs": "Pataleta"
-  },
-  "shadow-bone": {
-    "nameEs": "Hueso Sombrío"
-  },
-  "accelerock": {
-    "nameEs": "Roca Veloz"
-  },
-  "liquidation": {
-    "nameEs": "Hidroariete"
-  },
-  "prismatic-laser": {
-    "nameEs": "Láser Prisma"
-  },
-  "spectral-thief": {
-    "nameEs": "Robasombra"
-  },
-  "sunsteel-strike": {
-    "nameEs": "Meteoimpacto"
-  },
-  "moongeist-beam": {
-    "nameEs": "Rayo Umbrío"
-  },
-  "tearful-look": {
-    "nameEs": "Ojos Llorosos"
-  },
-  "zing-zap": {
-    "nameEs": "Electropunzada"
-  },
-  "natures-madness": {
-    "nameEs": "Furia Natural"
-  },
-  "multi-attack": {
-    "nameEs": "Multiataque"
-  },
-  "10-000-000-volt-thunderbolt": {
-    "nameEs": "Gigarrayo Fulminante"
-  },
-  "mind-blown": {
-    "nameEs": "Cabeza Sorpresa"
-  },
-  "plasma-fists": {
-    "nameEs": "Puños Plasma"
-  },
-  "photon-geyser": {
-    "nameEs": "Géiser Fotónico"
-  },
-  "light-that-burns-the-sky": {
-    "nameEs": "Fotodestrucción Apocalíptica"
-  },
-  "searing-sunraze-smash": {
-    "nameEs": "Embestida Solar"
-  },
-  "menacing-moonraze-maelstrom": {
-    "nameEs": "Deflagración Lunar"
-  },
-  "lets-snuggle-forever": {
-    "nameEs": "Somanta Amistosa"
-  },
-  "splintered-stormshards": {
-    "nameEs": "Tempestad Rocosa"
-  },
-  "clangorous-soulblaze": {
-    "nameEs": "Estruendo Implacable"
-  },
-  "zippy-zap": {
-    "nameEs": "Pikaturbo"
-  },
-  "splishy-splash": {
-    "nameEs": "Salpikasurf"
-  },
-  "floaty-fall": {
-    "nameEs": "Pikapicado"
-  },
-  "pika-papow": {
-    "nameEs": "Pikatormenta"
-  },
-  "bouncy-bubble": {
-    "nameEs": "Vapodrenaje"
-  },
-  "buzzy-buzz": {
-    "nameEs": "Joltioparálisis"
-  },
-  "sizzly-slide": {
-    "nameEs": "Flarembestida"
-  },
-  "glitzy-glow": {
-    "nameEs": "Espeaura"
-  },
-  "baddy-bad": {
-    "nameEs": "Umbreozona"
-  },
-  "sappy-seed": {
-    "nameEs": "Leafitobombas"
-  },
-  "freezy-frost": {
-    "nameEs": "Glaceoprisma"
-  },
-  "sparkly-swirl": {
-    "nameEs": "Sylveotornado"
-  },
-  "veevee-volley": {
-    "nameEs": "Eevimpacto"
-  },
-  "double-iron-bash": {
-    "nameEs": "Ferropuño Doble"
-  },
-  "max-guard": {
-    "nameEs": "Maxibarrera"
-  },
-  "dynamax-cannon": {
-    "nameEs": "Cañón Dinamax"
-  },
-  "snipe-shot": {
-    "nameEs": "Disparo Certero"
-  },
-  "jaw-lock": {
-    "nameEs": "Presa Maxilar"
-  },
-  "stuff-cheeks": {
-    "nameEs": "Atiborramiento"
-  },
-  "no-retreat": {
-    "nameEs": "Bastión Final"
-  },
-  "tar-shot": {
-    "nameEs": "Alquitranazo"
-  },
-  "magic-powder": {
-    "nameEs": "Polvo Mágico"
-  },
-  "dragon-darts": {
-    "nameEs": "Dracoflechas"
-  },
-  "teatime": {
-    "nameEs": "Hora del Té"
-  },
-  "octolock": {
-    "nameEs": "Octopresa"
-  },
-  "bolt-beak": {
-    "nameEs": "Electropico"
-  },
-  "fishious-rend": {
-    "nameEs": "Branquibocado"
-  },
-  "court-change": {
-    "nameEs": "Cambio de Cancha"
-  },
-  "max-flare": {
-    "nameEs": "Maxignición"
-  },
-  "max-flutterby": {
-    "nameEs": "Maxinsecto"
-  },
-  "max-lightning": {
-    "nameEs": "Maxitormenta"
-  },
-  "max-strike": {
-    "nameEs": "Maxiataque"
-  },
-  "max-knuckle": {
-    "nameEs": "Maxipuño"
-  },
-  "max-phantasm": {
-    "nameEs": "Maxiespectro"
-  },
-  "max-hailstorm": {
-    "nameEs": "Maxihelada"
-  },
-  "max-ooze": {
-    "nameEs": "Maxiácido"
-  },
-  "max-geyser": {
-    "nameEs": "Maxichorro"
-  },
-  "max-airstream": {
-    "nameEs": "Maxiciclón"
-  },
-  "max-starfall": {
-    "nameEs": "Maxiestela"
-  },
-  "max-wyrmwind": {
-    "nameEs": "Maxidraco"
-  },
-  "max-mindstorm": {
-    "nameEs": "Maxionda"
-  },
-  "max-rockfall": {
-    "nameEs": "Maxilito"
-  },
-  "max-quake": {
-    "nameEs": "Maxitemblor"
-  },
-  "max-darkness": {
-    "nameEs": "Maxisombra"
-  },
-  "max-overgrowth": {
-    "nameEs": "Maxiflora"
-  },
-  "max-steelspike": {
-    "nameEs": "Maximetal"
-  },
-  "clangorous-soul": {
-    "nameEs": "Estruendo Escama"
-  },
-  "body-press": {
-    "nameEs": "Plancha Corporal"
-  },
-  "decorate": {
-    "nameEs": "Decoración"
-  },
-  "drum-beating": {
-    "nameEs": "Batería Asalto"
-  },
-  "snap-trap": {
-    "nameEs": "Cepo"
-  },
-  "pyro-ball": {
-    "nameEs": "Balón Ígneo"
-  },
-  "behemoth-blade": {
-    "nameEs": "Tajo Supremo"
-  },
-  "behemoth-bash": {
-    "nameEs": "Embate Supremo"
-  },
-  "aura-wheel": {
-    "nameEs": "Rueda Aural"
-  },
-  "breaking-swipe": {
-    "nameEs": "Vasto Impacto"
-  },
-  "branch-poke": {
-    "nameEs": "Punzada Rama"
-  },
-  "overdrive": {
-    "nameEs": "Amplificador"
-  },
-  "apple-acid": {
-    "nameEs": "Ácido Málico"
-  },
-  "grav-apple": {
-    "nameEs": "Fuerza G"
-  },
-  "spirit-break": {
-    "nameEs": "Choque Anímico"
-  },
-  "strange-steam": {
-    "nameEs": "Cautivapor"
-  },
-  "life-dew": {
-    "nameEs": "Gota Vital"
-  },
-  "obstruct": {
-    "nameEs": "Obstrucción"
-  },
-  "false-surrender": {
-    "nameEs": "Irreverencia"
-  },
-  "meteor-assault": {
-    "nameEs": "Asalto Estelar"
-  },
-  "eternabeam": {
-    "nameEs": "Rayo Infinito"
-  },
-  "steel-beam": {
-    "nameEs": "Metaláser"
-  },
-  "expanding-force": {
-    "nameEs": "Vasta Fuerza"
-  },
-  "steel-roller": {
-    "nameEs": "Allanador Férreo"
-  },
-  "scale-shot": {
-    "nameEs": "Ráfaga Escamas"
-  },
-  "meteor-beam": {
-    "nameEs": "Rayo Meteórico"
-  },
-  "shell-side-arm": {
-    "nameEs": "Moluscañón"
-  },
-  "misty-explosion": {
-    "nameEs": "Bruma Explosiva"
-  },
-  "grassy-glide": {
-    "nameEs": "Fitoimpulso"
-  },
-  "rising-voltage": {
-    "nameEs": "Alto Voltaje"
-  },
-  "terrain-pulse": {
-    "nameEs": "Pulso de Campo"
-  },
-  "skitter-smack": {
-    "nameEs": "Golpe Rastrero"
-  },
-  "burning-jealousy": {
-    "nameEs": "Envidia Ardiente"
-  },
-  "lash-out": {
-    "nameEs": "Desahogo"
-  },
-  "poltergeist": {
-    "nameEs": "Poltergeist"
-  },
-  "corrosive-gas": {
-    "nameEs": "Gas Corrosivo"
-  },
-  "coaching": {
-    "nameEs": "Motivación"
-  },
-  "flip-turn": {
-    "nameEs": "Viraje",
-    "effectEs": "Versión Agua de Ida y Vuelta.",
-    "shortEffectEs": "Ataca y cambia."
-  },
-  "triple-axel": {
-    "nameEs": "Triple Axel"
-  },
-  "dual-wingbeat": {
-    "nameEs": "Ala Bis"
-  },
-  "scorching-sands": {
-    "nameEs": "Arenas Ardientes"
-  },
-  "jungle-healing": {
-    "nameEs": "Cura Selvática"
-  },
-  "wicked-blow": {
-    "nameEs": "Golpe Oscuro"
-  },
-  "surging-strikes": {
-    "nameEs": "Azote Torrencial"
-  },
-  "thunder-cage": {
-    "nameEs": "Electrojaula"
-  },
-  "dragon-energy": {
-    "nameEs": "Dracoenergía"
-  },
-  "freezing-glare": {
-    "nameEs": "Mirada Heladora"
-  },
-  "fiery-wrath": {
-    "nameEs": "Furia Candente"
-  },
-  "thunderous-kick": {
-    "nameEs": "Patada Relámpago"
-  },
-  "glacial-lance": {
-    "nameEs": "Lanza Glacial"
-  },
-  "astral-barrage": {
-    "nameEs": "Orbes Espectro"
-  },
-  "eerie-spell": {
-    "nameEs": "Conjuro Funesto"
-  },
-  "dire-claw": {
-    "nameEs": "Garra Nociva"
-  },
-  "psyshield-bash": {
-    "nameEs": "Asalto Barrera"
-  },
-  "power-shift": {
-    "nameEs": "Cambiapoder"
-  },
-  "stone-axe": {
-    "nameEs": "Hachazo Pétreo"
-  },
-  "springtide-storm": {
-    "nameEs": "Ciclón Primavera"
-  },
-  "mystical-power": {
-    "nameEs": "Poder Místico"
-  },
-  "raging-fury": {
-    "nameEs": "Erupción de Ira"
-  },
-  "wave-crash": {
-    "nameEs": "Envite Acuático"
-  },
-  "chloroblast": {
-    "nameEs": "Clorofiláser"
-  },
-  "mountain-gale": {
-    "nameEs": "Viento Carámbano"
-  },
-  "victory-dance": {
-    "nameEs": "Danza Triunfal"
-  },
-  "headlong-rush": {
-    "nameEs": "Arremetida"
-  },
-  "barb-barrage": {
-    "nameEs": "Mil Púas Tóxicas"
-  },
-  "esper-wing": {
-    "nameEs": "Ala Aural"
-  },
-  "bitter-malice": {
-    "nameEs": "Rencor Reprimido"
-  },
-  "shelter": {
-    "nameEs": "Retracción"
-  },
-  "triple-arrows": {
-    "nameEs": "Triple Flecha"
-  },
-  "infernal-parade": {
-    "nameEs": "Marcha Espectral"
-  },
-  "ceaseless-edge": {
-    "nameEs": "Tajo Metralla"
-  },
-  "bleakwind-storm": {
-    "nameEs": "Vendaval Gélido"
-  },
-  "wildbolt-storm": {
-    "nameEs": "Electormenta"
-  },
-  "sandsear-storm": {
-    "nameEs": "Simún de Arena"
-  },
-  "lunar-blessing": {
-    "nameEs": "Plegaria Lunar"
-  },
-  "take-heart": {
-    "nameEs": "Bálsamo Osado"
-  },
-  "tera-blast": {
-    "nameEs": "Teraexplosión"
-  },
-  "silk-trap": {
-    "nameEs": "Telatrampa"
-  },
-  "axe-kick": {
-    "nameEs": "Patada Hacha"
-  },
-  "last-respects": {
-    "nameEs": "Homenaje Póstumo"
-  },
-  "lumina-crash": {
-    "nameEs": "Fotocolisión"
-  },
-  "order-up": {
-    "nameEs": "Oído Cocina"
-  },
-  "jet-punch": {
-    "nameEs": "Puño Jet"
-  },
-  "spicy-extract": {
-    "nameEs": "Extracto Picante"
-  },
-  "spin-out": {
-    "nameEs": "Quemarrueda"
-  },
-  "population-bomb": {
-    "nameEs": "Proliferación"
-  },
-  "ice-spinner": {
-    "nameEs": "Pirueta Helada"
-  },
-  "glaive-rush": {
-    "nameEs": "Asalto Espadón"
-  },
-  "revival-blessing": {
-    "nameEs": "Plegaria Vital"
-  },
-  "salt-cure": {
-    "nameEs": "Salazón"
-  },
-  "triple-dive": {
-    "nameEs": "Triple Inmersión"
-  },
-  "mortal-spin": {
-    "nameEs": "Giro Mortífero"
-  },
-  "doodle": {
-    "nameEs": "Decalcomanía"
-  },
-  "fillet-away": {
-    "nameEs": "Deslome"
-  },
-  "kowtow-cleave": {
-    "nameEs": "Genufendiente"
-  },
-  "flower-trick": {
-    "nameEs": "Truco Floral"
-  },
-  "torch-song": {
-    "nameEs": "Canto Ardiente"
-  },
-  "aqua-step": {
-    "nameEs": "Danza Acuática"
-  },
-  "raging-bull": {
-    "nameEs": "Furia Taurina"
-  },
-  "make-it-rain": {
-    "nameEs": "Fiebre Dorada"
-  },
-  "psyblade": {
-    "nameEs": "Psicohojas"
-  },
-  "hydro-steam": {
-    "nameEs": "Hidrovapor"
-  },
-  "ruination": {
-    "nameEs": "Calamidad"
-  },
-  "collision-course": {
-    "nameEs": "Nitrochoque"
-  },
-  "electro-drift": {
-    "nameEs": "Electroderrape"
-  },
-  "shed-tail": {
-    "nameEs": "Autotomía"
-  },
-  "chilly-reception": {
-    "nameEs": "Fría Acogida"
-  },
-  "tidy-up": {
-    "nameEs": "Limpieza General"
-  },
-  "snowscape": {
-    "nameEs": "Paisaje Nevado"
-  },
-  "pounce": {
-    "nameEs": "Brinco"
-  },
-  "trailblaze": {
-    "nameEs": "Abrecaminos"
-  },
-  "chilling-water": {
-    "nameEs": "Agua Fría"
-  },
-  "hyper-drill": {
-    "nameEs": "Hipertaladro"
-  },
-  "twin-beam": {
-    "nameEs": "Láser Doble"
-  },
-  "rage-fist": {
-    "nameEs": "Puño Furia"
-  },
-  "armor-cannon": {
-    "nameEs": "Cañón Armadura"
-  },
-  "bitter-blade": {
-    "nameEs": "Espada Lamento"
-  },
-  "double-shock": {
-    "nameEs": "Electropalmas"
-  },
-  "gigaton-hammer": {
-    "nameEs": "Martillo Colosal"
-  },
-  "comeuppance": {
-    "nameEs": "Resarcimiento"
-  },
-  "aqua-cutter": {
-    "nameEs": "Tajo Acuático"
-  },
-  "blazing-torque": {
-    "nameEs": "Pirochoque"
-  },
-  "wicked-torque": {
-    "nameEs": "Ominochoque"
-  },
-  "noxious-torque": {
-    "nameEs": "Ponzochoque"
-  },
-  "combat-torque": {
-    "nameEs": "Pugnachoque"
-  },
-  "magical-torque": {
-    "nameEs": "Feerichoque"
-  },
-  "blood-moon": {
-    "nameEs": "Luna Roja"
-  },
-  "matcha-gotcha": {
-    "nameEs": "Cañón Batidor"
-  },
-  "syrup-bomb": {
-    "nameEs": "Bomba Caramelo"
-  },
-  "ivy-cudgel": {
-    "nameEs": "Garrote Liana"
-  },
-  "electro-shot": {
-    "nameEs": "Electrorrayo"
-  },
-  "tera-starstorm": {
-    "nameEs": "Teraclúster"
-  },
-  "fickle-beam": {
-    "nameEs": "Láser Veleidoso"
-  },
-  "burning-bulwark": {
-    "nameEs": "Llama Protectora"
-  },
-  "thunderclap": {
-    "nameEs": "Relámpago Súbito"
-  },
-  "mighty-cleave": {
-    "nameEs": "Filo Potente"
-  },
-  "tachyon-cutter": {
-    "nameEs": "Tajo Taquión"
-  },
-  "hard-press": {
-    "nameEs": "Prensa Metálica"
-  },
-  "dragon-cheer": {
-    "nameEs": "Bramido Dragón"
-  },
-  "alluring-voice": {
-    "nameEs": "Canto Encantador"
-  },
-  "temper-flare": {
-    "nameEs": "Cólera Ardiente"
-  },
-  "supercell-slam": {
-    "nameEs": "Plancha Voltaica"
-  },
-  "psychic-noise": {
-    "nameEs": "Psicorruido"
-  },
-  "upper-hand": {
-    "nameEs": "Palma Rauda"
-  },
-  "malignant-chain": {
-    "nameEs": "Cadena Virulenta"
-  },
-  "shadow-rush": {
-    "nameEs": "Carga Oscura"
-  },
-  "shadow-blast": {
-    "nameEs": "Soplo Oscuro"
-  },
-  "shadow-blitz": {
-    "nameEs": "Vigor Oscuro"
-  },
-  "shadow-bolt": {
-    "nameEs": "Rayo Oscuro"
-  },
-  "shadow-break": {
-    "nameEs": "Brío Oscuro"
-  },
-  "shadow-chill": {
-    "nameEs": "Hielo Oscuro"
-  },
-  "shadow-end": {
-    "nameEs": "Fin Oscuro"
-  },
-  "shadow-fire": {
-    "nameEs": "Fuego Oscuro"
-  },
-  "shadow-rave": {
-    "nameEs": "Rabia Oscura"
-  },
-  "shadow-storm": {
-    "nameEs": "Tifón Oscuro"
-  },
-  "shadow-wave": {
-    "nameEs": "Onda Oscura"
-  },
-  "shadow-down": {
-    "nameEs": "Ocaso Oscuro"
-  },
-  "shadow-half": {
-    "nameEs": "Mitad Oscura"
-  },
-  "shadow-hold": {
-    "nameEs": "Traba Oscura"
-  },
-  "shadow-mist": {
-    "nameEs": "Bruma Oscura"
-  },
-  "shadow-panic": {
-    "nameEs": "Miedo Oscuro"
-  },
-  "shadow-shed": {
-    "nameEs": "Muda Oscura"
-  },
-  "shadow-sky": {
-    "nameEs": "Cielo Oscuro"
+  "shell-smash": {
+    "nameEs": "Rompecoraza",
+    "effectEs": "Baja defensas 1 nivel, sube Ataque, At.Esp y Vel 2 niveles.",
+    "shortEffectEs": "Baja defs, sube ofensas x2 y Vel."
+  },
+  "substitute": {
+    "nameEs": "Sustituto",
+    "effectEs": "Crea sustituto con 25% de PS que bloquea estados.",
+    "shortEffectEs": "Sustituto 25% PS."
+  },
+  "trick": {
+    "nameEs": "Truco",
+    "effectEs": "Intercambia objeto con rival.",
+    "shortEffectEs": "Intercambia objetos."
   }
 }

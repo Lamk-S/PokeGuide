@@ -42,6 +42,8 @@ type PokemonListItem = {
   stats?: Record<string, number>;
   abilities?: Array<{ name: string } | string>;
   moves?: Array<string | { name: string }>;
+  height?: number;
+  weight?: number;
 };
 
 const GEN_OPTIONS = [
@@ -97,6 +99,7 @@ interface Props {
   onGenerationChange: (gen: number) => void;
   onWeatherChange: (weather: WeatherId) => void;
   onTerrainChange: (terrain: TerrainId) => void;
+  hasCalculatedOnce?: boolean;
 }
 
 export function BattleLabView({
@@ -127,14 +130,30 @@ export function BattleLabView({
   onGenerationChange,
   onWeatherChange,
   onTerrainChange,
+  hasCalculatedOnce = false,
 }: Props) {
   const canCalculate = validationState.valid && !isCalculating;
   const missing: string[] = [];
   if (!attackerInput) missing.push("atacante");
   if (!defenderInput) missing.push("defensor");
   if (!moveName) missing.push("movimiento");
+
+  const findMoveKeySafe = (searchName: string): string | undefined => {
+    const lower = searchName.toLowerCase();
+    return Object.keys(moveList).find((k) => {
+      const entry = moveList[k];
+      return (
+        entry?.nameEs?.toLowerCase() === lower ||
+        entry?.name?.toLowerCase() === lower
+      );
+    });
+  };
+
+  const resolvedMoveKey = findMoveKeySafe(moveName) ?? moveName;
+  const resolvedMoveDetail = moveList[resolvedMoveKey] ?? moveList[moveName];
   const resolvedMoveName =
-    moveList[moveName]?.nameEs || moveList[moveName]?.name || moveName;
+    resolvedMoveDetail?.nameEs || resolvedMoveDetail?.name || moveName;
+
   const tabs = [
     { id: "attacker" as TabId, label: "Atacante" },
     { id: "result" as TabId, label: "Resultado" },
@@ -256,7 +275,7 @@ export function BattleLabView({
           >
             <ParticipantCard
               label="Atacante"
-              pokemonList={pokemonList as never}
+              pokemonList={pokemonList}
               input={attackerInput}
               onChange={onAttackerChange}
               facing="left"
@@ -320,7 +339,7 @@ export function BattleLabView({
           >
             <ParticipantCard
               label="Defensor"
-              pokemonList={pokemonList as never}
+              pokemonList={pokemonList}
               input={defenderInput}
               onChange={onDefenderChange}
               facing="right"
@@ -344,7 +363,7 @@ export function BattleLabView({
             <span>
               VIDA RESTANTE{" "}
               {result
-                ? `${(100 - result.damage.maxPercent).toFixed(1)}%`
+                ? `${Math.max(0, 100 - result.damage.maxPercent).toFixed(1)}%`
                 : "0%"}
             </span>
           </div>
@@ -363,13 +382,25 @@ export function BattleLabView({
             >
               Intercambiar
             </Button>
-            <Button
-              onClick={onCalculate}
-              disabled={!canCalculate}
-              className={`flex-1 md:flex-none h-9 px-5 rounded-full text-[12px] font-semibold ${!canCalculate ? "bg-[#F0EDE6] text-[#9A9590] cursor-not-allowed" : "bg-[#111] text-white hover:bg-black"}`}
-            >
-              {isCalculating ? "Calculando..." : "Calcular daño"}
-            </Button>
+            <div className="flex items-center gap-2">
+              {hasCalculatedOnce && (
+                <span className="hidden md:inline-flex items-center gap-1.5 text-[10px] font-mono text-[#065F46] bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-1 rounded-full">
+                  <span className="size-1.5 rounded-full bg-[#065F46] animate-pulse" />
+                  Auto
+                </span>
+              )}
+              <Button
+                onClick={onCalculate}
+                disabled={!canCalculate}
+                className={`flex-1 md:flex-none h-9 px-5 rounded-full text-[12px] font-semibold ${!canCalculate ? "bg-[#F0EDE6] text-[#9A9590] cursor-not-allowed" : "bg-[#111] text-white hover:bg-black"}`}
+              >
+                {isCalculating
+                  ? "Calculando..."
+                  : hasCalculatedOnce
+                    ? "Recalcular"
+                    : "Calcular daño"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

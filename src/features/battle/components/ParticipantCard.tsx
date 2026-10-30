@@ -46,12 +46,13 @@ const STAT_ORDER: StatName[] = [
   "special-defense",
   "speed",
 ];
+
 const STAT_LABELS: Record<StatName, { full: string; abbr: string }> = {
   hp: { full: "PS", abbr: "PS" },
   attack: { full: "ATQ", abbr: "ATQ" },
   defense: { full: "DEF", abbr: "DEF" },
-  "special-attack": { full: "ATE", abbr: "ATE" },
-  "special-defense": { full: "DFE", abbr: "DFE" },
+  "special-attack": { full: "AT. ESP", abbr: "AT. ESP" },
+  "special-defense": { full: "DEF. ESP", abbr: "DEF. ESP" },
   speed: { full: "VEL", abbr: "VEL" },
 };
 type MoveOption = {
@@ -94,6 +95,23 @@ function CompactStatGrid({
   );
 }
 
+type AbilityLike = PokemonAbilityRef | { name: string } | string;
+type TypeLike = PokemonTypeRef | { type: { name: string } } | string;
+
+type CardPokemon = {
+  id: number;
+  name: string;
+  types?: Array<TypeLike | unknown> | unknown[] | undefined;
+  baseStats?: BaseStats | Record<string, number> | undefined;
+  stats?: BaseStats | Record<string, number> | undefined;
+  abilities?: Array<AbilityLike | unknown> | unknown[] | undefined;
+  moves?: Array<string | { name: string } | unknown> | unknown[] | undefined;
+  height?: number;
+  weight?: number;
+  sprites?: unknown;
+  [key: string]: unknown;
+};
+
 export const ParticipantCard = memo(function ParticipantCard({
   label,
   pokemonList,
@@ -108,7 +126,7 @@ export const ParticipantCard = memo(function ParticipantCard({
   defenderTypes,
 }: {
   label: string;
-  pokemonList: Pokemon[];
+  pokemonList: CardPokemon[] | Pokemon[];
   input: BattleParticipantInput | null;
   onChange: (input: BattleParticipantInput | null) => void;
   facing: "left" | "right";
@@ -190,10 +208,18 @@ export const ParticipantCard = memo(function ParticipantCard({
 
   const abilityOptions = useMemo(() => {
     if (!currentPokemon?.abilities) return [];
-    return currentPokemon.abilities.map((a: PokemonAbilityRef) => {
-      const found = abilityList.find((ab) => ab.name === a.name);
-      return { value: a.name, label: found?.nameEs || a.name };
-    });
+    const abilities = currentPokemon.abilities as Array<AbilityLike | unknown>;
+    return abilities
+      .map((a) => {
+        if (!a) return null;
+        if (typeof a === "string") return { value: a, label: a };
+        const abilityObj = a as { name?: string };
+        const name = abilityObj.name;
+        if (!name) return null;
+        const found = abilityList.find((ab) => ab.name === name);
+        return { value: name, label: found?.nameEs || name };
+      })
+      .filter((x): x is { value: string; label: string } => x !== null);
   }, [currentPokemon, abilityList]);
 
   const natureOptions = useMemo(
@@ -231,8 +257,13 @@ export const ParticipantCard = memo(function ParticipantCard({
         nature: SERIOUS,
         evs: emptyEvs,
         ivs: perfectIvs,
-        ability: p.abilities?.[0]?.name || "",
-        status: "healthy",
+        ability: (() => {
+          const a = p.abilities?.[0];
+          if (!a) return "";
+          if (typeof a === "string") return a;
+          return (a as { name: string }).name || "";
+        })(),
+        status: "none",
         moves: [],
         item: null,
       } as unknown as BattleParticipantInput);
@@ -244,7 +275,7 @@ export const ParticipantCard = memo(function ParticipantCard({
             {isAtk ? "Selecciona atacante" : "Selecciona defensor"}
           </h3>
           <PokemonSelect
-            pokemonList={pokemonList}
+            pokemonList={pokemonList as unknown as Pokemon[]}
             value=""
             onValueChange={(val) => select(Number.parseInt(val, 10))}
             placeholder="Busca un Pokémon..."
@@ -301,7 +332,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                 : ""}
             </div>
             <div className="flex items-center gap-1 mt-2">
-              {currentPokemon?.types?.map((t) => {
+              {(currentPokemon?.types as unknown[])?.map((t: unknown) => {
                 const tn = extractTypeName(t as PokemonTypeRef);
                 return <TypeBadge key={tn} type={tn} size="sm" />;
               })}
@@ -325,7 +356,7 @@ export const ParticipantCard = memo(function ParticipantCard({
             Pokémon
           </Label>
           <PokemonSelect
-            pokemonList={pokemonList}
+            pokemonList={pokemonList as unknown as Pokemon[]}
             value={input.pokemonId.toString()}
             onValueChange={(val) => {
               const id = Number.parseInt(val, 10);
@@ -345,10 +376,15 @@ export const ParticipantCard = memo(function ParticipantCard({
               onChange({
                 ...input,
                 pokemonId: id,
-                ability: p.abilities?.[0]?.name || "",
+                ability: (() => {
+                  const a = p.abilities?.[0];
+                  if (!a) return "";
+                  if (typeof a === "string") return a;
+                  return (a as { name: string }).name || "";
+                })(),
                 moves: [],
                 item: null,
-                status: "healthy",
+                status: "none",
                 nature: SERIOUS,
                 evs: nextEvs,
                 ivs: nextIvs,
@@ -412,7 +448,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                 defenderTypes={defenderTypes}
                 attackerTypes={
                   currentPokemon?.types
-                    ?.map((t) => extractTypeName(t as PokemonTypeRef))
+                    ?.map((t: unknown) => extractTypeName(t as PokemonTypeRef))
                     .filter(Boolean) as string[]
                 }
               />
@@ -431,11 +467,7 @@ export const ParticipantCard = memo(function ParticipantCard({
               options={abilityOptions}
               value={input.ability || ""}
               onValueChange={(val) => {
-                if (val) onChange({ ...input, ability: val });
-                else {
-                  const { ability: _a, ...rest } = input;
-                  onChange(rest as unknown as BattleParticipantInput);
-                }
+                onChange({ ...input, ability: val || null });
               }}
               placeholder="—"
             />
@@ -448,11 +480,7 @@ export const ParticipantCard = memo(function ParticipantCard({
               itemList={itemList as never}
               value={input.item || ""}
               onValueChange={(val) => {
-                if (val) onChange({ ...input, item: val });
-                else {
-                  const { item: _i, ...rest } = input;
-                  onChange(rest as unknown as BattleParticipantInput);
-                }
+                onChange({ ...input, item: val || null });
               }}
               placeholder="—"
             />
@@ -514,11 +542,6 @@ export const ParticipantCard = memo(function ParticipantCard({
                         }
                       }}
                       className="h-7 w-full px-2 rounded-md border border-[#E8E0D6] text-[12px] font-mono disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[#F8F5F0]"
-                      title={
-                        isHpAndShedinja
-                          ? "Shedinja: PS siempre 1, IV bloqueado en 0"
-                          : `${STAT_LABELS[st].abbr} IV`
-                      }
                     />
                   </div>
                 );
@@ -616,11 +639,6 @@ export const ParticipantCard = memo(function ParticipantCard({
                         }
                       }}
                       className="h-6 w-12 px-1 rounded-md border border-[#E8E0D6] text-[11px] font-mono text-center disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[#F8F5F0]"
-                      title={
-                        isHpAndShedinja
-                          ? "Shedinja: PS siempre 1, EV bloqueado en 0"
-                          : `${STAT_LABELS[st].abbr} EV`
-                      }
                     />
                   </div>
                 );
@@ -650,10 +668,11 @@ export const ParticipantCard = memo(function ParticipantCard({
                 <div className="relative isolate z-20">
                   <Combobox
                     options={statusOptions}
-                    value={input.status ?? "none"}
-                    onValueChange={(v) =>
-                      onChange({ ...input, status: v as StatusId })
-                    }
+                    value={input.status ?? "healthy"}
+                    onValueChange={(v) => {
+                      const mapped = v === "none" || !v ? "healthy" : v;
+                      onChange({ ...input, status: mapped as StatusId });
+                    }}
                     placeholder="Ninguno"
                   />
                 </div>
