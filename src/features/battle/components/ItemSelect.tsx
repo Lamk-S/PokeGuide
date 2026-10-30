@@ -3,6 +3,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   filterCompetitiveItems,
+  COMPETITIVE_ITEMS,
   type CompetitiveItem,
 } from "../constants/competitiveItems";
 import { ItemSprite } from "@/components/ui/ItemSprite";
@@ -12,6 +13,10 @@ interface ItemSelectProps {
   value: string;
   onValueChange: (val: string) => void;
   placeholder?: string;
+}
+
+function normalizeId(s: string): string {
+  return s.toLowerCase().trim().replace(/_/g, "-").replace(/\s+/g, "-");
 }
 
 export function ItemSelect({
@@ -42,7 +47,8 @@ export function ItemSelect({
       .filter((i) => {
         const name = (i.nameEs || i.name).toLowerCase();
         const orig = i.name.toLowerCase();
-        return name.includes(q) || orig.includes(q);
+        const id = (i.id || "").toLowerCase();
+        return name.includes(q) || orig.includes(q) || id.includes(q);
       })
       .slice(0, 60);
   }, [sourceList, query]);
@@ -59,10 +65,39 @@ export function ItemSelect({
     return out;
   }, [filtered]);
 
-  const selected = useMemo(
-    () => itemList.find((i) => i.name === value || i.id === value),
-    [itemList, value],
-  );
+  const selected = useMemo(() => {
+    if (!value) return undefined;
+    const normValue = normalizeId(value);
+    const lowerValue = value.toLowerCase().trim();
+    let found = itemList.find((i) => {
+      const idNorm = normalizeId(i.id || "");
+      const nameNorm = normalizeId(i.name || "");
+      const nameEsNorm = normalizeId(i.nameEs || "");
+      return (
+        idNorm === normValue ||
+        nameNorm === normValue ||
+        nameEsNorm === normValue ||
+        i.name.toLowerCase() === lowerValue ||
+        i.nameEs.toLowerCase() === lowerValue ||
+        i.id.toLowerCase() === lowerValue
+      );
+    });
+    if (found) return found;
+    found = COMPETITIVE_ITEMS.find((i) => {
+      const idNorm = normalizeId(i.id);
+      const nameNorm = normalizeId(i.name);
+      const nameEsNorm = normalizeId(i.nameEs);
+      return (
+        idNorm === normValue ||
+        nameNorm === normValue ||
+        nameEsNorm === normValue
+      );
+    });
+    if (found) return found as CompetitiveItem;
+    return itemList.find((i) =>
+      (i.nameEs || i.name).toLowerCase().includes(lowerValue),
+    );
+  }, [itemList, value]);
 
   return (
     <div className="relative">
@@ -135,7 +170,7 @@ export function ItemSelect({
                   setOpen(false);
                   setQuery("");
                 }}
-                className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-[#F8F5F0] ${item.id === value || item.name === value ? "bg-[#F0EDE6]" : ""}`}
+                className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-[#F8F5F0] ${selected && (selected.id === item.id || selected.name === item.name) ? "bg-[#F0EDE6]" : ""}`}
               >
                 <span className="size-6 rounded bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
                   <ItemSprite itemName={item.name} size={18} />
