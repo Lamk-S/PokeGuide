@@ -16,7 +16,13 @@ interface ItemSelectProps {
 }
 
 function normalizeId(s: string): string {
-  return s.toLowerCase().trim().replace(/_/g, "-").replace(/\s+/g, "-");
+  if (!s) return "";
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/_/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/--+/g, "-");
 }
 
 export function ItemSelect({
@@ -47,7 +53,7 @@ export function ItemSelect({
       .filter((i) => {
         const name = (i.nameEs || i.name).toLowerCase();
         const orig = i.name.toLowerCase();
-        const id = (i.id || "").toLowerCase();
+        const id = (i.id || i.name || "").toLowerCase();
         return name.includes(q) || orig.includes(q) || id.includes(q);
       })
       .slice(0, 60);
@@ -57,7 +63,8 @@ export function ItemSelect({
     const seen = new Set<string>();
     const out: CompetitiveItem[] = [];
     for (const it of filtered) {
-      const key = `${it.id}::${it.name}`;
+      const key =
+        `${it.name}::${it.nameEs || ""}::${it.id || ""}`.toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
       out.push(it);
@@ -70,23 +77,23 @@ export function ItemSelect({
     const normValue = normalizeId(value);
     const lowerValue = value.toLowerCase().trim();
     let found = itemList.find((i) => {
-      const idNorm = normalizeId(i.id || "");
+      const idNorm = normalizeId(i.id || i.name || "");
       const nameNorm = normalizeId(i.name || "");
       const nameEsNorm = normalizeId(i.nameEs || "");
       return (
         idNorm === normValue ||
         nameNorm === normValue ||
         nameEsNorm === normValue ||
-        i.name.toLowerCase() === lowerValue ||
-        i.nameEs.toLowerCase() === lowerValue ||
-        i.id.toLowerCase() === lowerValue
+        (i.name && i.name.toLowerCase() === lowerValue) ||
+        (i.nameEs && i.nameEs.toLowerCase() === lowerValue) ||
+        (i.id && i.id.toLowerCase() === lowerValue)
       );
     });
     if (found) return found;
     found = COMPETITIVE_ITEMS.find((i) => {
       const idNorm = normalizeId(i.id);
       const nameNorm = normalizeId(i.name);
-      const nameEsNorm = normalizeId(i.nameEs);
+      const nameEsNorm = normalizeId(i.nameEs || "");
       return (
         idNorm === normValue ||
         nameNorm === normValue ||
@@ -163,14 +170,14 @@ export function ItemSelect({
             </button>
             {uniqueFiltered.map((item) => (
               <button
-                key={`${item.id}-${item.name}`}
+                key={`${item.name}-${item.nameEs || ""}-${item.id || ""}`}
                 type="button"
                 onClick={() => {
-                  onValueChange(item.id);
+                  onValueChange(item.name);
                   setOpen(false);
                   setQuery("");
                 }}
-                className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-[#F8F5F0] ${selected && (selected.id === item.id || selected.name === item.name) ? "bg-[#F0EDE6]" : ""}`}
+                className={`w-full px-3 py-2 flex items-start gap-2 text-left hover:bg-[#F8F5F0] ${selected && (selected.name === item.name || selected.id === item.id) ? "bg-[#F0EDE6]" : ""}`}
               >
                 <span className="size-6 rounded bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
                   <ItemSprite itemName={item.name} size={18} />

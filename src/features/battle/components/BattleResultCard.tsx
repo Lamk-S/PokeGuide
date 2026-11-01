@@ -7,6 +7,7 @@ import type {
 } from "@/domain/battle/types/BattleParticipant";
 import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
 import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
+import { useItemStore } from "@/features/items/store/useItemStore";
 
 type PokemonLike =
   | { id?: number; name?: string; types?: unknown[] }
@@ -147,11 +148,64 @@ function getAbilityLabelEs(
   return { label: ability, effect: "Habilidad activa" };
 }
 
+function resolveItemEsName(
+  itemId: string | null | undefined,
+  itemList: Array<{ name: string; nameEs: string; id?: string }>,
+): string {
+  if (!itemId) return "";
+  const lower = itemId.toLowerCase().trim();
+  const found = itemList.find(
+    (it) =>
+      it.name.toLowerCase() === lower ||
+      (it.id && it.id.toLowerCase() === lower) ||
+      (it.nameEs && it.nameEs.toLowerCase() === lower),
+  );
+  if (found) return found.nameEs || found.name;
+  const fallback: Record<string, string> = {
+    "charizardite-x": "Charizardita X",
+    "charizardite-y": "Charizardita Y",
+    "charizardita x": "Charizardita X",
+    "charizardita y": "Charizardita Y",
+    "assault-vest": "Chaleco Asalto",
+    "assault vest": "Chaleco Asalto",
+    "chaleco asalto": "Chaleco Asalto",
+    "focus-sash": "Banda Focus",
+    "focus sash": "Banda Focus",
+    "banda focus": "Banda Focus",
+    "life-orb": "Vidasfera",
+    "life orb": "Vidasfera",
+    "choice-band": "Cinta Elegida",
+    "choice band": "Cinta Elegida",
+    "cinta elegida": "Cinta Elegida",
+    "choice-specs": "Gafas Elegidas",
+    "choice specs": "Gafas Elegidas",
+    "gafas elegidas": "Gafas Elegidas",
+    "choice-scarf": "Pañuelo Elegido",
+    "choice scarf": "Pañuelo Elegido",
+    "expert-belt": "Cinta Experto",
+    "expert belt": "Cinta Experto",
+    "muscle-band": "Cinta Fuerte",
+    "muscle band": "Cinta Fuerte",
+    "wise-glasses": "Gafas Sabias",
+    "wise glasses": "Gafas Sabias",
+    leftovers: "Restos",
+    restos: "Restos",
+    "black-sludge": "Lodo Negro",
+    "black sludge": "Lodo Negro",
+    "lodo negro": "Lodo Negro",
+    eviolite: "Mineral Evolutivo",
+    "mineral evolutivo": "Mineral Evolutivo",
+  };
+  return fallback[lower] || itemId;
+}
+
 function getItemLabelEs(
   item: string | null | undefined,
+  itemList: Array<{ name: string; nameEs: string; id?: string }> = [],
 ): { label: string; effect: string } | null {
   if (!item) return null;
   const lower = item.toLowerCase().replace(/-/g, " ").trim();
+  const displayName = resolveItemEsName(item, itemList);
   if (
     lower === "" ||
     lower === "-" ||
@@ -178,14 +232,30 @@ function getItemLabelEs(
     "assault vest": "Sube 50% Def. Esp.",
     "lodo negro": "Recupera 1/16 PS Veneno",
     "black sludge": "Recupera 1/16 PS Veneno",
+    "banda focus": "Evita KO a PS completos",
+    "focus sash": "Evita KO a PS completos",
     baya: "Reduce daño supereficaz",
     leftovers: "Recupera 1/16 PS",
     restos: "Recupera 1/16 PS",
+    "charizardita x": "Megaevolución Charizard X",
+    "charizardita y": "Megaevolución Charizard Y",
+    "charizardite x": "Megaevolución Charizard X",
+    "charizardite y": "Megaevolución Charizard Y",
+    "mineral evolutivo": "1.5x Def/DefEsp si no evolucionado",
+    eviolite: "1.5x Def/DefEsp si no evolucionado",
   };
   for (const [k, v] of Object.entries(map)) {
-    if (lower.includes(k)) return { label: item, effect: v };
+    if (lower.includes(k)) return { label: displayName, effect: v };
   }
-  return { label: item, effect: "Objeto equipado" };
+  // Si es mega piedra u objeto sin efecto de daño, mostrar nombre ES pero sin efecto de daño
+  if (
+    lower.includes("charizardita") ||
+    lower.includes("charizardite") ||
+    lower.includes("ite")
+  ) {
+    return { label: displayName, effect: "Megaevolución" };
+  }
+  return { label: displayName, effect: "Objeto equipado" };
 }
 
 export function ResultEmptyState({ missing }: EmptyProps) {
@@ -230,6 +300,11 @@ export const BattleResultCard = memo(function BattleResultCard({
   generation = 9,
   error,
 }: Props) {
+  const itemList = useItemStore((s) => s.itemList) as Array<{
+    name: string;
+    nameEs: string;
+    id?: string;
+  }>;
   const attackerName = getName(attackerPokemon) ?? "Atacante";
   const defenderName = getName(defenderPokemon) ?? "Defensor";
 
@@ -317,12 +392,12 @@ export const BattleResultCard = memo(function BattleResultCard({
     [defenderInput?.status],
   );
   const attackerItemNote = useMemo(
-    () => getItemLabelEs(attackerInput?.item),
-    [attackerInput?.item],
+    () => getItemLabelEs(attackerInput?.item, itemList),
+    [attackerInput?.item, itemList],
   );
   const defenderItemNote = useMemo(
-    () => getItemLabelEs(defenderInput?.item),
-    [defenderInput?.item],
+    () => getItemLabelEs(defenderInput?.item, itemList),
+    [defenderInput?.item, itemList],
   );
   const attackerAbilityNote = useMemo(
     () => getAbilityLabelEs(attackerInput?.ability),
@@ -536,10 +611,7 @@ export const BattleResultCard = memo(function BattleResultCard({
           {evAtk}/510 Esfuerzo atacante - {attackerName}
         </span>
         <span>{evDef}/510 Defensor</span>
-        <span className="ml-auto">
-          VIDA RESTANTE {remainingMin.toFixed(1)}% mostrada · PS siempre, nunca
-          HP
-        </span>
+        <span className="ml-auto">PS RESTANTE {remainingMin.toFixed(1)}%</span>
       </div>
     </div>
   );
