@@ -619,9 +619,32 @@ export const useBattleStore = create<BattleLabState>((set, get) => ({
       const attackStat = isPhysical
         ? attackerStats.attack
         : attackerStats["special-attack"];
-      const defenseStat = isPhysical
+
+      const defenderItemLower = (defenderInput.item || "")
+        .toLowerCase()
+        .replace(/[-_/]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      let defenderDefMod = 1;
+      if (
+        (defenderItemLower.includes("assault vest") ||
+          defenderItemLower.includes("chaleco asalto")) &&
+        !isPhysical
+      ) {
+        defenderDefMod = 1.5;
+      }
+      if (
+        defenderItemLower.includes("eviolite") ||
+        defenderItemLower.includes("mineral evol")
+      ) {
+        defenderDefMod = 1.5;
+      }
+
+      const defenseStatBase = isPhysical
         ? defenderStats.defense
         : defenderStats["special-defense"];
+      const defenseStat = Math.floor(defenseStatBase * defenderDefMod);
 
       const level = attackerInput.level;
       const base =
@@ -693,10 +716,13 @@ export const useBattleStore = create<BattleLabState>((set, get) => ({
       if (tNorm === "grassy" && moveTypeLower === "ground") terrainMod = 0.5;
 
       let itemMod = 1;
-      const itemLower = (attackerInput.item || "")
+      const rawItem = attackerInput.item || "";
+      const itemLower = rawItem
         .toLowerCase()
-        .replace(/-/g, " ")
-        .replace(/_/g, " ");
+        .replace(/[-_/]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
       if (
         (itemLower.includes("choice band") ||
           itemLower.includes("cinta elegida")) &&
@@ -753,8 +779,18 @@ export const useBattleStore = create<BattleLabState>((set, get) => ({
       const minPercent = defenderHp > 0 ? (minDamage / defenderHp) * 100 : 0;
       const maxPercent = defenderHp > 0 ? (maxDamage / defenderHp) * 100 : 0;
 
-      const isGuaranteed = minPercent >= 100;
-      const isPossible = !isGuaranteed && maxPercent >= 100;
+      let isGuaranteed = minPercent >= 100;
+      let isPossible = !isGuaranteed && maxPercent >= 100;
+
+      const hasFocusSash =
+        defenderItemLower.includes("focus sash") ||
+        defenderItemLower.includes("banda focus");
+      if (hasFocusSash && defenderStats.hp > 0) {
+        if (isGuaranteed) {
+          isGuaranteed = false;
+          isPossible = true;
+        }
+      }
       let hitsToKO = 1;
       if (!isGuaranteed && !isPossible) {
         const safeMax = maxPercent > 0 ? maxPercent : 1;
