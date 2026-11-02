@@ -1,6 +1,13 @@
 "use client";
 import { memo, useMemo } from "react";
 import { translateTypeUpper } from "@/components/ui/TypeBadge";
+import {
+  getAbilityDetailEs,
+  getItemDetailEs,
+  getStatusDetailEs,
+  getTerrainDetailEs,
+  getWeatherDetailEs,
+} from "@/domain/battle/services/BattleModifiersTranslator";
 import type {
   BattleResult,
   IBattleConditions,
@@ -45,217 +52,6 @@ function getEvTotalFromInput(
   const evs = (input as { evs?: Record<string, number> }).evs;
   if (!evs) return 0;
   return Object.values(evs).reduce((a: number, b: number) => a + (b ?? 0), 0);
-}
-
-function getStatusLabelEs(
-  status: string | null | undefined,
-): { label: string; effect: string } | null {
-  if (!status) return null;
-  const s = status.toLowerCase().trim();
-  if (
-    s === "healthy" ||
-    s === "none" ||
-    s === "" ||
-    s === "saludable" ||
-    s === "ninguno"
-  )
-    return null;
-  const map: Record<string, { label: string; effect: string }> = {
-    burn: {
-      label: "Quemado",
-      effect: "0.5x daño físico (excepto Guts/Agallas o Fachada)",
-    },
-    quemado: {
-      label: "Quemado",
-      effect: "0.5x daño físico (excepto Guts/Agallas o Fachada)",
-    },
-    paralyze: {
-      label: "Paralizado",
-      effect: "25% Vel., 50% fallo turno en juego real",
-    },
-    paralysis: {
-      label: "Paralizado",
-      effect: "No afecta daño, 50% fallo turno",
-    },
-    paralizado: {
-      label: "Paralizado",
-      effect: "No afecta daño, 50% fallo turno",
-    },
-    poison: { label: "Envenenado", effect: "No afecta daño directo" },
-    envenenado: { label: "Envenenado", effect: "No afecta daño directo" },
-    "bad-poison": {
-      label: "Grav. Envenenado",
-      effect: "No afecta daño directo",
-    },
-    "badly-poisoned": {
-      label: "Grav. Envenenado",
-      effect: "No afecta daño directo",
-    },
-    toxic: { label: "Grav. Envenenado", effect: "No afecta daño directo" },
-    sleep: { label: "Dormido", effect: "No puede atacar en juego real" },
-    dormido: { label: "Dormido", effect: "No puede atacar en juego real" },
-    freeze: { label: "Congelado", effect: "No puede atacar en juego real" },
-    frozen: { label: "Congelado", effect: "No puede atacar en juego real" },
-    congelado: { label: "Congelado", effect: "No puede atacar en juego real" },
-  };
-  return map[s] || { label: status, effect: "Estado alterado" };
-}
-
-function getAbilityLabelEs(
-  ability: string | null | undefined,
-): { label: string; effect: string } | null {
-  if (!ability) return null;
-  const lower = ability.toLowerCase().replace(/-/g, " ").trim();
-  if (
-    lower === "" ||
-    lower === "-" ||
-    lower === "sin habilidad" ||
-    lower === "none"
-  )
-    return null;
-  const map: Record<string, { label: string; effect: string }> = {
-    intimidate: { label: "Intimidación", effect: "Baja ATQ rival al entrar" },
-    intimidacion: { label: "Intimidación", effect: "Baja ATQ rival" },
-    levitate: { label: "Levitación", effect: "Inmune a Tierra" },
-    levitacion: { label: "Levitación", effect: "Inmune a Tierra" },
-    blaze: { label: "Mar Llamas", effect: "1.5x Fuego con <33% PS" },
-    "mar llamas": { label: "Mar Llamas", effect: "1.5x Fuego con <33% PS" },
-    torrent: { label: "Torrente", effect: "1.5x Agua con <33% PS" },
-    overgrow: { label: "Espesura", effect: "1.5x Planta con <33% PS" },
-    swarm: { label: "Enjambre", effect: "1.5x Bicho con <33% PS" },
-    "solar power": { label: "Poder Solar", effect: "1.5x At.Esp con Sol" },
-    "poder solar": { label: "Poder Solar", effect: "1.5x At.Esp con Sol" },
-    "flash fire": {
-      label: "Absorbe Fuego",
-      effect: "Inmune Fuego, +50% Fuego",
-    },
-    guts: {
-      label: "Agallas",
-      effect: "1.5x ATQ con estado + ignora quemadura",
-    },
-    agallas: {
-      label: "Agallas",
-      effect: "1.5x ATQ con estado + ignora quemadura",
-    },
-    "huge power": { label: "Potencia", effect: "2x ATQ" },
-    potencia: { label: "Potencia", effect: "2x ATQ" },
-    adaptability: { label: "Adaptable", effect: "STAB 2x en vez de 1.5x" },
-    adaptable: { label: "Adaptable", effect: "STAB 2x" },
-  };
-  for (const [k, v] of Object.entries(map)) {
-    if (lower === k || lower.includes(k)) return v;
-  }
-  return { label: ability, effect: "Habilidad activa" };
-}
-
-function resolveItemEsName(
-  itemId: string | null | undefined,
-  itemList: Array<{ name: string; nameEs: string; id?: string }>,
-): string {
-  if (!itemId) return "";
-  const lower = itemId.toLowerCase().trim();
-  const found = itemList.find(
-    (it) =>
-      it.name.toLowerCase() === lower ||
-      (it.id && it.id.toLowerCase() === lower) ||
-      (it.nameEs && it.nameEs.toLowerCase() === lower),
-  );
-  if (found) return found.nameEs || found.name;
-  const fallback: Record<string, string> = {
-    "charizardite-x": "Charizardita X",
-    "charizardite-y": "Charizardita Y",
-    "charizardita x": "Charizardita X",
-    "charizardita y": "Charizardita Y",
-    "assault-vest": "Chaleco Asalto",
-    "assault vest": "Chaleco Asalto",
-    "chaleco asalto": "Chaleco Asalto",
-    "focus-sash": "Banda Focus",
-    "focus sash": "Banda Focus",
-    "banda focus": "Banda Focus",
-    "life-orb": "Vidasfera",
-    "life orb": "Vidasfera",
-    "choice-band": "Cinta Elegida",
-    "choice band": "Cinta Elegida",
-    "cinta elegida": "Cinta Elegida",
-    "choice-specs": "Gafas Elegidas",
-    "choice specs": "Gafas Elegidas",
-    "gafas elegidas": "Gafas Elegidas",
-    "choice-scarf": "Pañuelo Elegido",
-    "choice scarf": "Pañuelo Elegido",
-    "expert-belt": "Cinta Experto",
-    "expert belt": "Cinta Experto",
-    "muscle-band": "Cinta Fuerte",
-    "muscle band": "Cinta Fuerte",
-    "wise-glasses": "Gafas Sabias",
-    "wise glasses": "Gafas Sabias",
-    leftovers: "Restos",
-    restos: "Restos",
-    "black-sludge": "Lodo Negro",
-    "black sludge": "Lodo Negro",
-    "lodo negro": "Lodo Negro",
-    eviolite: "Mineral Evolutivo",
-    "mineral evolutivo": "Mineral Evolutivo",
-  };
-  return fallback[lower] || itemId;
-}
-
-function getItemLabelEs(
-  item: string | null | undefined,
-  itemList: Array<{ name: string; nameEs: string; id?: string }> = [],
-): { label: string; effect: string } | null {
-  if (!item) return null;
-  const lower = item.toLowerCase().replace(/-/g, " ").trim();
-  const displayName = resolveItemEsName(item, itemList);
-  if (
-    lower === "" ||
-    lower === "-" ||
-    lower === "sin objeto" ||
-    lower === "no item"
-  )
-    return null;
-  const map: Record<string, string> = {
-    "choice band": "1.5x ATQ físico",
-    "cinta elegida": "1.5x ATQ físico",
-    "choice specs": "1.5x AT. ESP",
-    "gafas elegidas": "1.5x AT. ESP",
-    "choice scarf": "1.5x VEL",
-    "panuelo elegido": "1.5x VEL",
-    "life orb": "1.3x daño (pierde 10% PS)",
-    vidasfera: "1.3x daño (pierde 10% PS)",
-    "expert belt": "1.2x si súper eficaz",
-    "cinta experto": "1.2x si súper eficaz",
-    "muscle band": "1.1x físico",
-    "cinta fuerte": "1.1x físico",
-    "wise glasses": "1.1x especial",
-    "gafas sabias": "1.1x especial",
-    "chaleco asalto": "Sube 50% Def. Esp.",
-    "assault vest": "Sube 50% Def. Esp.",
-    "lodo negro": "Recupera 1/16 PS Veneno",
-    "black sludge": "Recupera 1/16 PS Veneno",
-    "banda focus": "Evita KO a PS completos",
-    "focus sash": "Evita KO a PS completos",
-    baya: "Reduce daño supereficaz",
-    leftovers: "Recupera 1/16 PS",
-    restos: "Recupera 1/16 PS",
-    "charizardita x": "Megaevolución Charizard X",
-    "charizardita y": "Megaevolución Charizard Y",
-    "charizardite x": "Megaevolución Charizard X",
-    "charizardite y": "Megaevolución Charizard Y",
-    "mineral evolutivo": "1.5x Def/DefEsp si no evolucionado",
-    eviolite: "1.5x Def/DefEsp si no evolucionado",
-  };
-  for (const [k, v] of Object.entries(map)) {
-    if (lower.includes(k)) return { label: displayName, effect: v };
-  }
-  // Si es mega piedra u objeto sin efecto de daño, mostrar nombre ES pero sin efecto de daño
-  if (
-    lower.includes("charizardita") ||
-    lower.includes("charizardite") ||
-    lower.includes("ite")
-  ) {
-    return { label: displayName, effect: "Megaevolución" };
-  }
-  return { label: displayName, effect: "Objeto equipado" };
 }
 
 export function ResultEmptyState({ missing }: EmptyProps) {
@@ -356,68 +152,51 @@ export const BattleResultCard = memo(function BattleResultCard({
   }, [result]);
 
   const stabNote = useMemo(() => "STAB 1.5x si tipo coincide", []);
-
   const weatherNote = useMemo(() => {
     if (!conditions) return null;
     const w = conditions.weather;
     if (!w || w === "none") return null;
-    const map: Record<string, string> = {
-      sun: "Sol 1.5x Fuego / 0.5x Agua",
-      rain: "Lluvia 1.5x Agua / 0.5x Fuego",
-      sand: "Tormenta arena",
-      hail: "Granizo",
-    };
-    return map[w] || w;
+    const detail = getWeatherDetailEs(w);
+    return `${detail.label} ${detail.effect}`;
   }, [conditions]);
-
   const terrainNote = useMemo(() => {
     if (!conditions) return null;
     const t = conditions.terrain;
     if (!t || t === "none") return null;
-    const map: Record<string, string> = {
-      electric: "Campo Eléctrico 1.3x Eléctrico",
-      grassy: "Campo Hierba 1.3x Planta / 0.5x Tierra",
-      misty: "Campo Niebla 0.5x Dragón",
-      psychic: "Campo Psíquico 1.3x Psíquico",
-    };
-    return map[t] || t;
+    const detail = getTerrainDetailEs(t);
+    return `${detail.label} ${detail.effect}`;
   }, [conditions]);
 
-  const attackerStatusNote = useMemo(
-    () => getStatusLabelEs(attackerInput?.status),
+  const attackerStatusDetail = useMemo(
+    () => getStatusDetailEs(attackerInput?.status),
     [attackerInput?.status],
   );
-  const defenderStatusNote = useMemo(
-    () => getStatusLabelEs(defenderInput?.status),
+  const defenderStatusDetail = useMemo(
+    () => getStatusDetailEs(defenderInput?.status),
     [defenderInput?.status],
   );
-  const attackerItemNote = useMemo(
-    () => getItemLabelEs(attackerInput?.item, itemList),
+  const attackerItemDetail = useMemo(
+    () => getItemDetailEs(attackerInput?.item, itemList),
     [attackerInput?.item, itemList],
   );
-  const defenderItemNote = useMemo(
-    () => getItemLabelEs(defenderInput?.item, itemList),
+  const defenderItemDetail = useMemo(
+    () => getItemDetailEs(defenderInput?.item, itemList),
     [defenderInput?.item, itemList],
   );
-  const attackerAbilityNote = useMemo(
-    () => getAbilityLabelEs(attackerInput?.ability),
+  const attackerAbilityDetail = useMemo(
+    () => getAbilityDetailEs(attackerInput?.ability),
     [attackerInput?.ability],
   );
-  const defenderAbilityNote = useMemo(
-    () => getAbilityLabelEs(defenderInput?.ability),
+  const defenderAbilityDetail = useMemo(
+    () => getAbilityDetailEs(defenderInput?.ability),
     [defenderInput?.ability],
   );
 
   const evAtk = getEvTotalFromInput(attackerInput ?? null);
   const evDef = getEvTotalFromInput(defenderInput ?? null);
 
-  if (error) {
-    return <ResultErrorState error={error} />;
-  }
-
-  if (!result) {
-    return <ResultEmptyState />;
-  }
+  if (error) return <ResultErrorState error={error} />;
+  if (!result) return <ResultEmptyState />;
 
   return (
     <div className="flex flex-col gap-3">
@@ -468,70 +247,70 @@ export const BattleResultCard = memo(function BattleResultCard({
             </span>
           </div>
 
-          {(attackerStatusNote ||
-            defenderStatusNote ||
-            attackerItemNote ||
-            defenderItemNote ||
-            attackerAbilityNote ||
-            defenderAbilityNote) && (
+          {(attackerStatusDetail ||
+            defenderStatusDetail ||
+            attackerItemDetail ||
+            defenderItemDetail ||
+            attackerAbilityDetail ||
+            defenderAbilityDetail) && (
             <div className="mt-3 grid grid-cols-1 gap-2">
-              {attackerStatusNote && (
+              {attackerStatusDetail && (
                 <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-1.5">
                   <span className="font-semibold">
-                    {attackerName}: {attackerStatusNote.label}
+                    {attackerName}: {attackerStatusDetail.label}
                   </span>
                   <span className="text-[#92400E]">
-                    · {attackerStatusNote.effect}
+                    · {attackerStatusDetail.effect}
                   </span>
                 </div>
               )}
-              {defenderStatusNote && (
+              {defenderStatusDetail && (
                 <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#FEF2F2] border border-[#FECACA] px-2.5 py-1.5">
                   <span className="font-semibold">
-                    {defenderName}: {defenderStatusNote.label}
+                    {defenderName}: {defenderStatusDetail.label}
                   </span>
                   <span className="text-[#991B1B]">
-                    · {defenderStatusNote.effect}
+                    · {defenderStatusDetail.effect}
                   </span>
                 </div>
               )}
-              {attackerItemNote && (
+              {attackerItemDetail && (
                 <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-1.5">
                   <span className="font-semibold">
-                    {attackerName}: {attackerItemNote.label}
+                    {attackerName}: {attackerItemDetail.label}
                   </span>
                   <span className="text-[#065F46]">
-                    · {attackerItemNote.effect}
+                    · {attackerItemDetail.effect}
                   </span>
                 </div>
               )}
-              {defenderItemNote && (
+              {defenderItemDetail && (
                 <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-1.5">
                   <span className="font-semibold">
-                    {defenderName}: {defenderItemNote.label}
+                    {defenderName}: {defenderItemDetail.label}
                   </span>
                   <span className="text-[#065F46]">
-                    · {defenderItemNote.effect}
+                    · {defenderItemDetail.effect}
                   </span>
                 </div>
               )}
-              {attackerAbilityNote && (
+              {attackerAbilityDetail && (
                 <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-1.5">
                   <span className="font-semibold">
-                    {attackerName}: {attackerAbilityNote.label}
+                    {attackerName}: {attackerAbilityDetail.label}
                   </span>
                   <span className="text-[#1E40AF]">
-                    · {attackerAbilityNote.effect}
+                    · {attackerAbilityDetail.effect}
                   </span>
                 </div>
               )}
-              {defenderAbilityNote && (
+              {defenderAbilityDetail && (
                 <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-1.5">
                   <span className="font-semibold">
-                    {defenderName}: {defenderAbilityNote.label}
+                    {defenderName}: {defenderAbilityDetail.label}
                   </span>
                   <span className="text-[#1E40AF]">
-                    · {defenderAbilityNote.effect}
+                    · {defenderAbilityDetail.effect}
                   </span>
                 </div>
               )}
@@ -562,38 +341,18 @@ export const BattleResultCard = memo(function BattleResultCard({
                   {terrainNote}
                 </span>
               )}
-              {attackerItemNote && (
+              {attackerItemDetail && (
                 <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#065F46]">
-                  Objeto ATQ: {attackerItemNote.effect}
+                  Objeto ATQ: {attackerItemDetail.effect}
                 </span>
               )}
-              {defenderItemNote && (
+              {defenderItemDetail && (
                 <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#065F46]">
-                  Objeto DEF: {defenderItemNote.effect}
-                </span>
-              )}
-              {attackerStatusNote && (
-                <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#92400E]">
-                  Estado ATQ: {attackerStatusNote.label}
-                </span>
-              )}
-              {defenderStatusNote && (
-                <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#991B1B]">
-                  Estado DEF: {defenderStatusNote.label}
-                </span>
-              )}
-              {attackerAbilityNote && (
-                <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#1E40AF]">
-                  Hab. ATQ: {attackerAbilityNote.label}
-                </span>
-              )}
-              {defenderAbilityNote && (
-                <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#1E40AF]">
-                  Hab. DEF: {defenderAbilityNote.label}
+                  Objeto DEF: {defenderItemDetail.effect}
                 </span>
               )}
               <span
-                title="Fórmula oficial: 16 valores aleatorios del 85% al 100%, por eso siempre 16 rolls"
+                title="Fórmula oficial: 16 valores aleatorios del 85% al 100%"
                 className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E]"
               >
                 16 rolls · 85% a 100%

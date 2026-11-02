@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { translateType } from "@/components/ui/TypeBadge";
 import {
   type BattleValidationError,
+  type BattleValidationState,
   validateBattleState,
 } from "@/domain/battle/services/BattleValidation";
 import type {
@@ -84,6 +85,7 @@ export function BattleLabContainer() {
     loadItems();
     loadAbilities();
   }, [loadPokemon, loadMoves, loadItems, loadAbilities]);
+
   useEffect(() => {
     if (attackerInput?.pokemonId !== prevAttackerIdRef.current) {
       userHasManuallySelectedMove.current = false;
@@ -180,7 +182,7 @@ export function BattleLabContainer() {
     });
   }, [attackerInput, resolvedAttackerMoves, moveList]);
 
-  const validationState = useMemo(() => {
+  const validationState: BattleValidationState = useMemo(() => {
     const attackerData = attackerPokemon
       ? {
           id: attackerPokemon.id,
@@ -211,10 +213,11 @@ export function BattleLabContainer() {
           type: moveDetail?.type,
         }
       : null;
+
     const base = validateBattleState({
-      attacker: attackerData as never,
-      defender: defenderData as never,
-      move: moveData as never,
+      attacker: attackerData,
+      defender: defenderData,
+      move: moveData,
       generation,
     });
 
@@ -222,25 +225,29 @@ export function BattleLabContainer() {
     if (attackerIdentity) {
       const res = SmogonSpeciesMapper.resolve(attackerIdentity, generation);
       if (!res.supported && !res.isFallbackToBase)
-        genErrors.push(
-          "UNSUPPORTED_FORM_FOR_GENERATION" as BattleValidationError,
-        );
+        genErrors.push("UNSUPPORTED_FORM_FOR_GENERATION");
     }
     if (defenderIdentity) {
       const res = SmogonSpeciesMapper.resolve(defenderIdentity, generation);
       if (!res.supported && !res.isFallbackToBase)
-        genErrors.push(
-          "UNSUPPORTED_FORM_FOR_GENERATION" as BattleValidationError,
-        );
+        genErrors.push("UNSUPPORTED_FORM_FOR_GENERATION");
     }
+
     const allErrors = [...base.errors, ...genErrors];
     const filtered = allErrors.filter(
       (e) => !(e === "INVALID_BATTLE_CONTEXT" && generation === 9),
     );
+    const dedup = Array.from(new Set(filtered));
+
     return {
-      ...base,
-      errors: Array.from(new Set(filtered)),
-      valid: Array.from(new Set(filtered)).length === 0,
+      attacker: base.attacker,
+      defender: base.defender,
+      move: base.move,
+      generation: base.generation,
+      errors: dedup,
+      valid: dedup.length === 0,
+      isValid: dedup.length === 0,
+      issues: dedup,
     };
   }, [
     attackerPokemon,
@@ -313,6 +320,7 @@ export function BattleLabContainer() {
     },
     [setMoveNameStore],
   );
+
   const handleCalculate = useCallback(async () => {
     setLocalError(null);
     if (!validationState.valid) {

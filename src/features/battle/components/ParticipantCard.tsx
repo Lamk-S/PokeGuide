@@ -227,7 +227,11 @@ export const ParticipantCard = memo(function ParticipantCard({
     [],
   );
   const statusOptions = useMemo(
-    () => Object.values(Status).map((s) => ({ value: s.id, label: s.labelEs })),
+    () =>
+      Object.values(Status).map((s) => ({
+        value: (s as { id: string }).id,
+        label: (s as { labelEs: string }).labelEs,
+      })),
     [],
   );
 
@@ -263,9 +267,10 @@ export const ParticipantCard = memo(function ParticipantCard({
           if (typeof a === "string") return a;
           return (a as { name: string }).name || "";
         })(),
-        status: "none",
+        status: "none" as StatusId,
         moves: [],
         item: null,
+        isCriticalHit: false,
       } as unknown as BattleParticipantInput);
     };
     return (
@@ -384,7 +389,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                 })(),
                 moves: [],
                 item: null,
-                status: "none",
+                status: "none" as StatusId,
                 nature: SERIOUS,
                 evs: nextEvs,
                 ivs: nextIvs,
@@ -668,10 +673,10 @@ export const ParticipantCard = memo(function ParticipantCard({
                 <div className="relative isolate z-20">
                   <Combobox
                     options={statusOptions}
-                    value={input.status ?? "healthy"}
+                    value={(input.status as StatusId) ?? "none"}
                     onValueChange={(v) => {
-                      const mapped = v === "none" || !v ? "healthy" : v;
-                      onChange({ ...input, status: mapped as StatusId });
+                      const mapped = (v || "none") as StatusId;
+                      onChange({ ...input, status: mapped });
                     }}
                     placeholder="Ninguno"
                   />
@@ -681,7 +686,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                 <label className="flex items-center gap-2 text-[11px] font-mono">
                   <input
                     type="checkbox"
-                    checked={input.isCriticalHit ?? false}
+                    checked={Boolean(input.isCriticalHit)}
                     onChange={(e) =>
                       onChange({ ...input, isCriticalHit: e.target.checked })
                     }
