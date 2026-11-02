@@ -142,15 +142,53 @@ export const COMPETITIVE_ABILITIES: CompetitiveAbility[] = [
     description: "Boosts Defense on entry",
     descriptionEs: "Sube Defensa al entrar",
   },
+  {
+    id: "adaptability",
+    name: "adaptability",
+    nameEs: "Adaptable",
+    description: "STAB 2x",
+    descriptionEs: "STAB 2x en vez de 1.5x",
+  },
+  {
+    id: "mold-breaker",
+    name: "mold-breaker",
+    nameEs: "Rompemoldes",
+    description: "Ignores abilities",
+    descriptionEs: "Ignora habilidades",
+  },
+  {
+    id: "magic-guard",
+    name: "magic-guard",
+    nameEs: "Muro Mágico",
+    description: "Only direct damage",
+    descriptionEs: "Solo daño directo",
+  },
 ];
 
 const MAP_ES = new Map<string, string>(
   COMPETITIVE_ABILITIES.map((a) => [normalizeId(a.id), a.nameEs]),
 );
+const COMPETITIVE_SET = new Set(
+  COMPETITIVE_ABILITIES.map((a) => normalizeId(a.id)),
+);
 
 export function translateAbilityToSpanish(id: string): string | undefined {
   return MAP_ES.get(normalizeId(id));
 }
+
 export function isCompetitiveAbility(id: string): boolean {
-  return MAP_ES.has(normalizeId(id));
+  return COMPETITIVE_SET.has(normalizeId(id));
 }
+
+export function filterCompetitiveAbilities<
+  T extends { name: string; nameEs?: string; id?: string },
+>(items: T[]): T[] {
+  if (!items || items.length === 0) return items;
+  const filtered = items.filter((i) => {
+    const candidate = (i as { id?: string }).id || i.name || i.nameEs || "";
+    return isCompetitiveAbility(candidate);
+  });
+  return filtered.length >= 5 ? filtered : items;
+}
+
+export const VALID_ABILITY_IDS = COMPETITIVE_SET;

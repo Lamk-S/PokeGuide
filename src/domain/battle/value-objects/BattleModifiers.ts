@@ -1,109 +1,198 @@
+import { normalizeId } from "@/domain/shared/utils/normalizeId";
+
+export type WeatherId =
+  | "none"
+  | "sun"
+  | "rain"
+  | "sand"
+  | "snow"
+  | "hail"
+  | "harsh_sun"
+  | "heavy_rain"
+  | "strong_winds";
+
+export type TerrainId = "none" | "electric" | "grassy" | "psychic" | "misty";
+
+export type StatusId =
+  | "none"
+  | "burn"
+  | "paralyze"
+  | "poison"
+  | "badly-poisoned"
+  | "sleep"
+  | "freeze"
+  | "healthy";
+
+export interface IBattleConditions {
+  weather: WeatherId;
+  terrain: TerrainId;
+}
+
 export const Weather = {
-  none: { id: "none", label: "None", labelEs: "Ninguno", smogon: undefined },
-  sun: { id: "sun", label: "Sun", labelEs: "Sol", smogon: "Sun" },
-  rain: { id: "rain", label: "Rain", labelEs: "Lluvia", smogon: "Rain" },
-  sand: {
-    id: "sand",
-    label: "Sand",
-    labelEs: "Tormenta arena",
-    smogon: "Sand",
-  },
-  hail: { id: "hail", label: "Hail", labelEs: "Granizo", smogon: "Hail" },
-  snow: { id: "snow", label: "Snow", labelEs: "Nieve", smogon: "Snow" },
+  none: { id: "none" as WeatherId, label: "None", labelEs: "Ninguno" },
+  sun: { id: "sun" as WeatherId, label: "Sun", labelEs: "Sol" },
+  rain: { id: "rain" as WeatherId, label: "Rain", labelEs: "Lluvia" },
+  sand: { id: "sand" as WeatherId, label: "Sand", labelEs: "Tormenta arena" },
+  snow: { id: "snow" as WeatherId, label: "Snow", labelEs: "Nieve" },
+  hail: { id: "hail" as WeatherId, label: "Hail", labelEs: "Granizo" },
   harsh_sun: {
-    id: "harsh_sun",
+    id: "harsh_sun" as WeatherId,
     label: "Harsh Sun",
     labelEs: "Sol intenso",
-    smogon: "Harsh Sunshine",
   },
   heavy_rain: {
-    id: "heavy_rain",
+    id: "heavy_rain" as WeatherId,
     label: "Heavy Rain",
     labelEs: "Lluvia intensa",
-    smogon: "Heavy Rain",
   },
   strong_winds: {
-    id: "strong_winds",
+    id: "strong_winds" as WeatherId,
     label: "Strong Winds",
     labelEs: "Vientos fuertes",
-    smogon: "Strong Winds",
   },
 } as const;
 
 export const Terrain = {
-  none: { id: "none", label: "None", labelEs: "Ninguno", smogon: undefined },
+  none: { id: "none" as TerrainId, label: "None", labelEs: "Ninguno" },
   electric: {
-    id: "electric",
+    id: "electric" as TerrainId,
     label: "Electric",
     labelEs: "Eléctrico",
-    smogon: "Electric Terrain",
   },
-  grassy: {
-    id: "grassy",
-    label: "Grassy",
-    labelEs: "Hierba",
-    smogon: "Grassy Terrain",
-  },
-  misty: {
-    id: "misty",
-    label: "Misty",
-    labelEs: "Niebla",
-    smogon: "Misty Terrain",
-  },
+  grassy: { id: "grassy" as TerrainId, label: "Grassy", labelEs: "Hierba" },
   psychic: {
-    id: "psychic",
+    id: "psychic" as TerrainId,
     label: "Psychic",
     labelEs: "Psíquico",
-    smogon: "Psychic Terrain",
   },
+  misty: { id: "misty" as TerrainId, label: "Misty", labelEs: "Niebla" },
 } as const;
 
 export const Status = {
-  none: { id: "none", label: "None", labelEs: "Ninguno", smogon: "" as const },
-  burn: {
-    id: "burn",
-    label: "Burn",
-    labelEs: "Quemado",
-    smogon: "brn" as const,
+  none: { id: "none" as StatusId, label: "None", labelEs: "Saludable" },
+  healthy: {
+    id: "healthy" as StatusId,
+    label: "Healthy",
+    labelEs: "Saludable",
   },
+  burn: { id: "burn" as StatusId, label: "Burn", labelEs: "Quemado" },
   paralyze: {
-    id: "paralyze",
+    id: "paralyze" as StatusId,
     label: "Paralyze",
     labelEs: "Paralizado",
-    smogon: "par" as const,
   },
-  poison: {
-    id: "poison",
-    label: "Poison",
-    labelEs: "Envenenado",
-    smogon: "psn" as const,
-  },
+  poison: { id: "poison" as StatusId, label: "Poison", labelEs: "Envenenado" },
   "badly-poisoned": {
-    id: "badly-poisoned",
+    id: "badly-poisoned" as StatusId,
     label: "Badly Poisoned",
     labelEs: "Grav. envenenado",
-    smogon: "tox" as const,
   },
-  sleep: {
-    id: "sleep",
-    label: "Sleep",
-    labelEs: "Dormido",
-    smogon: "slp" as const,
-  },
-  freeze: {
-    id: "freeze",
-    label: "Freeze",
-    labelEs: "Congelado",
-    smogon: "frz" as const,
-  },
+  sleep: { id: "sleep" as StatusId, label: "Sleep", labelEs: "Dormido" },
+  freeze: { id: "freeze" as StatusId, label: "Freeze", labelEs: "Congelado" },
 } as const;
 
-export type WeatherId = keyof typeof Weather;
-export type TerrainId = keyof typeof Terrain;
-export type StatusId = keyof typeof Status;
+export const VALID_WEATHER_IDS: readonly WeatherId[] = [
+  "none",
+  "sun",
+  "rain",
+  "sand",
+  "snow",
+  "hail",
+  "harsh_sun",
+  "heavy_rain",
+  "strong_winds",
+] as const;
 
-export interface BattleConditions {
-  weather?: WeatherId | undefined;
-  terrain?: TerrainId | undefined;
-  isCriticalHit?: boolean | undefined;
+export const VALID_TERRAIN_IDS: readonly TerrainId[] = [
+  "none",
+  "electric",
+  "grassy",
+  "psychic",
+  "misty",
+] as const;
+
+export const VALID_STATUS_IDS: readonly StatusId[] = [
+  "none",
+  "burn",
+  "paralyze",
+  "poison",
+  "badly-poisoned",
+  "sleep",
+  "freeze",
+  "healthy",
+] as const;
+
+export function normalizeWeatherId(id: string | null | undefined): WeatherId {
+  if (!id) return "none";
+  const normalized = normalizeId(id);
+  if ((VALID_WEATHER_IDS as readonly string[]).includes(normalized)) {
+    return normalized as WeatherId;
+  }
+  if (normalized === "harsh-sun" || normalized === "harsh-sunshine")
+    return "harsh_sun";
+  if (normalized === "heavy-rain") return "heavy_rain";
+  if (normalized === "strong-winds") return "strong_winds";
+  return "none";
 }
+
+export function normalizeTerrainId(id: string | null | undefined): TerrainId {
+  if (!id) return "none";
+  const normalized = normalizeId(id);
+  return (VALID_TERRAIN_IDS as readonly string[]).includes(normalized)
+    ? (normalized as TerrainId)
+    : "none";
+}
+
+export function normalizeStatusId(id: string | null | undefined): StatusId {
+  if (!id) return "none";
+  const raw = normalizeId(id);
+  if (
+    !raw ||
+    raw === "saludable" ||
+    raw === "ninguno" ||
+    raw === "healthy" ||
+    raw === ""
+  )
+    return "none";
+  if (raw === "tox" || raw === "toxic" || raw === "bad-poison")
+    return "badly-poisoned";
+  if (raw === "brn") return "burn";
+  if (raw === "par") return "paralyze";
+  if (raw === "psn") return "poison";
+  if (raw === "slp") return "sleep";
+  if (raw === "frz") return "freeze";
+  return (VALID_STATUS_IDS as readonly string[]).includes(raw)
+    ? (raw as StatusId)
+    : "none";
+}
+
+export const WEATHER_SMOGON_MAP: Record<WeatherId, string> = {
+  none: "",
+  sun: "sun",
+  rain: "rain",
+  sand: "sand",
+  snow: "snow",
+  hail: "hail",
+  harsh_sun: "harshsunshine",
+  heavy_rain: "heavyrain",
+  strong_winds: "strongwinds",
+};
+
+export const TERRAIN_SMOGON_MAP: Record<TerrainId, string> = {
+  none: "",
+  electric: "electricterrain",
+  grassy: "grassyterrain",
+  psychic: "psychicterrain",
+  misty: "mistyterrain",
+};
+
+export const STATUS_SMOGON_MAP: Record<StatusId, string> = {
+  none: "",
+  healthy: "",
+  burn: "brn",
+  paralyze: "par",
+  poison: "psn",
+  "badly-poisoned": "tox",
+  sleep: "slp",
+  freeze: "frz",
+};
