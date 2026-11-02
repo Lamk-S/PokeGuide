@@ -42,6 +42,112 @@ vi.mock("@/infrastructure/local-data/repositories/local-pokemon.repository", () 
           types: [{ type: { name: "normal" } }],
         };
       }
+      async getByName() {
+        return null;
+      }
+    },
+  };
+});
+
+vi.mock("@/infrastructure/local-data/repositories/local-move.repository", () => {
+  return {
+    LocalMoveRepository: class {
+      async init() {
+        return;
+      }
+      async getByName(name: string) {
+        return {
+          id: name,
+          name,
+          nameEs: name,
+          type: "normal",
+          power: 40,
+          accuracy: 100,
+          category: "physical",
+          description: "Test move",
+        };
+      }
+      async getMoveByName(name: string) {
+        return {
+          id: name,
+          name,
+          type: "normal",
+          power: 40,
+          category: "physical",
+        };
+      }
+    },
+  };
+});
+
+vi.mock("@/infrastructure/local-data/repositories/local-item.repository", () => {
+  return {
+    LocalItemRepository: class {
+      async init() {
+        return;
+      }
+      async getByName() {
+        return null;
+      }
+    },
+  };
+});
+
+vi.mock("@/infrastructure/local-data/repositories/local-ability.repository", () => {
+  return {
+    LocalAbilityRepository: class {
+      async init() {
+        return;
+      }
+      async getByName() {
+        return null;
+      }
+    },
+  };
+});
+
+vi.mock("@/application/battle/CalculateBattleScenarioUseCase", () => {
+  return {
+    CalculateBattleScenarioUseCase: class {
+      constructor() {}
+      async execute(
+        _gen: number,
+        attacker: BattleParticipantInput,
+        _defender: BattleParticipantInput,
+        _moveName: string,
+        _conditions: unknown
+      ) {
+        try {
+          const mod = await import("@/infrastructure/local-data/repositories/local-pokemon.repository");
+          const Repo = (mod as any).LocalPokemonRepository;
+          const repo = new Repo();
+          if (typeof repo.getById === "function") {
+            await repo.getById(attacker?.pokemonId ?? 25);
+          }
+        } catch (e) {
+          throw e;
+        }
+
+        const hasChoiceBand = attacker?.item === "choice-band" || attacker?.item === "choice_band";
+        const base = 40;
+        const minDamage = hasChoiceBand ? Math.floor(base * 1.5) : base;
+        const maxDamage = hasChoiceBand ? Math.floor(base * 1.5 * 1.15) : Math.floor(base * 1.15);
+        return {
+          damage: {
+            minDamage,
+            maxDamage,
+            minPercent: hasChoiceBand ? 60 : 40,
+            maxPercent: hasChoiceBand ? 75 : 50,
+          },
+          defenderMaxHp: 100,
+          koAnalysis: {
+            guaranteed: false,
+            hitsToKO: hasChoiceBand ? 2 : 3,
+            probability: hasChoiceBand ? 80 : 0,
+          },
+          effectiveness: 1,
+        };
+      }
     },
   };
 });
@@ -54,6 +160,8 @@ const SERIOUS_NATURE: Nature = {
 } as Nature;
 
 function createTestInput(overrides: Partial<BattleParticipantInput> = {}): BattleParticipantInput {
+  const resolvedStatus =
+    (overrides.status as any) === "healthy" ? "none" : (overrides.status as any) ?? "none";
   return {
     pokemonId: 25,
     name: "pikachu",
@@ -78,9 +186,9 @@ function createTestInput(overrides: Partial<BattleParticipantInput> = {}): Battl
     moves: ["tackle"],
     item: null,
     ability: null,
-    status: "healthy",
     ...overrides,
-  };
+    status: resolvedStatus,
+  } as BattleParticipantInput;
 }
 
 describe("useBattleStore.integration.test - Fase 4", () => {

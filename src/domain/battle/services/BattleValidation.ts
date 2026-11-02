@@ -19,17 +19,21 @@ export type BattleValidationError =
   | BattleValidationErrorCode
   | BattleValidationExtendedError;
 
-export interface BattleValidationState {
+export interface BattleValidationInput {
   attacker: unknown | null;
   defender: unknown | null;
   move: unknown | null;
   generation: number;
 }
 
-export interface BattleValidationResult {
+export interface BattleValidationState extends BattleValidationInput {
   valid: boolean;
   errors: BattleValidationError[];
+  isValid: boolean;
+  issues: BattleValidationError[];
 }
+
+export type BattleValidationResult = BattleValidationState;
 
 const MIN_SUPPORTED_GEN = 1;
 const MAX_SUPPORTED_GEN = 9;
@@ -41,8 +45,8 @@ function isEmptyMove(move: unknown): boolean {
 }
 
 export function validateBattleState(
-  state: BattleValidationState,
-): BattleValidationResult {
+  state: BattleValidationInput,
+): BattleValidationState {
   const { attacker, defender, move, generation } = state;
 
   if (!Number.isFinite(generation) || generation <= 0) {
@@ -73,8 +77,16 @@ export function validateBattleState(
     errors.push("INVALID_GENERATION");
   }
 
+  const valid = errors.length === 0;
+
   return {
-    valid: errors.length === 0,
+    attacker,
+    defender,
+    move,
+    generation,
+    valid,
     errors,
+    isValid: valid,
+    issues: errors,
   };
 }
