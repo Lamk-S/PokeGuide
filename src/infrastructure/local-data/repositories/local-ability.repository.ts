@@ -1,107 +1,79 @@
-import { normalizeId } from "@/domain/shared/utils/normalizeId";
+import { COMPETITIVE_ABILITIES } from "@/domain/abilities/constants/competitiveAbilities";
+import rawAbilitiesData from "../../../../data/abilities/dataset.es.json";
 
-export type Ability = {
+type RawAbility = {
   name: string;
   nameEs?: string;
   effect?: string;
   effectEs?: string;
+  description?: string;
+  descriptionEs?: string;
   id?: string;
-  [k: string]: unknown;
 };
 
-let cache: Ability[] | null = null;
-let promise: Promise<Ability[]> | null = null;
-let nameMap: Map<string, Ability> | null = null;
-let idMap: Map<string, Ability> | null = null;
-
-function extractDefault<T>(mod: unknown): T {
-  const withDefault = mod as { default?: T };
-  return withDefault.default ?? (mod as T);
-}
-
-async function loadDataset(): Promise<Ability[]> {
-  if (cache) return cache;
-  if (promise) return promise;
-  promise = (async () => {
-    const mod = await import("../../../../data/abilities/dataset.es.json");
-    const data = extractDefault<Ability[]>(mod);
-    cache = data.map((ab) => ({
-      ...ab,
-      name: normalizeId(String(ab.name)),
-      id: ab.id ? normalizeId(String(ab.id)) : normalizeId(String(ab.name)),
-      nameEs: String(ab.nameEs ?? ab.name),
-    }));
-    nameMap = new Map();
-    idMap = new Map();
-    for (const ab of cache) {
-      const n = normalizeId(ab.name);
-      const es = normalizeId(String(ab.nameEs ?? ""));
-      const id = ab.id ? normalizeId(ab.id) : n;
-      nameMap.set(n, ab);
-      if (es) nameMap.set(es, ab);
-      if (id) {
-        nameMap.set(id, ab);
-        idMap.set(id, ab);
-      }
-    }
-    return cache;
-  })();
-  return promise;
+function parseDataset(data: unknown): RawAbility[] {
+  if (Array.isArray(data)) return data as RawAbility[];
+  if (data && typeof data === "object" && "abilities" in data) {
+    const obj = data as { abilities: unknown };
+    if (Array.isArray(obj.abilities)) return obj.abilities as RawAbility[];
+  }
+  return [];
 }
 
 export class LocalAbilityRepository {
+  private abilities: RawAbility[] = [];
+  private initialized = false;
+
   async init(): Promise<void> {
-    await loadDataset();
-  }
-  async getAll(): Promise<Ability[]> {
-    return loadDataset();
-  }
-  async getByName(name: string): Promise<Ability | null> {
-    const q = normalizeId(name.trim());
-    if (!q) return null;
-    await loadDataset();
-    return nameMap?.get(q) ?? null;
-  }
-  async getByNameEs(nameEs: string): Promise<Ability | null> {
-    return this.getByName(nameEs);
-  }
-  async getById(id: string): Promise<Ability | null> {
-    const q = normalizeId(id.trim());
-    if (!q) return null;
-    await loadDataset();
-    return idMap?.get(q) ?? nameMap?.get(q) ?? null;
-  }
-  async search(query: string): Promise<Ability[]> {
-    const q = normalizeId(query.trim());
-    const data = await loadDataset();
-    if (!q) return data;
-    return data.filter((a) => {
-      const n = normalizeId(a.name);
-      const es = normalizeId(String(a.nameEs ?? ""));
-      const id = a.id ? normalizeId(a.id) : "";
-      return n.includes(q) || es.includes(q) || id.includes(q);
-    });
-  }
-  async getCompetitive(): Promise<Ability[]> {
-    const data = await loadDataset();
-    try {
-      const { VALID_ABILITY_IDS } = await import(
-        "@/domain/abilities/constants/competitiveAbilities"
-      );
-      const filtered = data.filter((ab) =>
-        VALID_ABILITY_IDS.has(normalizeId(ab.name)),
-      );
-      return filtered.length >= 5 ? filtered : data;
-    } catch {
-      return data;
+    if (this.initialized) return;
+    const fromJson = parseDataset(rawAbilitiesData as unknown);
+    if (fromJson.length > 0) {
+      this.abilities = fromJson;
+    } else {
+      this.abilities = COMPETITIVE_ABILITIES.map((a) => ({
+        name: a.id || a.name,
+        nameEs: a.nameEs || a.id,
+        descriptionEs: a.descriptionEs || a.description,
+        description: a.description,
+        id: a.id,
+      }));
     }
+    this.initialized = true;
   }
-  getByNameSync(name: string): Ability | null {
-    const q = normalizeId(name.trim());
-    if (!q || !nameMap) return null;
-    return nameMap.get(q) ?? null;
+
+  async getAll(): Promise<RawAbility[]> {
+    await this.init();
+    return this.abilities;
   }
-  existsSync(name: string): boolean {
-    return this.getByNameSync(name) !== null;
+
+  async getCompetitive(): Promise<RawAbility[]> {
+    await this.init();
+    if (this.abilities.length > 50) {
+      const compSet = new Set(
+        COMPETITIVE_ABILITIES.map((a) => a.id.toLowerCase()),
+      );
+      const filtered = this.abilities.filter((ab) =>
+        compSet.has((ab.id || ab.name).toLowerCase()),
+      );
+      return filtered.length > 0 ? filtered : this.abilities;
+    }
+    return this.abilities;
+  }
+
+  async getByName(name: string): Promise<RawAbility | null> {
+    await this.init();
+    const norm = name.toLowerCase().replace(/_/g, "-").trim();
+    return (
+      this.abilities.find(
+        (a) =>
+          a.name.toLowerCase() === norm ||
+          a.nameEs?.toLowerCase() === norm ||
+          a.id?.toLowerCase() === norm,
+      ) || null
+    );
+  }
+
+  get abilityList(): RawAbility[] {
+    return this.abilities;
   }
 }
