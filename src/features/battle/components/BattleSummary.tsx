@@ -61,17 +61,17 @@ export const BattleSummary = memo(function BattleSummary({
   const defenderDisplay = getDisplayName(defenderPokemon);
 
   return (
-    <div className="w-full border-y border-[#EDE8E0] bg-[#FFFEFB]">
+    <div className="w-full border border-[#EDE8E0] bg-[#FFFEFB] rounded-xl">
       <div className="mx-auto max-w-[1600px] px-4 lg:px-6 h-17 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="size-9 rounded-full bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center overflow-hidden shrink-0">
+          <div className="size-10 rounded-full bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center overflow-hidden shrink-0">
             {attackerPokemon?.id ? (
               <PokemonSprite
                 pokemon={{
                   id: attackerPokemon.id,
                   name: (attackerPokemon as { name?: string }).name ?? "",
                 }}
-                size={32}
+                size={36}
               />
             ) : (
               <span className="text-[12px] text-[#9A9590]">?</span>
@@ -98,7 +98,7 @@ export const BattleSummary = memo(function BattleSummary({
         </div>
 
         <div className="shrink-0 flex flex-col items-center justify-center min-w-0">
-          <span className="text-[10px] font-mono tracking-widest text-[#9A9590] uppercase leading-none">
+          <span className="text-[10px] font-mono tracking-[0.18em] text-[#9A9590] uppercase leading-none">
             VS
           </span>
           <div className="mt-1 flex items-center gap-1.5">
@@ -131,7 +131,7 @@ export const BattleSummary = memo(function BattleSummary({
               ))}
             </div>
           </div>
-          <div className="size-9 rounded-full bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center overflow-hidden shrink-0">
+          <div className="size-10 rounded-full bg-[#F8F5F0] border border-[#EDE8E0] flex items-center justify-center overflow-hidden shrink-0">
             {defenderPokemon?.id ? (
               <PokemonSprite
                 pokemon={{
@@ -139,7 +139,7 @@ export const BattleSummary = memo(function BattleSummary({
                   name: (defenderPokemon as { name?: string }).name ?? "",
                 }}
                 facing="right"
-                size={32}
+                size={36}
               />
             ) : (
               <span className="text-[12px] text-[#9A9590]">?</span>

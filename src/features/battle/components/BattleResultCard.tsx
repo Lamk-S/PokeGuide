@@ -13,6 +13,7 @@ import type {
   IBattleConditions,
 } from "@/domain/battle/types/BattleParticipant";
 import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
+import { useAbilityStore } from "@/features/abilities/store/useAbilityStore";
 import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
 import { useItemStore } from "@/features/items/store/useItemStore";
 
@@ -54,18 +55,42 @@ function getEvTotalFromInput(
   return Object.values(evs).reduce((a: number, b: number) => a + (b ?? 0), 0);
 }
 
+const TRAD_ES: Record<string, string> = {
+  MISSING_ATTACKER: "Falta atacante",
+  MISSING_DEFENDER: "Falta defensor",
+  MISSING_MOVE: "Falta movimiento",
+  MISSING_POKEMON: "Falta Pokémon",
+  INVALID_BATTLE_CONTEXT: "Contexto inválido",
+  UNSUPPORTED_FORM_FOR_GENERATION: "Forma no disponible en esta generación",
+  INVALID_GENERATION: "Generación no válida",
+};
+
+function traducirErrores(list: string[]): string[] {
+  return list.map(
+    (e) =>
+      TRAD_ES[e] ||
+      e
+        .replace(/MISSING_/g, "Falta ")
+        .replace(/_/g, " ")
+        .toLowerCase(),
+  );
+}
+
 export function ResultEmptyState({ missing }: EmptyProps) {
+  const traducidos = missing?.length
+    ? traducirErrores(missing as string[])
+    : [];
   return (
-    <div className="bg-[#FFFEFB] rounded-xl border border-dashed border-[#EDE8E0] p-6 text-center">
+    <div className="bg-[#FFFEFB] rounded-xl border border-dashed border-[#EDE8E0] p-8 text-center min-h-70 flex flex-col items-center justify-center">
       <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
         Daño estimado
       </div>
-      <p className="mt-2 text-[12px] leading-normal text-[#7A7570]">
-        {missing && missing.length > 0
-          ? `Falta: ${missing.join(" · ")}. Completa atacante, defensor y movimiento.`
+      <p className="mt-3 text-[13px] leading-normal text-[#7A7570] max-w-[28ch]">
+        {traducidos.length > 0
+          ? `${traducidos.join(" · ")}. Completa atacante, defensor y movimiento.`
           : "Selecciona atacante, defensor y movimiento y presiona Calcular daño."}
       </p>
-      <p className="mt-2 text-[10px] font-mono text-[#9A9590]">
+      <p className="mt-3 text-[10px] font-mono text-[#9A9590]">
         El primer cálculo es manual, luego se actualiza automático.
       </p>
     </div>
@@ -74,11 +99,11 @@ export function ResultEmptyState({ missing }: EmptyProps) {
 
 export function ResultErrorState({ error }: { readonly error: string }) {
   return (
-    <div className="bg-[#FFFEFB] rounded-xl border border-dashed border-[#EDE8E0] p-6 text-center">
+    <div className="bg-[#FFFEFB] rounded-xl border border-[#EDE8E0] p-8 text-center">
       <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
         Daño estimado
       </div>
-      <p className="mt-2 text-[12px] leading-normal text-[#991B1B]">{error}</p>
+      <p className="mt-3 text-[13px] leading-normal text-[#991B1B]">{error}</p>
     </div>
   );
 }
@@ -151,7 +176,6 @@ export const BattleResultCard = memo(function BattleResultCard({
     return `${eff}x`;
   }, [result]);
 
-  const stabNote = useMemo(() => "STAB 1.5x si tipo coincide", []);
   const weatherNote = useMemo(() => {
     if (!conditions) return null;
     const w = conditions.weather;
@@ -168,28 +192,31 @@ export const BattleResultCard = memo(function BattleResultCard({
   }, [conditions]);
 
   const attackerStatusDetail = useMemo(
-    () => getStatusDetailEs(attackerInput?.status),
+    () => getStatusDetailEs((attackerInput?.status as string) ?? null),
     [attackerInput?.status],
   );
   const defenderStatusDetail = useMemo(
-    () => getStatusDetailEs(defenderInput?.status),
+    () => getStatusDetailEs((defenderInput?.status as string) ?? null),
     [defenderInput?.status],
   );
   const attackerItemDetail = useMemo(
-    () => getItemDetailEs(attackerInput?.item, itemList),
+    () => getItemDetailEs(attackerInput?.item ?? null, itemList),
     [attackerInput?.item, itemList],
   );
   const defenderItemDetail = useMemo(
-    () => getItemDetailEs(defenderInput?.item, itemList),
+    () => getItemDetailEs(defenderInput?.item ?? null, itemList),
     [defenderInput?.item, itemList],
   );
+  const abilityList = useAbilityStore((s) => s.abilityList as never);
   const attackerAbilityDetail = useMemo(
-    () => getAbilityDetailEs(attackerInput?.ability),
-    [attackerInput?.ability],
+    () =>
+      getAbilityDetailEs(attackerInput?.ability ?? null, abilityList as never),
+    [attackerInput?.ability, abilityList],
   );
   const defenderAbilityDetail = useMemo(
-    () => getAbilityDetailEs(defenderInput?.ability),
-    [defenderInput?.ability],
+    () =>
+      getAbilityDetailEs(defenderInput?.ability ?? null, abilityList as never),
+    [defenderInput?.ability, abilityList],
   );
 
   const evAtk = getEvTotalFromInput(attackerInput ?? null);
@@ -329,7 +356,7 @@ export const BattleResultCard = memo(function BattleResultCard({
                 {effectivenessNote}
               </span>
               <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E]">
-                {stabNote}
+                STAB 1.5x si tipo coincide
               </span>
               {weatherNote && (
                 <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E]">

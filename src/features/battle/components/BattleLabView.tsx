@@ -9,6 +9,14 @@ import type {
   WeatherId,
 } from "@/domain/battle/value-objects/BattleModifiers";
 import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
+import { BattleFieldControls } from "./BattleFieldControls";
+import {
+  BattleResultCard,
+  ResultEmptyState,
+  ResultErrorState,
+} from "./BattleResultCard";
+import { BattleSummary } from "./BattleSummary";
+import { ParticipantCard } from "./ParticipantCard";
 
 type MoveOption = {
   value: string;
@@ -46,10 +54,12 @@ type MinimalMove = {
 
 type ValidationState = {
   valid: boolean;
+  isValid?: boolean;
+  errors?: string[];
   missing?: string[];
 };
 
-interface Props {
+interface BattleLabViewProps {
   pokemonList: MinimalPokemon[];
   moveList: Record<string, MinimalMove>;
   attackerInput: BattleParticipantInput | null;
@@ -60,221 +70,304 @@ interface Props {
   availableMoves: MoveOption[];
   result: BattleResult | null;
   error: string | null;
-  conditions?: IBattleConditions;
-  generation?: number;
-  activeTab?: "attacker" | "defender" | "result";
-  validationState?: ValidationState;
-  isCalculating?: boolean;
-  missing?: string[];
-  moveName?: string;
+  localError?: string | null;
+  conditions: IBattleConditions;
+  generation: number;
+  activeTab: "attacker" | "defender" | "result";
+  validationState: ValidationState;
+  isCalculating: boolean;
+  evTotalAtk: number;
+  evTotalDef: number;
+  moveName: string;
   moveType?: string;
   movePower?: number | null;
-  weather?: WeatherId;
-  terrain?: TerrainId;
-  evTotalAtk?: number;
-  evTotalDef?: number;
-  evTotal?: number;
-  onActiveTabChange?: (tab: "attacker" | "defender" | "result") => void;
-  onCalculate?: () => void;
-  onGenerationChange?: (gen: number) => void;
+  onActiveTabChange: (tab: "attacker" | "defender" | "result") => void;
+  onCalculate: () => void;
+  onGenerationChange: (gen: number) => void;
   onConditionsChange?: (c: Partial<IBattleConditions>) => void;
-  onMoveChange?: (name: string) => void;
-  onWeatherChange?: (w: WeatherId) => void;
-  onTerrainChange?: (t: TerrainId) => void;
-  onAttackerChange?: (input: BattleParticipantInput | null) => void;
-  onDefenderChange?: (input: BattleParticipantInput | null) => void;
-  children?: {
-    attacker?: React.ReactNode;
-    defender?: React.ReactNode;
-  };
-  [key: string]: unknown;
+  onWeatherChange: (w: WeatherId) => void;
+  onTerrainChange: (t: TerrainId) => void;
+  onAttackerChange: (input: BattleParticipantInput | null) => void;
+  onDefenderChange: (input: BattleParticipantInput | null) => void;
+  onMoveChange: (name: string) => void;
+  onSwap: () => void;
 }
 
-function ResultEmptyState({ missing }: { missing: string[] }) {
-  return (
-    <div className="bg-[#FFFEFB] rounded-xl border border-dashed border-[#EDE8E0] p-6 text-center">
-      <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
-        Daño estimado
-      </div>
-      <p className="mt-2 text-[12px] leading-normal text-[#7A7570]">
-        {missing && missing.length > 0
-          ? `Falta: ${missing.join(" · ")}. Completa atacante, defensor y movimiento.`
-          : "Selecciona atacante, defensor y movimiento y presiona Calcular daño."}
-      </p>
-    </div>
-  );
-}
+const GEN_LABELS: Record<number, string> = {
+  9: "Gen 9 - Escarlata/Violeta",
+  8: "Gen 8 - Espada/Escudo",
+  7: "Gen 7 - Sol/Luna",
+  6: "Gen 6 - X/Y",
+  5: "Gen 5 - Negro/Blanco",
+  4: "Gen 4 - Diamante/Perla",
+  3: "Gen 3 - Rubí/Zafiro",
+  2: "Gen 2 - Oro/Plata",
+  1: "Gen 1 - Rojo/Azul",
+};
 
-function ResultErrorState({ error }: { error: string }) {
-  return (
-    <div className="bg-[#FFFEFB] rounded-xl border border-dashed border-[#EDE8E0] p-6 text-center">
-      <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
-        Daño estimado
-      </div>
-      <p className="mt-2 text-[12px] leading-normal text-[#991B1B]">{error}</p>
-    </div>
-  );
-}
-
-export function BattleLabView(props: Props) {
-  const {
-    result,
-    error,
-    missing = [],
-    onActiveTabChange = () => {},
-    onCalculate = () => {},
-    onGenerationChange = () => {},
-    onConditionsChange = () => {},
-    children,
-  } = props;
-
-  const generation = props.generation ?? 9;
-  const conditions: IBattleConditions = props.conditions ?? {
-    weather: "none",
-    terrain: "none",
-  };
-  const activeTab = props.activeTab ?? "attacker";
-  const validationState = props.validationState ?? { valid: true };
-  const isCalculating = props.isCalculating ?? false;
-
+function LabHeader({
+  generation,
+  weather,
+  terrain,
+  isValid,
+  onGenerationChange,
+  onWeatherChange,
+  onTerrainChange,
+}: {
+  generation: number;
+  weather: WeatherId;
+  terrain: TerrainId;
+  isValid: boolean;
+  onGenerationChange: (g: number) => void;
+  onWeatherChange: (w: WeatherId) => void;
+  onTerrainChange: (t: TerrainId) => void;
+}) {
   const genId = useId();
-  const weatherId = useId();
-  const terrainId = useId();
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => onActiveTabChange("attacker")}
-          className={`px-3 py-1.5 rounded-md text-[12px] font-medium border ${activeTab === "attacker" ? "bg-[#111] text-white border-[#111]" : "bg-white border-[#EDE8E0]"}`}
-        >
-          Atacante
-        </button>
-        <button
-          type="button"
-          onClick={() => onActiveTabChange("defender")}
-          className={`px-3 py-1.5 rounded-md text-[12px] font-medium border ${activeTab === "defender" ? "bg-[#111] text-white border-[#111]" : "bg-white border-[#EDE8E0]"}`}
-        >
-          Defensor
-        </button>
-        <button
-          type="button"
-          onClick={() => onActiveTabChange("result")}
-          className={`px-3 py-1.5 rounded-md text-[12px] font-medium border ${activeTab === "result" ? "bg-[#111] text-white border-[#111]" : "bg-white border-[#EDE8E0]"}`}
-        >
-          Resultado
-        </button>
+    <div className="w-full bg-[#FFFEFB] border border-[#EDE8E0] rounded-t-xl lg:rounded-xl px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <h1 className="text-[13px] font-bold tracking-tight">
+            Laboratorio de Batalla
+          </h1>
+          <span className="h-1 w-1 rounded-full bg-[#D9CFC2]" />
+          <p className="text-[11px] text-[#9A9590] leading-snug truncate">
+            Herramienta de precisión para simular daño real con naturaleza, IVs,
+            EVs, objeto, habilidad, estado, clima...
+          </p>
+        </div>
       </div>
-
-      <div className="grid grid-cols-3 gap-2">
-        <div>
-          <label
-            htmlFor={genId}
-            className="text-[10px] uppercase tracking-widest text-[#9A9590]"
-          >
-            Gen
-          </label>
+      <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap shrink-0">
+        <div className="flex flex-col gap-1">
+          <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9A9590] leading-none">
+            Generación
+          </span>
           <select
             id={genId}
             value={generation}
             onChange={(e) =>
               onGenerationChange(Number.parseInt(e.target.value, 10))
             }
-            className="mt-1 h-8 w-full rounded-md border border-[#EDE8E0] bg-white px-2 text-[12px]"
+            className="h-8 rounded-full border border-[#EDE8E0] bg-white px-3 pr-7 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-[#111]/10"
           >
             {[9, 8, 7, 6, 5, 4, 3, 2, 1].map((g) => (
               <option key={g} value={g}>
-                Gen {g}
+                {GEN_LABELS[g] ?? `Gen ${g}`}
               </option>
             ))}
           </select>
         </div>
-        <div>
-          <label
-            htmlFor={weatherId}
-            className="text-[10px] uppercase tracking-widest text-[#9A9590]"
+        <BattleFieldControls
+          variant="compact"
+          weather={weather}
+          terrain={terrain}
+          onWeatherChange={onWeatherChange}
+          onTerrainChange={onTerrainChange}
+        />
+        <div className="ml-1 flex items-center">
+          <span
+            className={`inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-[10px] font-bold tracking-wide border ${isValid ? "bg-[#111] text-white border-[#111]" : "bg-white text-[#9A9590] border-[#EDE8E0]"}`}
           >
-            Clima
-          </label>
-          <select
-            id={weatherId}
-            value={conditions.weather}
-            onChange={(e) =>
-              onConditionsChange({
-                weather: e.target.value as IBattleConditions["weather"],
-              })
-            }
-            className="mt-1 h-8 w-full rounded-md border border-[#EDE8E0] bg-white px-2 text-[12px]"
-          >
-            <option value="none">Ninguno</option>
-            <option value="sun">Sol</option>
-            <option value="rain">Lluvia</option>
-            <option value="sand">Tormenta arena</option>
-            <option value="snow">Nieve</option>
-            <option value="hail">Granizo</option>
-          </select>
-        </div>
-        <div>
-          <label
-            htmlFor={terrainId}
-            className="text-[10px] uppercase tracking-widest text-[#9A9590]"
-          >
-            Terreno
-          </label>
-          <select
-            id={terrainId}
-            value={conditions.terrain}
-            onChange={(e) =>
-              onConditionsChange({
-                terrain: e.target.value as IBattleConditions["terrain"],
-              })
-            }
-            className="mt-1 h-8 w-full rounded-md border border-[#EDE8E0] bg-white px-2 text-[12px]"
-          >
-            <option value="none">Ninguno</option>
-            <option value="electric">Eléctrico</option>
-            <option value="grassy">Hierba</option>
-            <option value="psychic">Psíquico</option>
-            <option value="misty">Niebla</option>
-          </select>
+            <span
+              className={`size-1.5 rounded-full ${isValid ? "bg-[#22C55E] animate-pulse" : "bg-[#9A9590]"}`}
+            />
+            {isValid ? "CÁLCULO LISTO" : "CÁLCULO PENDIENTE"}
+          </span>
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div className="space-y-4">
-        <div className={activeTab === "attacker" ? "block" : "hidden"}>
-          {children?.attacker}
-        </div>
-        <div className={activeTab === "defender" ? "block" : "hidden"}>
-          {children?.defender}
-        </div>
+function MobileTabs({
+  activeTab,
+  onChange,
+}: {
+  activeTab: "attacker" | "defender" | "result";
+  onChange: (t: "attacker" | "defender" | "result") => void;
+}) {
+  return (
+    <div className="flex lg:hidden items-center gap-2 px-1">
+      {(["attacker", "defender", "result"] as const).map((tab) => (
+        <button
+          key={tab}
+          type="button"
+          onClick={() => onChange(tab)}
+          className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium border transition-colors ${activeTab === tab ? "bg-[#111] text-white border-[#111]" : "bg-white border-[#EDE8E0] text-[#2B2B2B] hover:bg-[#F8F5F0]"}`}
+        >
+          {tab === "attacker"
+            ? "Atacante"
+            : tab === "defender"
+              ? "Defensor"
+              : "Resultado"}
+        </button>
+      ))}
+    </div>
+  );
+}
 
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={onCalculate}
-            disabled={isCalculating || !validationState.valid}
-            className="w-full h-10 rounded-md bg-[#111] text-white text-[13px] font-medium disabled:opacity-40"
+export function BattleLabView(props: BattleLabViewProps) {
+  const {
+    pokemonList,
+    attackerInput,
+    defenderInput,
+    attackerPokemon,
+    defenderPokemon,
+    defenderTypes,
+    availableMoves,
+    result,
+    error,
+    localError,
+    conditions,
+    generation,
+    activeTab,
+    validationState,
+    isCalculating,
+    evTotalAtk,
+    evTotalDef,
+    moveName,
+    moveType,
+    movePower,
+    onActiveTabChange,
+    onCalculate,
+    onGenerationChange,
+    onWeatherChange,
+    onTerrainChange,
+    onAttackerChange,
+    onDefenderChange,
+    onMoveChange,
+    onSwap,
+  } = props;
+
+  const displayError = localError || error;
+  const isValid = validationState.valid;
+  const missing = validationState.missing ?? validationState.errors ?? [];
+
+  return (
+    <div className="min-h-screen bg-[#F8F5F0] w-full">
+      <div className="mx-auto max-w-[1600px] px-3 lg:px-6 py-3 lg:py-4 space-y-3">
+        <LabHeader
+          generation={generation}
+          weather={conditions.weather}
+          terrain={conditions.terrain}
+          isValid={isValid}
+          onGenerationChange={onGenerationChange}
+          onWeatherChange={onWeatherChange}
+          onTerrainChange={onTerrainChange}
+        />
+
+        <BattleSummary
+          attackerPokemon={attackerPokemon}
+          defenderPokemon={defenderPokemon}
+          attackerLevel={attackerInput?.level}
+          defenderLevel={defenderInput?.level}
+          generation={generation}
+          moveName={
+            availableMoves.find((m) => m.value === moveName)?.label || moveName
+          }
+          moveType={moveType}
+          movePower={movePower}
+        />
+
+        <MobileTabs activeTab={activeTab} onChange={onActiveTabChange} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr_1.05fr] gap-3 lg:gap-4 items-start">
+          {/* Atacante */}
+          <div
+            className={`${activeTab === "attacker" ? "block" : "hidden"} lg:block`}
           >
-            {isCalculating ? "Calculando..." : "Calcular daño"}
-          </button>
+            <ParticipantCard
+              label="Atacante"
+              pokemonList={pokemonList as never}
+              input={attackerInput}
+              onChange={onAttackerChange}
+              facing="left"
+              generation={generation}
+              isAttacker
+              moveName={moveName}
+              onMoveChange={onMoveChange}
+              availableMoves={availableMoves}
+              defenderTypes={defenderTypes}
+            />
+          </div>
+
+          {/* Centro - Resultado */}
+          <div
+            className={`${activeTab === "result" ? "block" : "hidden"} lg:block space-y-3`}
+          >
+            {displayError ? (
+              <ResultErrorState error={displayError} />
+            ) : result ? (
+              <BattleResultCard
+                result={result}
+                attackerPokemon={attackerPokemon}
+                defenderPokemon={defenderPokemon}
+                attackerInput={attackerInput}
+                defenderInput={defenderInput}
+                conditions={conditions}
+                moveName={
+                  availableMoves.find((m) => m.value === moveName)?.label ||
+                  moveName ||
+                  "Movimiento"
+                }
+                moveType={moveType}
+                movePower={movePower}
+                generation={generation}
+                error={null}
+              />
+            ) : (
+              <ResultEmptyState missing={missing as string[]} />
+            )}
+          </div>
+
+          {/* Defensor */}
+          <div
+            className={`${activeTab === "defender" ? "block" : "hidden"} lg:block`}
+          >
+            <ParticipantCard
+              label="Defensor"
+              pokemonList={pokemonList as never}
+              input={defenderInput}
+              onChange={onDefenderChange}
+              facing="right"
+              generation={generation}
+              defenderTypes={defenderTypes}
+            />
+          </div>
         </div>
 
-        {activeTab === "result" &&
-          (error ? (
-            <ResultErrorState error={error} />
-          ) : result ? (
-            <div className="bg-[#FFFEFB] rounded-xl border border-[#EDE8E0] p-4">
-              <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
-                Resultado
-              </div>
-              <div className="mt-2 text-[12px]">
-                Daño calculado correctamente
-              </div>
-            </div>
-          ) : (
-            <ResultEmptyState missing={missing} />
-          ))}
+        <div className="bg-white border border-[#EDE8E0] rounded-xl lg:rounded-full px-4 py-3 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-4 text-[10px] font-mono text-[#9A9590] tabular-nums">
+            <span>
+              {evTotalAtk}/510 Esfuerzo atacante -{" "}
+              {attackerPokemon ? attackerPokemon.name : "—"}
+            </span>
+            <span>{evTotalDef}/510 Defensor</span>
+            <span className="hidden lg:inline">
+              PS RESTANTE{" "}
+              {result
+                ? `${(100 - (result.damage.maxPercent ?? 0)).toFixed(1)}%`
+                : "0.0%"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 self-stretch lg:self-auto">
+            <button
+              type="button"
+              onClick={onSwap}
+              className="h-9 px-4 rounded-full border border-[#EDE8E0] bg-white text-[12px] font-medium hover:bg-[#F8F5F0] underline underline-offset-4 decoration-dotted"
+            >
+              Intercambiar
+            </button>
+            <button
+              type="button"
+              onClick={onCalculate}
+              disabled={isCalculating}
+              className="h-9 px-5 rounded-full bg-[#111] text-white text-[12px] font-semibold hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isCalculating ? "Calculando..." : "Calcular daño"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
