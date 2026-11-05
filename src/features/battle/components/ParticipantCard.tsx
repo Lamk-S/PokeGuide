@@ -117,7 +117,6 @@ export const ParticipantCard = memo(function ParticipantCard({
   pokemonList,
   input,
   onChange,
-  facing: _facing,
   generation,
   isAttacker,
   moveName,

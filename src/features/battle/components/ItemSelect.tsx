@@ -33,7 +33,7 @@ export function ItemSelect({
 }: ItemSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -45,6 +45,7 @@ export function ItemSelect({
     [itemList],
   );
   const sourceList = showAll ? itemList : competitiveList;
+  const totalCount = itemList.length;
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -110,6 +111,8 @@ export function ItemSelect({
     <div className="relative">
       <button
         type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
         onClick={() => setOpen(!open)}
         className="w-full h-8 px-2.5 rounded-md border border-[#E8E0D6] bg-white text-[13px] flex items-center justify-between gap-2 hover:border-[#D9CFC2] focus:outline-none focus:ring-1 focus:ring-[#111]/20 text-left"
       >
@@ -144,8 +147,8 @@ export function ItemSelect({
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono text-[#9A9590]">
                 {showAll
-                  ? `${itemList.length} objetos`
-                  : `${competitiveList.length} competitivos`}
+                  ? `${totalCount} objetos equipables`
+                  : `${competitiveList.length} competitivos de ${totalCount}`}
               </span>
               <button
                 type="button"
@@ -156,7 +159,7 @@ export function ItemSelect({
               </button>
             </div>
           </div>
-          <div className="overflow-auto py-1">
+          <div className="overflow-auto py-1" role="listbox">
             <button
               type="button"
               onClick={() => {
@@ -172,6 +175,11 @@ export function ItemSelect({
               <button
                 key={`${item.name}-${item.nameEs || ""}-${item.id || ""}`}
                 type="button"
+                role="option"
+                aria-selected={
+                  selected &&
+                  (selected.name === item.name || selected.id === item.id)
+                }
                 onClick={() => {
                   onValueChange(item.name);
                   setOpen(false);

@@ -324,7 +324,9 @@ export function BattleLabContainer() {
   const handleCalculate = useCallback(async () => {
     setLocalError(null);
     if (!validationState.valid) {
-      setLocalError("Faltan datos para calcular");
+      setLocalError(
+        `Faltan datos para calcular: ${validationState.errors.join(", ")}`,
+      );
       return;
     }
     try {
@@ -334,6 +336,15 @@ export function BattleLabContainer() {
       setLocalError(e instanceof Error ? e.message : String(e));
     }
   }, [validationState, calculateResult]);
+
+  const handleSwap = useCallback(() => {
+    if (!attackerInput || !defenderInput) return;
+    const atk = attackerInput;
+    const def = defenderInput;
+    setAttacker(def as never);
+    setDefender(atk as never);
+    userHasManuallySelectedMove.current = false;
+  }, [attackerInput, defenderInput, setAttacker, setDefender]);
 
   const evTotalAtk = useMemo(
     () =>
@@ -354,27 +365,33 @@ export function BattleLabContainer() {
     [defenderInput],
   );
 
+  const currentMoveDetail = moveName
+    ? (moveList[moveName] ?? moveList[normalizeId(moveName)])
+    : null;
+
   return (
     <BattleLabView
-      pokemonList={pokemonList}
-      moveList={moveList}
+      pokemonList={pokemonList as never}
+      moveList={moveList as never}
       attackerInput={attackerInput}
       defenderInput={defenderInput}
-      attackerPokemon={attackerPokemon}
-      defenderPokemon={defenderPokemon}
+      attackerPokemon={attackerPokemon as never}
+      defenderPokemon={defenderPokemon as never}
       defenderTypes={defenderTypes}
       availableMoves={availableMovesRich}
-      moveName={moveName}
       result={result}
+      error={error}
+      localError={localError}
       conditions={conditions}
-      isCalculating={isCalculating}
       generation={generation}
-      validationState={validationState}
+      activeTab={activeTab}
+      validationState={validationState as never}
+      isCalculating={isCalculating}
       evTotalAtk={evTotalAtk}
       evTotalDef={evTotalDef}
-      localError={localError}
-      error={error}
-      activeTab={activeTab}
+      moveName={moveName}
+      moveType={currentMoveDetail?.type}
+      movePower={currentMoveDetail?.power ?? null}
       onActiveTabChange={setActiveTab}
       onAttackerChange={setAttacker}
       onDefenderChange={setDefender}
@@ -383,6 +400,7 @@ export function BattleLabContainer() {
       onGenerationChange={setGeneration}
       onWeatherChange={setWeather as (w: WeatherId) => void}
       onTerrainChange={setTerrain as (t: TerrainId) => void}
+      onSwap={handleSwap}
     />
   );
 }
