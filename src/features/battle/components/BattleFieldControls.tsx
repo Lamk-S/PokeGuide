@@ -59,12 +59,12 @@ export function BattleFieldControls({
 }: Props) {
   if (variant === "compact") {
     return (
-      <div className="flex items-center gap-2 flex-1 lg:flex-none">
-        <div className="flex flex-col gap-1 flex-1 min-w-0">
-          <span className="hidden md:block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9A9590] leading-none">
+      <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-1">
+          <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9A9590] leading-none">
             Clima
           </span>
-          <div className="w-full min-w-22.5 md:w-32">
+          <div className="w-28">
             <Combobox
               options={weatherOptions}
               value={weather}
@@ -73,11 +73,11 @@ export function BattleFieldControls({
             />
           </div>
         </div>
-        <div className="flex flex-col gap-1 flex-1 min-w-0">
-          <span className="hidden md:block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9A9590] leading-none">
+        <div className="flex flex-col gap-1">
+          <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9A9590] leading-none">
             Campo
           </span>
-          <div className="w-full min-w-22.5 md:w-32">
+          <div className="w-28">
             <Combobox
               options={terrainOptions}
               value={terrain}

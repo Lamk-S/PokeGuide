@@ -80,9 +80,11 @@ export function MoveSelect({
     <div className="relative">
       <button
         type="button"
+        role="combobox"
+        aria-expanded={open}
         disabled={disabled}
         onClick={() => !disabled && setOpen(!open)}
-        className={`w-full h-8 px-2.5 rounded-md border bg-white text-[13px] flex items-center justify-between gap-2 text-left ${disabled ? "bg-[#F8F5F0] text-[#9A9590]" : "border-[#E8E0D6]"}`}
+        className={`w-full h-8 px-2.5 rounded-md border bg-white text-[13px] flex items-center justify-between gap-2 text-left focus:outline-none focus:ring-1 focus:ring-[#111]/10 ${disabled ? "bg-[#F8F5F0] text-[#9A9590] border-[#EDE8E0]" : "border-[#E8E0D6] hover:border-[#D9CFC2]"}`}
       >
         {selected ? (
           <span className="flex items-center gap-2 min-w-0 flex-1">
@@ -98,18 +100,18 @@ export function MoveSelect({
         <ChevronDown className="size-3.5 text-[#9A9590] shrink-0" />
       </button>
       {open && !disabled && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border bg-[#FFFEFB] shadow max-h-80 overflow-hidden flex flex-col">
-          <div className="p-2 border-b">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-[#E8E0D6] bg-[#FFFEFB] shadow-[0_8px_24px_rgba(0,0,0,0.08)] max-h-80 overflow-hidden flex flex-col">
+          <div className="p-2 border-b border-[#F0EDE6]">
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Busca movimiento..."
-              className="w-full h-8 px-2.5 rounded-md border bg-[#F8F5F0] text-[13px]"
+              className="w-full h-8 px-2.5 rounded-md border border-[#E8E0D6] bg-[#F8F5F0] text-[13px] focus:outline-none focus:ring-1 focus:ring-[#111]/10"
             />
           </div>
-          <div className="overflow-auto py-1">
+          <div className="overflow-auto py-1" role="listbox">
             {filtered.map((opt) => {
               const eff = defenderTypes
                 ? TypeEffectiveness.getMultiplier(
@@ -122,6 +124,8 @@ export function MoveSelect({
                 <button
                   key={opt.value}
                   type="button"
+                  role="option"
+                  aria-selected={isSelected}
                   onClick={() => {
                     onValueChange(opt.value);
                     setOpen(false);

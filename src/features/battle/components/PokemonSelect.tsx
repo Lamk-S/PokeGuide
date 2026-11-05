@@ -53,8 +53,11 @@ export function PokemonSelect({
     <div className="relative">
       <button
         type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
         onClick={() => setOpen((prev) => !prev)}
-        className="w-full h-8 px-2.5 rounded-md border border-[#E8E0D6] bg-white text-[13px] flex items-center justify-between gap-2 text-left"
+        className="w-full h-8 px-2.5 rounded-md border border-[#E8E0D6] bg-white text-[13px] flex items-center justify-between gap-2 text-left hover:border-[#D9CFC2] focus:outline-none focus:ring-1 focus:ring-[#111]/10"
       >
         {selected ? (
           <span className="flex items-center gap-2 min-w-0">
@@ -74,24 +77,26 @@ export function PokemonSelect({
         <ChevronDown className="size-3.5 text-[#9A9590] shrink-0" />
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border bg-[#FFFEFB] shadow max-h-72 overflow-hidden flex flex-col">
-          <div className="p-2 border-b">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-[#E8E0D6] bg-[#FFFEFB] shadow-[0_8px_24px_rgba(0,0,0,0.08)] max-h-72 overflow-hidden flex flex-col">
+          <div className="p-2 border-b border-[#F0EDE6]">
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Busca por especie, forma, id..."
-              className="w-full h-8 px-2.5 rounded-md border bg-[#F8F5F0] text-[13px]"
+              className="w-full h-8 px-2.5 rounded-md border border-[#E8E0D6] bg-[#F8F5F0] text-[13px] focus:outline-none focus:ring-1 focus:ring-[#111]/10"
             />
           </div>
-          <div className="overflow-auto py-1">
+          <div className="overflow-auto py-1" role="listbox">
             {filtered.map((p) => {
               const isSelected = String(p.id) === value;
               return (
                 <button
                   key={p.id}
                   type="button"
+                  role="option"
+                  aria-selected={isSelected}
                   onClick={() => {
                     onValueChange(String(p.id));
                     setOpen(false);
