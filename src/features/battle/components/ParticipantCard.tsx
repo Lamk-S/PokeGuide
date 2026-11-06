@@ -582,8 +582,11 @@ export const ParticipantCard = memo(function ParticipantCard({
                     (input.evs as unknown as Record<string, StatValue>)[st],
                   ) || 0;
                 const displayEv = isHpAndShedinja ? 0 : ev;
-                const remaining = 510 - (evTotal - ev);
-                const maxFor = Math.min(252, remaining);
+                const otherTotal = evTotal - ev;
+                const remainingForThis = 510 - otherTotal;
+                const maxForStat = isHpAndShedinja
+                  ? 0
+                  : Math.min(252, Math.max(0, remainingForThis));
                 return (
                   <div key={st} className="flex items-center gap-2">
                     <span className="text-[10px] font-mono w-7 text-[#9A9590]">
@@ -593,60 +596,60 @@ export const ParticipantCard = memo(function ParticipantCard({
                       type="range"
                       min={0}
                       max={252}
-                      step={4}
+                      step={1}
                       disabled={isHpAndShedinja}
                       value={displayEv}
                       onChange={(e) => {
                         if (isHpAndShedinja) return;
-                        const v = Math.min(
-                          maxFor,
-                          Math.max(0, Number.parseInt(e.target.value, 10)),
-                        );
+                        let v = Number.parseInt(e.target.value, 10);
+                        if (Number.isNaN(v)) v = 0;
+                        v = Math.max(0, Math.min(252, v));
+                        // respeta 510 total
+                        const maxAllowed = 510 - otherTotal;
+                        if (v > maxAllowed) v = Math.max(0, maxAllowed);
                         const newEVs = {
                           ...(input.evs as unknown as Record<string, number>),
                           [st]: v,
                         };
-                        try {
-                          onChange({ ...input, evs: EV.createSet(newEVs) });
-                        } catch {
-                          onChange({
-                            ...input,
-                            evs: newEVs as unknown as BattleParticipantInput["evs"],
-                          });
-                        }
+                        // bypass EV.createSet que fuerza múltiplos de 4 y 508, usa objeto plano directo
+                        onChange({
+                          ...input,
+                          evs: newEVs as unknown as BattleParticipantInput["evs"],
+                        });
                       }}
                       className="flex-1 accent-[#111] h-1 disabled:opacity-30"
                     />
                     <input
                       type="number"
                       min={0}
-                      max={isHpAndShedinja ? 0 : maxFor}
+                      max={maxForStat}
                       disabled={isHpAndShedinja}
                       value={displayEv}
                       onChange={(e) => {
                         if (isHpAndShedinja) return;
-                        const v = Math.min(
-                          maxFor,
-                          Math.max(0, Number.parseInt(e.target.value, 10) || 0),
-                        );
+                        let v = Number.parseInt(e.target.value, 10);
+                        if (Number.isNaN(v)) v = 0;
+                        v = Math.max(0, Math.min(252, v));
+                        const maxAllowed = 510 - otherTotal;
+                        if (v > maxAllowed) v = Math.max(0, maxAllowed);
                         const newEVs = {
                           ...(input.evs as unknown as Record<string, number>),
                           [st]: v,
                         };
-                        try {
-                          onChange({ ...input, evs: EV.createSet(newEVs) });
-                        } catch {
-                          onChange({
-                            ...input,
-                            evs: newEVs as unknown as BattleParticipantInput["evs"],
-                          });
-                        }
+                        onChange({
+                          ...input,
+                          evs: newEVs as unknown as BattleParticipantInput["evs"],
+                        });
                       }}
                       className="h-6 w-12 px-1 rounded-md border border-[#E8E0D6] text-[11px] font-mono text-center disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-[#F8F5F0]"
                     />
                   </div>
                 );
               })}
+              <p className="text-[9px] font-mono text-[#9A9590]">
+                Límite 510 total · 252 por stat · 252/252/6 = 510 (2 EVs
+                desperdiciados) es válido
+              </p>
             </div>
           )}
         </div>
