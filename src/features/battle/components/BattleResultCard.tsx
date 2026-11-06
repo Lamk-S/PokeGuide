@@ -352,35 +352,25 @@ export const BattleResultCard = memo(function BattleResultCard({
               {koExplain}
             </p>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
-              <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E]">
+              <span className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
                 {effectivenessNote}
               </span>
-              <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E]">
+              <span className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
                 STAB 1.5x si tipo coincide
               </span>
               {weatherNote && (
-                <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E]">
+                <span className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
                   {weatherNote}
                 </span>
               )}
               {terrainNote && (
-                <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E]">
+                <span className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
                   {terrainNote}
-                </span>
-              )}
-              {attackerItemDetail && (
-                <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#065F46]">
-                  Objeto ATQ: {attackerItemDetail.effect}
-                </span>
-              )}
-              {defenderItemDetail && (
-                <span className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#065F46]">
-                  Objeto DEF: {defenderItemDetail.effect}
                 </span>
               )}
               <span
                 title="Fórmula oficial: 16 valores aleatorios del 85% al 100%"
-                className="inline-flex h-5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E]"
+                className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight"
               >
                 16 rolls · 85% a 100%
               </span>
