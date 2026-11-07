@@ -14,9 +14,9 @@ const WEATHER_ES: Record<string, string> = {
   sand: "Tormenta arena",
   hail: "Granizo",
   snow: "Nieve",
-  harsh_sun: "Sol intenso",
-  heavy_rain: "Lluvia intensa",
-  strong_winds: "Vientos fuertes",
+  harsh_sun: "Sol abrasador",
+  heavy_rain: "Diluvio",
+  strong_winds: "Turbulencias",
 };
 const TERRAIN_ES: Record<string, string> = {
   none: "Ninguno",
@@ -26,12 +26,26 @@ const TERRAIN_ES: Record<string, string> = {
   psychic: "Psíquico",
 };
 
+const WEATHER_DESC: Record<string, string> = {
+  sun: "Fuego 1.5x, Agua 0.5x",
+  harsh_sun: "Fuego 1.5x, Agua falla, sol extremo",
+  rain: "Agua 1.5x, Fuego 0.5x, Trueno/Vendaval 100% acierto",
+  heavy_rain: "Agua 1.5x, Fuego falla, lluvia extrema",
+  sand: "Daño cada turno a no Roca/Tierra/Acero",
+  hail: "Granizo: daña a no Hielo",
+  snow: "Nieve: DEF x1.5 para Hielo (Gen9)",
+  strong_winds: "Turbulencias: anula debilidades Volador",
+  none: "",
+};
+
 type ModifierOption = { id: string; label?: string; labelEs?: string };
 const weatherOptions = Object.values(Weather).map((w) => {
   const opt = w as unknown as ModifierOption;
+  const id = opt.id;
   return {
-    value: opt.id,
-    label: WEATHER_ES[opt.id] || opt.labelEs || opt.label || opt.id,
+    value: id,
+    label: WEATHER_ES[id] || opt.labelEs || opt.label || id,
+    description: WEATHER_DESC[id] || "",
   };
 });
 const terrainOptions = Object.values(Terrain).map((t) => {
@@ -64,7 +78,7 @@ export function BattleFieldControls({
           <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9A9590] leading-none">
             Clima
           </span>
-          <div className="w-28">
+          <div className="w-37">
             <Combobox
               options={weatherOptions}
               value={weather}
@@ -77,7 +91,7 @@ export function BattleFieldControls({
           <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9A9590] leading-none">
             Campo
           </span>
-          <div className="w-28">
+          <div className="w-32">
             <Combobox
               options={terrainOptions}
               value={terrain}
@@ -101,6 +115,11 @@ export function BattleFieldControls({
           onValueChange={(v) => onWeatherChange?.(v as WeatherId)}
           placeholder="—"
         />
+        {weather && weather !== "none" && (
+          <span className="text-[9px] text-[#7A7570] leading-tight">
+            {WEATHER_DESC[weather] || ""}
+          </span>
+        )}
       </div>
       <div className="flex flex-col gap-1">
         <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9A9590]">

@@ -55,39 +55,15 @@ function getEvTotalFromInput(
   return Object.values(evs).reduce((a: number, b: number) => a + (b ?? 0), 0);
 }
 
-const TRAD_ES: Record<string, string> = {
-  MISSING_ATTACKER: "Falta atacante",
-  MISSING_DEFENDER: "Falta defensor",
-  MISSING_MOVE: "Falta movimiento",
-  MISSING_POKEMON: "Falta Pokémon",
-  INVALID_BATTLE_CONTEXT: "Contexto inválido",
-  UNSUPPORTED_FORM_FOR_GENERATION: "Forma no disponible en esta generación",
-  INVALID_GENERATION: "Generación no válida",
-};
-
-function traducirErrores(list: string[]): string[] {
-  return list.map(
-    (e) =>
-      TRAD_ES[e] ||
-      e
-        .replace(/MISSING_/g, "Falta ")
-        .replace(/_/g, " ")
-        .toLowerCase(),
-  );
-}
-
 export function ResultEmptyState({ missing }: EmptyProps) {
-  const traducidos = missing?.length
-    ? traducirErrores(missing as string[])
-    : [];
   return (
     <div className="bg-[#FFFEFB] rounded-xl border border-dashed border-[#EDE8E0] p-8 text-center min-h-70 flex flex-col items-center justify-center">
       <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
         Daño estimado
       </div>
       <p className="mt-3 text-[13px] leading-normal text-[#7A7570] max-w-[28ch]">
-        {traducidos.length > 0
-          ? `${traducidos.join(" · ")}. Completa atacante, defensor y movimiento.`
+        {missing && missing.length > 0
+          ? `Falta: ${missing.join(" · ")}. Completa atacante, defensor y movimiento.`
           : "Selecciona atacante, defensor y movimiento y presiona Calcular daño."}
       </p>
       <p className="mt-3 text-[10px] font-mono text-[#9A9590]">
@@ -119,7 +95,6 @@ export const BattleResultCard = memo(function BattleResultCard({
   moveType,
   movePower,
   generation = 9,
-  error,
 }: Props) {
   const itemList = useItemStore((s) => s.itemList) as Array<{
     name: string;
@@ -192,43 +167,44 @@ export const BattleResultCard = memo(function BattleResultCard({
   }, [conditions]);
 
   const attackerStatusDetail = useMemo(
-    () => getStatusDetailEs((attackerInput?.status as string) ?? null),
+    () => getStatusDetailEs(attackerInput?.status),
     [attackerInput?.status],
   );
   const defenderStatusDetail = useMemo(
-    () => getStatusDetailEs((defenderInput?.status as string) ?? null),
+    () => getStatusDetailEs(defenderInput?.status),
     [defenderInput?.status],
   );
   const attackerItemDetail = useMemo(
-    () => getItemDetailEs(attackerInput?.item ?? null, itemList),
+    () => getItemDetailEs(attackerInput?.item, itemList),
     [attackerInput?.item, itemList],
   );
   const defenderItemDetail = useMemo(
-    () => getItemDetailEs(defenderInput?.item ?? null, itemList),
+    () => getItemDetailEs(defenderInput?.item, itemList),
     [defenderInput?.item, itemList],
   );
-  const abilityList = useAbilityStore((s) => s.abilityList as never);
+  const abilityList = useAbilityStore((s) => s.abilityList) as Array<{
+    name: string;
+    nameEs?: string;
+    effect?: string;
+    effectEs?: string;
+    id?: string;
+  }>;
   const attackerAbilityDetail = useMemo(
-    () =>
-      getAbilityDetailEs(attackerInput?.ability ?? null, abilityList as never),
+    () => getAbilityDetailEs(attackerInput?.ability, abilityList),
     [attackerInput?.ability, abilityList],
   );
   const defenderAbilityDetail = useMemo(
-    () =>
-      getAbilityDetailEs(defenderInput?.ability ?? null, abilityList as never),
+    () => getAbilityDetailEs(defenderInput?.ability, abilityList),
     [defenderInput?.ability, abilityList],
   );
 
-  const evAtk = getEvTotalFromInput(attackerInput ?? null);
-  const evDef = getEvTotalFromInput(defenderInput ?? null);
-
-  if (error) return <ResultErrorState error={error} />;
-  if (!result) return <ResultEmptyState />;
+  const evAtk = getEvTotalFromInput(attackerInput);
+  const evDef = getEvTotalFromInput(defenderInput);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="space-y-3">
       <div className="bg-[#FFFEFB] rounded-xl border border-[#EDE8E0] shadow-[0_1px_2px_rgba(0,0,0,0.03)] overflow-hidden">
-        <div className="px-4 py-2.5 flex items-center justify-between border-b border-[#F0EDE6]">
+        <div className="px-4 py-3 flex items-center justify-between border-b border-[#F0EDE6]">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
             Daño estimado
           </span>
@@ -280,63 +256,63 @@ export const BattleResultCard = memo(function BattleResultCard({
             defenderItemDetail ||
             attackerAbilityDetail ||
             defenderAbilityDetail) && (
-            <div className="mt-3 grid grid-cols-1 gap-2">
+            <div className="mt-4 grid grid-cols-1 gap-2">
               {attackerStatusDetail && (
-                <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-1.5">
-                  <span className="font-semibold">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 text-[11px] rounded-md bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-2">
+                  <span className="font-semibold shrink-0">
                     {attackerName}: {attackerStatusDetail.label}
                   </span>
-                  <span className="text-[#92400E]">
+                  <span className="text-[#92400E] leading-snug wrap-break-word">
                     · {attackerStatusDetail.effect}
                   </span>
                 </div>
               )}
               {defenderStatusDetail && (
-                <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#FEF2F2] border border-[#FECACA] px-2.5 py-1.5">
-                  <span className="font-semibold">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 text-[11px] rounded-md bg-[#FEF2F2] border border-[#FECACA] px-2.5 py-2">
+                  <span className="font-semibold shrink-0">
                     {defenderName}: {defenderStatusDetail.label}
                   </span>
-                  <span className="text-[#991B1B]">
+                  <span className="text-[#991B1B] leading-snug wrap-break-word">
                     · {defenderStatusDetail.effect}
                   </span>
                 </div>
               )}
               {attackerItemDetail && (
-                <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-1.5">
-                  <span className="font-semibold">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 text-[11px] rounded-md bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-2">
+                  <span className="font-semibold shrink-0">
                     {attackerName}: {attackerItemDetail.label}
                   </span>
-                  <span className="text-[#065F46]">
+                  <span className="text-[#065F46] leading-snug wrap-break-word">
                     · {attackerItemDetail.effect}
                   </span>
                 </div>
               )}
               {defenderItemDetail && (
-                <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-1.5">
-                  <span className="font-semibold">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 text-[11px] rounded-md bg-[#F0FDF4] border border-[#BBF7D0] px-2.5 py-2">
+                  <span className="font-semibold shrink-0">
                     {defenderName}: {defenderItemDetail.label}
                   </span>
-                  <span className="text-[#065F46]">
+                  <span className="text-[#065F46] leading-snug wrap-break-word">
                     · {defenderItemDetail.effect}
                   </span>
                 </div>
               )}
               {attackerAbilityDetail && (
-                <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-1.5">
-                  <span className="font-semibold">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 text-[11px] rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-2">
+                  <span className="font-semibold shrink-0">
                     {attackerName}: {attackerAbilityDetail.label}
                   </span>
-                  <span className="text-[#1E40AF]">
+                  <span className="text-[#1E40AF] leading-snug wrap-break-word">
                     · {attackerAbilityDetail.effect}
                   </span>
                 </div>
               )}
               {defenderAbilityDetail && (
-                <div className="flex items-center gap-2 text-[11px] rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-1.5">
-                  <span className="font-semibold">
+                <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2 text-[11px] rounded-md bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-2">
+                  <span className="font-semibold shrink-0">
                     {defenderName}: {defenderAbilityDetail.label}
                   </span>
-                  <span className="text-[#1E40AF]">
+                  <span className="text-[#1E40AF] leading-snug wrap-break-word">
                     · {defenderAbilityDetail.effect}
                   </span>
                 </div>
@@ -348,29 +324,29 @@ export const BattleResultCard = memo(function BattleResultCard({
             <div className="text-[10px] font-semibold uppercase tracking-widest text-[#111]">
               ¿Por qué?
             </div>
-            <p className="mt-1.5 text-[12px] leading-normal text-[#2B2B2B]">
+            <p className="mt-1.5 text-[12px] leading-normal text-[#2B2B2B] wrap-break-word">
               {koExplain}
             </p>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
-              <span className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
+              <span className="inline-flex min-h-5 items-center px-2 py-0.5 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
                 {effectivenessNote}
               </span>
-              <span className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
+              <span className="inline-flex min-h-5 items-center px-2 py-0.5 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
                 STAB 1.5x si tipo coincide
               </span>
               {weatherNote && (
-                <span className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
+                <span className="inline-flex min-h-5 items-center px-2 py-0.5 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight wrap-break-word max-w-full">
                   {weatherNote}
                 </span>
               )}
               {terrainNote && (
-                <span className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight">
+                <span className="inline-flex min-h-5 items-center px-2 py-0.5 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight wrap-break-word max-w-full">
                   {terrainNote}
                 </span>
               )}
               <span
                 title="Fórmula oficial: 16 valores aleatorios del 85% al 100%"
-                className="inline-flex min-h-5 h-auto py-0.5 px-2 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight"
+                className="inline-flex min-h-5 items-center px-2 py-0.5 rounded-full bg-white border border-[#EDE8E0] text-[10px] font-mono text-[#57534E] leading-tight"
               >
                 16 rolls · 85% a 100%
               </span>
