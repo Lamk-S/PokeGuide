@@ -225,14 +225,44 @@ export const ParticipantCard = memo(function ParticipantCard({
     () => NATURES.map((n) => ({ value: n.name, label: n.nameEs || n.name })),
     [],
   );
-  const statusOptions = useMemo(
-    () =>
-      Object.values(Status).map((s) => ({
-        value: (s as { id: string }).id,
-        label: (s as { labelEs: string }).labelEs,
-      })),
-    [],
-  );
+  const statusOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const opts: { value: string; label: string }[] = [];
+    for (const s of Object.values(Status) as unknown as Array<{
+      id: string;
+      labelEs: string;
+      label?: string;
+    }>) {
+      const id = (s as { id: string }).id;
+      const label =
+        (s as { labelEs: string }).labelEs ||
+        (s as { label?: string }).label ||
+        id;
+      const normId = id.toLowerCase();
+      // normaliza ids duplicados: healthy/saludable/none todos son sin estado
+      const key =
+        normId === "healthy" || normId === "saludable" ? "none" : normId;
+      if (seen.has(key)) continue;
+      // mapea healthy -> none para evitar duplicado
+      const value = key === "none" ? "none" : id;
+      const displayLabel = key === "none" ? "Saludable" : label;
+      seen.add(key);
+      opts.push({ value, label: displayLabel });
+    }
+    // asegura que none esté primero
+    const noneOpt = opts.find((o) => o.value === "none");
+    const rest = opts.filter((o) => o.value !== "none");
+    // ordena resto alfabéticamente por label ES y evita duplicados de paralyze/paralysis etc
+    const dedupByLabel = new Map<string, { value: string; label: string }>();
+    for (const o of rest) {
+      const lbl = o.label.toLowerCase();
+      if (!dedupByLabel.has(lbl)) dedupByLabel.set(lbl, o);
+    }
+    return [
+      noneOpt || { value: "none", label: "Saludable" },
+      ...Array.from(dedupByLabel.values()),
+    ];
+  }, []);
 
   if (!input) {
     const isAtk = label.toLowerCase().includes("atacante");
@@ -604,14 +634,12 @@ export const ParticipantCard = memo(function ParticipantCard({
                         let v = Number.parseInt(e.target.value, 10);
                         if (Number.isNaN(v)) v = 0;
                         v = Math.max(0, Math.min(252, v));
-                        // respeta 510 total
                         const maxAllowed = 510 - otherTotal;
                         if (v > maxAllowed) v = Math.max(0, maxAllowed);
                         const newEVs = {
                           ...(input.evs as unknown as Record<string, number>),
                           [st]: v,
                         };
-                        // bypass EV.createSet que fuerza múltiplos de 4 y 508, usa objeto plano directo
                         onChange({
                           ...input,
                           evs: newEVs as unknown as BattleParticipantInput["evs"],
