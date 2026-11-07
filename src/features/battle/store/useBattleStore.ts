@@ -106,72 +106,9 @@ function normalizeAndValidateAbility(ability: string | null): string | null {
   return n;
 }
 
-function toPlainNumber(v: unknown): number {
-  if (typeof v === "number") return v;
-  if (v && typeof v === "object") {
-    const obj = v as { value?: unknown; val?: unknown; number?: unknown };
-    if (typeof obj.value === "number") return obj.value;
-    if (typeof obj.val === "number") return obj.val;
-    if (typeof obj.number === "number") return obj.number;
-  }
-  const n = Number(v);
-  return Number.isNaN(n) ? 0 : n;
-}
-function plainStatSet(set: unknown): Record<string, number> {
-  if (!set || typeof set !== "object")
-    return {
-      hp: 0,
-      attack: 0,
-      defense: 0,
-      "special-attack": 0,
-      "special-defense": 0,
-      speed: 0,
-    };
-  const out: Record<string, number> = {};
-  for (const [k, v] of Object.entries(set as Record<string, unknown>)) {
-    out[k] = toPlainNumber(v);
-  }
-  return out;
-}
 function normalizeInput(input: BattleParticipantInput): BattleParticipantInput {
-  const plainEvs = plainStatSet((input as { evs?: unknown }).evs);
-  const plainIvs = plainStatSet((input as { ivs?: unknown }).ivs);
-  let total = 0;
-  for (const k of Object.keys(plainEvs)) {
-    const v = plainEvs[k] ?? 0;
-    const clamped = Math.min(252, Math.max(0, Math.floor(v)));
-    plainEvs[k] = clamped;
-    total += clamped;
-  }
-  if (total > 510) {
-    let excess = total - 510;
-    for (const k of [
-      "speed",
-      "special-defense",
-      "special-attack",
-      "defense",
-      "attack",
-      "hp",
-    ]) {
-      if (excess <= 0) break;
-      const cur = plainEvs[k] ?? 0;
-      const red = Math.min(cur, excess);
-      plainEvs[k] = cur - red;
-      excess -= red;
-    }
-  }
-  for (const k of Object.keys(plainIvs)) {
-    const curIv = plainIvs[k] ?? 0;
-    if (k === "hp" && (input as { pokemonId?: number }).pokemonId === 292) {
-      plainIvs[k] = 0;
-    } else {
-      plainIvs[k] = Math.min(31, Math.max(0, Math.floor(curIv)));
-    }
-  }
   return {
     ...input,
-    evs: plainEvs as unknown as BattleParticipantInput["evs"],
-    ivs: plainIvs as unknown as BattleParticipantInput["ivs"],
     item: normalizeAndValidateItem(input.item),
     ability: normalizeAndValidateAbility(input.ability),
     status: normalizeStatusId(input.status),
