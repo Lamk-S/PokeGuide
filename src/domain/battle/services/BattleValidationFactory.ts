@@ -1,16 +1,27 @@
-import {
-  type BattleValidationInput,
-  type BattleValidationState,
-  validateBattleState,
+import type {
+  BattleValidationInput,
+  BattleValidationState,
 } from "./BattleValidation";
+import { validateBattleState } from "./BattleValidation";
 
-export function createBattleValidator(): {
-  validate: (state: BattleValidationInput) => BattleValidationState;
-} {
-  return { validate: validateBattleState };
+export interface IBattleValidator {
+  readonly validate: (state: BattleValidationInput) => BattleValidationState;
+}
+
+export type BattleValidatorFactoryOptions = {
+  readonly validator?: (state: BattleValidationInput) => BattleValidationState;
+};
+
+export function createBattleValidator(
+  options: BattleValidatorFactoryOptions = {},
+): IBattleValidator {
+  const validateFn = options.validator ?? validateBattleState;
+  return {
+    validate: (state: BattleValidationInput) => validateFn(state),
+  };
 }
 
 export const BattleValidationFactory = {
   create: createBattleValidator,
   validate: validateBattleState,
-};
+} as const;
