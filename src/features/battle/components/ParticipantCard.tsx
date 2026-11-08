@@ -239,20 +239,16 @@ export const ParticipantCard = memo(function ParticipantCard({
         (s as { label?: string }).label ||
         id;
       const normId = id.toLowerCase();
-      // normaliza ids duplicados: healthy/saludable/none todos son sin estado
       const key =
         normId === "healthy" || normId === "saludable" ? "none" : normId;
       if (seen.has(key)) continue;
-      // mapea healthy -> none para evitar duplicado
       const value = key === "none" ? "none" : id;
       const displayLabel = key === "none" ? "Saludable" : label;
       seen.add(key);
       opts.push({ value, label: displayLabel });
     }
-    // asegura que none esté primero
     const noneOpt = opts.find((o) => o.value === "none");
     const rest = opts.filter((o) => o.value !== "none");
-    // ordena resto alfabéticamente por label ES y evita duplicados de paralyze/paralysis etc
     const dedupByLabel = new Map<string, { value: string; label: string }>();
     for (const o of rest) {
       const lbl = o.label.toLowerCase();
