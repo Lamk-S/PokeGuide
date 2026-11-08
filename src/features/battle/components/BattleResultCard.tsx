@@ -8,6 +8,7 @@ import {
   getTerrainDetailEs,
   getWeatherDetailEs,
 } from "@/domain/battle/services/BattleModifiersTranslator";
+import { VALIDATION_ES } from "@/domain/battle/services/BattleValidation.es";
 import type {
   BattleResult,
   IBattleConditions,
@@ -55,15 +56,21 @@ function getEvTotalFromInput(
   return Object.values(evs).reduce((a: number, b: number) => a + (b ?? 0), 0);
 }
 
+function translateMissingLabel(code: string): string {
+  return VALIDATION_ES[code] ?? code.replace(/_/g, " ").toLowerCase();
+}
+
 export function ResultEmptyState({ missing }: EmptyProps) {
+  const translated =
+    missing && missing.length > 0 ? missing.map(translateMissingLabel) : [];
   return (
-    <div className="bg-[#FFFEFB] rounded-xl border border-dashed border-[#EDE8E0] p-8 text-center min-h-70 flex flex-col items-center justify-center">
+    <div className="bg-[#FFFEFB] rounded-2xl border border-dashed border-[#EDE8E0] p-8 text-center min-h-72 flex flex-col items-center justify-center shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
       <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
         Daño estimado
       </div>
-      <p className="mt-3 text-[13px] leading-normal text-[#7A7570] max-w-[28ch]">
-        {missing && missing.length > 0
-          ? `Falta: ${missing.join(" · ")}. Completa atacante, defensor y movimiento.`
+      <p className="mt-3 text-[13px] leading-normal text-[#7A7570] max-w-[32ch]">
+        {translated.length > 0
+          ? `Falta: ${translated.join(" · ")}. Completa atacante, defensor y movimiento.`
           : "Selecciona atacante, defensor y movimiento y presiona Calcular daño."}
       </p>
       <p className="mt-3 text-[10px] font-mono text-[#9A9590]">
@@ -75,7 +82,7 @@ export function ResultEmptyState({ missing }: EmptyProps) {
 
 export function ResultErrorState({ error }: { readonly error: string }) {
   return (
-    <div className="bg-[#FFFEFB] rounded-xl border border-[#EDE8E0] p-8 text-center">
+    <div className="bg-[#FFFEFB] rounded-2xl border border-[#EDE8E0] p-8 text-center shadow-sm">
       <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9A9590]">
         Daño estimado
       </div>
