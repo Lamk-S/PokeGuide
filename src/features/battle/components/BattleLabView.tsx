@@ -2,6 +2,7 @@
 import { Calculator, Loader2, RefreshCw } from "lucide-react";
 import { useEffect, useId } from "react";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
+import { TypeBadge, translateTypeUpper } from "@/components/ui/TypeBadge";
 import { VALIDATION_ES } from "@/domain/battle/services/BattleValidation.es";
 import type {
   BattleResult,
@@ -11,6 +12,7 @@ import type {
   TerrainId,
   WeatherId,
 } from "@/domain/battle/value-objects/BattleModifiers";
+import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
 import type { BattleParticipantInput } from "@/features/battle/store/useBattleStore";
 import { BattleFieldControls } from "./BattleFieldControls";
 import {
@@ -86,7 +88,6 @@ interface BattleLabViewProps {
   onActiveTabChange: (tab: "attacker" | "defender" | "result") => void;
   onCalculate: () => void;
   onGenerationChange: (gen: number) => void;
-  onConditionsChange?: (c: Partial<IBattleConditions>) => void;
   onWeatherChange: (w: WeatherId) => void;
   onTerrainChange: (t: TerrainId) => void;
   onAttackerChange: (input: BattleParticipantInput | null) => void;
@@ -170,73 +171,62 @@ function UnifiedHeader({
     .map((m) => VALIDATION_ES[m] ?? m.toLowerCase())
     .join(" · ");
 
-  const atkName = attackerPokemon?.name ?? "Atacante";
-  const defName = defenderPokemon?.name ?? "Defensor";
-
-  const typeColor: Record<string, string> = {
-    fuego: "bg-[#FFD8B0] text-[#7A4A1E]",
-    volador: "bg-[#D8D8FF] text-[#4A4A8A]",
-    dragon: "bg-[#C8B0FF] text-[#4A2A8A]",
-    tierra: "bg-[#E8D5B0] text-[#6A5A3A]",
-    agua: "bg-[#B0D8FF] text-[#2A4A6A]",
-    planta: "bg-[#B0FFB0] text-[#2A6A2A]",
-    electrico: "bg-[#FFF0B0] text-[#6A5A1E]",
-    hada: "bg-[#FFB0D8] text-[#6A2A4A]",
-  };
-
-  const getTypeStyle = (t: string) => {
-    const key = t.toLowerCase();
-    return typeColor[key] ?? "bg-[#EDE8E0] text-[#57534E]";
-  };
+  const atkName = attackerPokemon?.name
+    ? formatPokemonDisplayName(attackerPokemon.name)
+    : "Atacante";
+  const defName = defenderPokemon?.name
+    ? formatPokemonDisplayName(defenderPokemon.name)
+    : "Defensor";
 
   return (
-    <div className="w-full bg-[#FFFEFB]/95 backdrop-blur-xl border border-[#EDE8E0] rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
-      <div className="px-4 lg:px-5 py-3.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-[13px] font-bold tracking-tight shrink-0">
+    <div className="w-full bg-[#FFFEFB] border border-[#EDE8E0] rounded-2xl shadow-sm overflow-hidden">
+      <div className="px-4 lg:px-5 py-3.5 space-y-3">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-[13px] font-bold tracking-tight text-[#111]">
               Laboratorio de Batalla
             </h1>
-            <span className="h-1 w-1 rounded-full bg-[#D9CFC2] hidden lg:block" />
-            <p className="text-[11px] text-[#9A9590] leading-snug truncate hidden xl:block">
-              Herramienta de precisión para simular daño real con naturaleza,
-              IVs, EVs, objeto, habilidad, estado, clima...
-            </p>
             <span
-              className={`ml-auto lg:ml-2 inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-[10px] font-bold tracking-wide border shrink-0 ${isValid ? "bg-[#111] text-white border-[#111]" : "bg-white text-[#9A9590] border-[#EDE8E0]"}`}
-              title={translatedMissing}
+              className={`inline-flex items-center gap-1.5 h-6 px-3 rounded-full text-[10px] font-bold tracking-wide border shrink-0 ${
+                isValid
+                  ? "bg-[#111] text-white border-[#111]"
+                  : "bg-white text-[#9A9590] border-[#EDE8E0]"
+              }`}
             >
               <span
-                className={`size-1.5 rounded-full ${isValid ? "bg-[#22C55E] animate-pulse" : "bg-[#F59E0B]"}`}
+                className={`size-1.5 rounded-full ${
+                  isValid ? "bg-[#22C55E] animate-pulse" : "bg-[#F59E0B]"
+                }`}
               />
               {isValid ? "CÁLCULO LISTO" : "FALTA INFO"}
             </span>
-          </div>
-        </div>
-
-        <div className="flex flex-col lg:flex-row lg:items-end gap-2.5 w-full lg:w-auto">
-          <div className="flex flex-col gap-1 w-full lg:w-auto">
-            <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9A9590] leading-none">
-              Generación
-            </span>
-            <select
-              id={genId}
-              value={generation}
-              onChange={(e) =>
-                onGenerationChange(Number.parseInt(e.target.value, 10))
-              }
-              className="h-9 lg:h-8 w-full lg:w-auto rounded-full border border-[#EDE8E0] bg-white px-3.5 pr-8 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-[#111]/10"
-            >
-              {[9, 8, 7, 6, 5, 4, 3, 2, 1].map((g) => (
-                <option key={g} value={g}>
-                  {GEN_LABELS[g] ?? `Gen ${g}`}
-                </option>
-              ))}
-            </select>
+            <p className="hidden xl:block text-[11px] text-[#9A9590] leading-snug ml-2">
+              Herramienta de precisión para simular daño real con naturaleza,
+              IVs, EVs, objeto, habilidad, estado, clima y campo.
+            </p>
           </div>
 
-          <div className="flex gap-2 w-full lg:w-auto">
-            <div className="flex-1 lg:flex-none">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div className="flex flex-col gap-1">
+              <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#9A9590] leading-none">
+                Generación
+              </span>
+              <select
+                id={genId}
+                value={generation}
+                onChange={(e) =>
+                  onGenerationChange(Number.parseInt(e.target.value, 10))
+                }
+                className="h-9 w-full rounded-full border border-[#EDE8E0] bg-white px-3.5 text-[12px] font-medium focus:outline-none focus:ring-1 focus:ring-[#111]/10"
+              >
+                {[9, 8, 7, 6, 5, 4, 3, 2, 1].map((g) => (
+                  <option key={g} value={g}>
+                    {GEN_LABELS[g] ?? `Gen ${g}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="sm:col-span-2">
               <BattleFieldControls
                 variant="compact"
                 weather={weather}
@@ -249,14 +239,13 @@ function UnifiedHeader({
         </div>
       </div>
 
-      <div className="px-4 lg:px-5 py-3 bg-[#F8F5F0]/80 border-t border-[#EDE8E0]/70 flex items-center justify-between gap-2">
+      <div className="px-3 lg:px-5 py-3 bg-[#F8F5F0] border-t border-[#EDE8E0]/70 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <div className="size-9 lg:size-8 rounded-full bg-white border border-[#EDE8E0] flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="size-9 lg:size-10 rounded-full bg-white border border-[#EDE8E0] flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
             {attackerPokemon ? (
               <PokemonSprite
                 pokemon={{ id: attackerPokemon.id, name: attackerPokemon.name }}
                 size={32}
-                className="shrink-0"
               />
             ) : (
               <span className="text-[10px] text-[#9A9590]">?</span>
@@ -264,70 +253,55 @@ function UnifiedHeader({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span className="text-[13px] font-semibold tracking-tight truncate">
+              <span className="text-[12px] lg:text-[13px] font-semibold tracking-tight truncate text-[#111]">
                 {atkName}
               </span>
               <span className="text-[10px] text-[#9A9590] font-mono">
                 Nv. {attackerLevel ?? 50}
               </span>
             </div>
-            {attackerTypes.length > 0 && (
-              <div className="flex gap-1 mt-0.5 flex-wrap">
-                {attackerTypes.slice(0, 2).map((tp) => (
-                  <span
-                    key={tp}
-                    className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium uppercase tracking-wide ${getTypeStyle(tp)}`}
-                  >
-                    {tp}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex gap-1 mt-1 flex-wrap">
+              {attackerTypes.slice(0, 2).map((t) => (
+                <TypeBadge key={`atk-${t}`} type={t} size="sm" />
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col items-center shrink-0 px-2">
+        <div className="flex flex-col items-center shrink-0 px-2 min-w-0 max-w-[38%] sm:max-w-[30%]">
           <span className="text-[9px] font-semibold uppercase tracking-widest text-[#9A9590]">
             VS
           </span>
-          <span className="text-[13px] font-bold tracking-tight mt-0.5 truncate max-w-[20ch] text-center">
+          <span className="text-[11px] lg:text-[13px] font-bold tracking-tight mt-0.5 truncate max-w-full text-center">
             {moveLabel || "—"}
           </span>
-          <span className="text-[10px] font-mono text-[#9A9590] tabular-nums">
+          <span className="text-[10px] font-mono text-[#9A9590] tabular-nums truncate">
             {movePower ? `${movePower} pot.` : ""}{" "}
-            {moveType ? `· ${moveType.toUpperCase()}` : ""}
+            {moveType ? `· ${translateTypeUpper(moveType)}` : ""}
           </span>
         </div>
 
         <div className="flex items-center gap-2.5 min-w-0 flex-1 justify-end">
           <div className="min-w-0 flex-1 text-right">
-            <div className="flex items-baseline gap-1.5 justify-end flex-wrap">
+            <div className="flex items-baseline gap-1.5 justify-end flex-wrap-reverse">
               <span className="text-[10px] text-[#9A9590] font-mono">
                 Nv. {defenderLevel ?? 50}
               </span>
-              <span className="text-[13px] font-semibold tracking-tight truncate">
+              <span className="text-[12px] lg:text-[13px] font-semibold tracking-tight truncate">
                 {defName}
               </span>
             </div>
-            {defenderTypes.length > 0 && (
-              <div className="flex gap-1 mt-0.5 justify-end flex-wrap">
-                {defenderTypes.slice(0, 2).map((tp) => (
-                  <span
-                    key={tp}
-                    className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium uppercase tracking-wide ${getTypeStyle(tp)}`}
-                  >
-                    {tp}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex gap-1 mt-1 justify-end flex-wrap">
+              {defenderTypes.slice(0, 2).map((t) => (
+                <TypeBadge key={`def-${t}`} type={t} size="sm" />
+              ))}
+            </div>
           </div>
-          <div className="size-9 lg:size-8 rounded-full bg-white border border-[#EDE8E0] flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="size-9 lg:size-10 rounded-full bg-white border border-[#EDE8E0] flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
             {defenderPokemon ? (
               <PokemonSprite
                 pokemon={{ id: defenderPokemon.id, name: defenderPokemon.name }}
                 size={32}
-                className="shrink-0"
               />
             ) : (
               <span className="text-[10px] text-[#9A9590]">?</span>
@@ -362,7 +336,11 @@ function MobileTabs({
             key={tab}
             type="button"
             onClick={() => onChange(tab)}
-            className={`flex-1 h-9 rounded-full text-[13px] font-medium transition-all ${isActive ? "bg-[#111] text-white shadow-sm" : "text-[#57534E] hover:text-[#111] hover:bg-[#F8F5F0]"}`}
+            className={`flex-1 h-9 rounded-full text-[13px] font-medium transition-all ${
+              isActive
+                ? "bg-[#111] text-white shadow-sm"
+                : "text-[#57534E] hover:text-[#111] hover:bg-[#F8F5F0]"
+            }`}
           >
             {tab === "attacker"
               ? "Atacante"
@@ -421,7 +399,6 @@ function SingleActionDock({
             onClick={onCalculate}
             disabled={isCalculating || !isValid}
             className="h-9 px-5 rounded-full bg-[#111] text-white text-[12px] font-semibold hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center gap-2 shadow-[0_2px_8px_rgba(0,0,0,0.12)]"
-            title="Ctrl+Enter"
           >
             {isCalculating ? (
               <Loader2 className="size-4 animate-spin" />
@@ -429,9 +406,6 @@ function SingleActionDock({
               <Calculator className="size-4" />
             )}
             {isCalculating ? "Calculando..." : "Calcular daño"}
-            <span className="ml-1 text-[10px] font-mono opacity-60 border border-white/20 rounded px-1">
-              ⌘↵
-            </span>
           </button>
         </div>
       </div>
@@ -442,7 +416,6 @@ function SingleActionDock({
             type="button"
             onClick={onSwap}
             className="h-11 w-11 rounded-full bg-white/10 text-white hover:bg-white/15 border border-white/10 flex items-center justify-center shrink-0"
-            aria-label="Intercambiar"
           >
             <RefreshCw className="size-4" />
           </button>
@@ -525,7 +498,6 @@ export function BattleLabView(props: BattleLabViewProps) {
   const remaining = result
     ? `${(100 - (result.damage.maxPercent ?? 0)).toFixed(1)}%`
     : "0.0%";
-
   const moveLabel =
     availableMoves.find((m) => m.value === moveName)?.label || moveName;
 
@@ -536,7 +508,7 @@ export function BattleLabView(props: BattleLabViewProps) {
   return (
     <div className="min-h-screen bg-[#F8F5F0] w-full pb-24 lg:pb-0">
       <div className="mx-auto max-w-[1600px] px-3 lg:px-6 py-3 lg:py-4 space-y-3">
-        <div className="sticky top-0 z-30 space-y-3">
+        <div className="sticky top-14 z-30 space-y-3 bg-[#F8F5F0] py-2 -mx-3 px-3 lg:mx-0 lg:px-0">
           <UnifiedHeader
             generation={generation}
             weather={conditions.weather}
@@ -556,8 +528,7 @@ export function BattleLabView(props: BattleLabViewProps) {
             onWeatherChange={onWeatherChange}
             onTerrainChange={onTerrainChange}
           />
-
-          <div className="lg:hidden sticky top-0 z-20 py-2 bg-[#F8F5F0]/90 backdrop-blur-xl -mx-3 px-3">
+          <div className="lg:hidden">
             <MobileTabs activeTab={activeTab} onChange={onActiveTabChange} />
           </div>
         </div>
@@ -582,7 +553,7 @@ export function BattleLabView(props: BattleLabViewProps) {
           </div>
 
           <div
-            className={`${activeTab === "result" ? "block" : "hidden"} lg:block md:order-3 lg:order-0 md:col-span-2 lg:col-span-1 space-y-3`}
+            className={`${activeTab === "result" ? "block" : "hidden"} lg:block md:order-3 lg:order-0 md:col-span-2 lg:col-span-1 space-y-3 lg:sticky lg:top-59`}
           >
             {displayError ? (
               <ResultErrorState error={displayError} />

@@ -1,5 +1,4 @@
 "use client";
-
 import {
   BookOpen,
   Egg,
@@ -19,32 +18,12 @@ import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui-store";
 
 const NAV_LINKS = [
-  {
-    href: "/battle-lab",
-    label: "Batalla",
-    labelEn: "Battle Lab",
-    icon: Swords,
-  },
-  {
-    href: "/team-builder",
-    label: "Equipo",
-    labelEn: "Team Builder",
-    icon: Shield,
-  },
-  {
-    href: "/build-optimizer",
-    label: "Optimizar",
-    labelEn: "Optimizer",
-    icon: Zap,
-  },
-  { href: "/breeding", label: "Crianza", labelEn: "Breeding", icon: Egg },
-  {
-    href: "/generations",
-    label: "Generaciones",
-    labelEn: "Generations",
-    icon: History,
-  },
-  { href: "/pokedex", label: "Pokédex", labelEn: "Pokédex", icon: BookOpen },
+  { href: "/battle-lab", label: "Batalla", icon: Swords },
+  { href: "/team-builder", label: "Equipo", icon: Shield },
+  { href: "/build-optimizer", label: "Optimizar", icon: Zap },
+  { href: "/breeding", label: "Crianza", icon: Egg },
+  { href: "/generations", label: "Generaciones", icon: History },
+  { href: "/pokedex", label: "Pokédex", icon: BookOpen },
 ] as const;
 
 function isActivePath(pathname: string, href: string) {
@@ -69,23 +48,23 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 w-full border-b transition-all",
+        "sticky top-0 z-50 w-full border-b transition-all",
         scrolled
-          ? "border-[#EDE8E0] bg-[#FFFEFB]/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(0,0,0,0.04)]"
-          : "border-[#EDE8E0] bg-[#FFFEFB]/80 backdrop-blur-md",
+          ? "border-[#EDE8E0] bg-[#FFFEFB] shadow-[0_1px_12px_rgba(0,0,0,0.06)]"
+          : "border-[#EDE8E0] bg-[#FFFEFB]",
       )}
     >
       <div className="mx-auto flex h-14 w-full max-w-[1600px] items-center justify-between px-4 md:px-6 lg:px-8">
         <Link
           href="/"
           onClick={closeMobileMenu}
-          className="flex items-center gap-2 rounded-xl px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20 group"
+          className="flex items-center gap-2 rounded-xl px-1 py-1 outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20"
         >
           <div className="size-7 rounded-lg bg-linear-to-br from-[#D93B32] to-[#B91C1C] flex items-center justify-center shadow-[0_2px_8px_rgba(217,59,50,0.25)]">
             <Flame className="size-4 text-white" />
           </div>
           <span className="text-[15px] font-bold tracking-[-0.02em] text-[#111] flex items-center gap-1.5">
-            PokeGuide
+            PokeGuide{" "}
             <span className="size-1.5 rounded-full bg-[#D93B32] animate-pulse" />
           </span>
         </Link>
@@ -102,7 +81,6 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={active ? "page" : undefined}
-                title={link.labelEn}
                 className={cn(
                   "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-[#111]/20",
                   active
@@ -165,9 +143,6 @@ export function Header() {
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </div>
                   {link.label}
-                  <span className="ml-auto text-[10px] font-mono text-[#9A9590]">
-                    {link.labelEn}
-                  </span>
                 </Link>
               );
             })}
