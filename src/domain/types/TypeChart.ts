@@ -162,11 +162,41 @@ const ABILITY_IMMUNITIES: Readonly<Record<string, PokemonType>> = Object.freeze(
     "lightning-rod": "electric",
     "flash-fire": "fire",
     "well-baked-body": "fire",
+    "wonder-guard": "__special__" as unknown as PokemonType,
   },
 );
 
 const ITEM_IMMUNITIES: Readonly<Record<string, PokemonType>> = Object.freeze({
   "air-balloon": "ground",
+});
+
+const ABILITY_RESISTANCES: Readonly<Record<string, readonly PokemonType[]>> =
+  Object.freeze({
+    "thick-fat": ["fire", "ice"],
+    heatproof: ["fire"],
+    "water-bubble": ["fire"],
+    "purifying-salt": ["ghost"],
+    fluffy: ["fire"],
+  });
+
+const BERRY_RESISTANCES: Readonly<Record<string, PokemonType>> = Object.freeze({
+  "occa-berry": "fire",
+  "passho-berry": "water",
+  "wacan-berry": "electric",
+  "rindo-berry": "grass",
+  "yache-berry": "ice",
+  "chople-berry": "fighting",
+  "kebia-berry": "poison",
+  "shuca-berry": "ground",
+  "coba-berry": "flying",
+  "payapa-berry": "psychic",
+  "tanga-berry": "bug",
+  "charti-berry": "rock",
+  "kasib-berry": "ghost",
+  "haban-berry": "dragon",
+  "colbur-berry": "dark",
+  "babiri-berry": "steel",
+  "roseli-berry": "fairy",
 });
 
 function getImmunity(
@@ -180,6 +210,22 @@ function getImmunity(
   return null;
 }
 
+function getResistancesFromAbility(
+  abilityId: string | null | undefined,
+): readonly PokemonType[] {
+  if (!abilityId) return [];
+  const key = normalizeId(abilityId);
+  return ABILITY_RESISTANCES[key] ?? [];
+}
+
+function getBerryResistance(
+  itemId: string | null | undefined,
+): PokemonType | null {
+  if (!itemId) return null;
+  const key = normalizeId(itemId);
+  return BERRY_RESISTANCES[key] ?? null;
+}
+
 function getMultiplier(
   attackType: PokemonType,
   defenderTypes: readonly PokemonType[],
@@ -187,6 +233,10 @@ function getMultiplier(
   itemId: string | null | undefined = null,
 ): number {
   const atk = normalizeId(attackType) as PokemonType;
+
+  if (normalizeId(abilityId) === "wonder-guard") {
+  }
+
   const immunity = getImmunity(abilityId, itemId);
   if (immunity && immunity === atk) return 0;
 
@@ -201,14 +251,50 @@ function getMultiplier(
       if (multiplier === 0) return 0;
     }
   }
+
+  const abilityResists = getResistancesFromAbility(abilityId);
+  if (abilityResists.includes(atk)) {
+    multiplier *= 0.5;
+  }
+
+  if (normalizeId(abilityId) === "fluffy" && atk === "fire") {
+    multiplier *= 2;
+  }
+
+  if (normalizeId(abilityId) === "wonder-guard") {
+    return multiplier > 1 ? multiplier : 0;
+  }
+
   return multiplier;
+}
+
+function getMitigationSource(
+  attackType: PokemonType,
+  abilityId: string | null | undefined,
+  itemId: string | null | undefined,
+): string | null {
+  const atk = normalizeId(attackType) as PokemonType;
+  const ability = normalizeId(abilityId);
+  const item = normalizeId(itemId);
+
+  if (ABILITY_IMMUNITIES[ability] === atk) return `Habilidad ${ability}`;
+  if (ITEM_IMMUNITIES[item] === atk) return `Objeto ${item}`;
+  if (getResistancesFromAbility(ability).includes(atk))
+    return `Habilidad ${ability} resiste ${atk}`;
+  if (getBerryResistance(item) === atk) return `Baya ${item} reduce ${atk}`;
+  return null;
 }
 
 export const TypeEffectiveness = Object.freeze({
   getMultiplier,
   getImmunity,
+  getResistancesFromAbility,
+  getBerryResistance,
+  getMitigationSource,
   getAllTypes: (): readonly PokemonType[] => ALL_POKEMON_TYPES,
   getChart: () => TYPE_CHART,
   ABILITY_IMMUNITIES,
   ITEM_IMMUNITIES,
+  ABILITY_RESISTANCES,
+  BERRY_RESISTANCES,
 });

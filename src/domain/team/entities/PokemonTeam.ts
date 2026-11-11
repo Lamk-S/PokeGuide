@@ -18,11 +18,24 @@ export class PokemonTeam {
       throw new Error("El equipo contiene miembros nulos o indefinidos.");
     }
 
+    for (const member of sanitized) {
+      if (!member.id || !member.name) {
+        throw new Error("TeamMember inválido: requiere id y name");
+      }
+      if (!member.types || member.types.length === 0) {
+        throw new Error(`TeamMember ${member.id} sin tipos definidos`);
+      }
+      if (!member.moves) {
+        throw new Error(
+          `TeamMember ${member.id} debe exponer array de moves (aunque sea vacío)`,
+        );
+      }
+    }
+
     this._members = Object.freeze([...sanitized]);
     Object.freeze(this);
   }
 
-  // Getters puros
   get size(): number {
     return this._members.length;
   }
@@ -33,6 +46,20 @@ export class PokemonTeam {
 
   getMembers(): readonly TeamMember[] {
     return this._members;
+  }
+
+  getMemberById(id: string): TeamMember | undefined {
+    return this._members.find((m) => m.id === id);
+  }
+
+  getAllMoves(): readonly TeamMember["moves"][number][] {
+    return this._members.flatMap((m) => [...m.moves]);
+  }
+
+  hasType(type: string): boolean {
+    return this._members.some((m) =>
+      (m.types as readonly string[]).includes(type),
+    );
   }
 
   isEmpty(): boolean {
@@ -84,5 +111,9 @@ export class PokemonTeam {
 
   clear(): PokemonTeam {
     return new PokemonTeam([]);
+  }
+
+  toSnapshot(): { members: readonly TeamMember[]; size: number } {
+    return { members: this._members, size: this.size };
   }
 }
