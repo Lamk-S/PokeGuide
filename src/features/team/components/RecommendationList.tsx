@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import type {
+  ActionableRecommendation,
   RecommendationCategory,
   Severity,
   TeamMember,
@@ -23,9 +24,29 @@ type MemberWithMeta = TeamMember & {
   readonly name?: string;
   readonly species?: string;
 };
+
+type LooseRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is LooseRecord {
+  return typeof value === "object" && value !== null;
+}
+
+function getStringProp(obj: unknown, key: string): string | undefined {
+  if (!isRecord(obj)) return undefined;
+  const v = obj[key];
+  return typeof v === "string" && v.length > 0 ? v : undefined;
+}
+
 function getMemberDisplayName(member: TeamMember): string {
   const meta = member as MemberWithMeta;
   return meta.displayNameEs ?? meta.name ?? meta.species ?? "Desconocido";
+}
+
+function isActionable(rec: unknown): rec is ActionableRecommendation {
+  if (!isRecord(rec)) return false;
+  return (
+    typeof rec.problemDescription === "string" && Array.isArray(rec.evidence)
+  );
 }
 
 export function RecommendationList() {
@@ -33,6 +54,7 @@ export function RecommendationList() {
   const team = useTeamStore((s) => s.team);
   const members = team.getMembers();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
   const sorted = useMemo(
     () => (analysis ? [...analysis.recommendations] : []),
     [analysis],
@@ -119,36 +141,75 @@ export function RecommendationList() {
 
       <div className="divide-y divide-[#F5F1E8]">
         {sorted.map((rec) => {
-          const teamRec = rec as TeamRecommendation;
-          const sev = SEVERITY_I18N[teamRec.severity as Severity];
+          const isNew = isActionable(rec);
+          const severity = rec.severity as Severity;
+          const sev = SEVERITY_I18N[severity] ?? {
+            label: severity,
+            descripcion: "",
+          };
+          const category = rec.category as RecommendationCategory;
+          const tipoLabel = CATEGORY_I18N[category] ?? category;
+
+          const attackingTypeRaw =
+            getStringProp(rec, "attackingType") ??
+            getStringProp(rec, "targetType") ??
+            "normal";
+          const targetTypeRaw =
+            getStringProp(rec, "targetType") ??
+            getStringProp(rec, "attackingType") ??
+            "normal";
+          const attackingType = attackingTypeRaw as PokemonType;
+          const targetType = targetTypeRaw as PokemonType;
+
           const affected = members.filter(
             (m) =>
               TypeEffectiveness.getMultiplier(
-                teamRec.attackingType,
+                attackingType,
                 m.types as readonly PokemonType[],
                 m.abilityId ?? m.ability ?? null,
                 m.itemId ?? m.item ?? null,
               ) > 1,
           );
-          const resistCount = teamRec.evidence.resist + teamRec.evidence.immune;
-          const tipoEs = translateTypeToSpanish(teamRec.targetType);
-          const isExpanded = expandedId === teamRec.id;
-          const tipoLabel =
-            CATEGORY_I18N[teamRec.category as RecommendationCategory] ??
-            teamRec.category;
-          const title = getRecommendationTitle(
-            teamRec,
-            affected.length,
-            resistCount,
-          );
-          const reason = getRecommendationReason(teamRec);
-          const action = getRecommendationAction(teamRec);
+
+          const tipoEs = translateTypeToSpanish(targetType);
+          const isExpanded = expandedId === rec.id;
+
+          let title: string;
+          let reason: string;
+          let action: string;
+          let evidenceDisplay: string;
+
+          if (isNew) {
+            title = rec.problemDescription;
+            reason = rec.evidence.join(" · ");
+            action = rec.actionableAdvice;
+            evidenceDisplay = `${rec.evidence.join(" · ")} · code: ${rec.issueCode} · target: ${rec.targetType ?? targetTypeRaw} · priority: ${rec.priorityScore}`;
+          } else {
+            const legacy = rec as unknown as TeamRecommendation;
+            const resistCount = legacy.evidence
+              ? legacy.evidence.resist + legacy.evidence.immune
+              : 0;
+            title = getRecommendationTitle(
+              legacy,
+              affected.length,
+              resistCount,
+            );
+            reason = getRecommendationReason(legacy);
+            action = getRecommendationAction(legacy);
+            evidenceDisplay = legacy.evidence
+              ? `${Object.entries(legacy.evidence)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(
+                    " · ",
+                  )} · code: ${legacy.issueCode} · target: ${legacy.targetType}`
+              : `code: ${legacy.issueCode} · target: ${legacy.targetType}`;
+          }
 
           return (
-            <article key={teamRec.id} className="px-5 py-5">
+            <article key={rec.id} className="px-5 py-5">
               <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-widest">
                 <span
-                  className={`border px-2 py-0.5 ${teamRec.severity === "Critical" ? "border-[#D93B32] bg-[#FEF2F2] text-[#991B1B]" : teamRec.severity === "High" ? "border-[#111] bg-[#111] text-white" : "border-[#EDE8E0] bg-white text-zinc-600"}`}
+                  className={`border px-2 py-0.5 ${severity === "Critical" ? "border-[#D93B32] bg-[#FEF2F2] text-[#991B1B]" : severity === "High" ? "border-[#111] bg-[#111] text-white" : "border-[#EDE8E0] bg-white text-zinc-600"}`}
                 >
                   {sev.label}
                 </span>
@@ -197,17 +258,14 @@ export function RecommendationList() {
               </div>
               <button
                 type="button"
-                onClick={() => setExpandedId(isExpanded ? null : teamRec.id)}
+                onClick={() => setExpandedId(isExpanded ? null : rec.id)}
                 className="mt-3 text-[11px] text-zinc-500 underline decoration-zinc-300 underline-offset-2 hover:text-[#111] hover:decoration-[#111]"
               >
                 {isExpanded ? "Ocultar evidencia" : "Ver evidencia técnica"}
               </button>
-              {isExpanded && teamRec.evidence && (
+              {isExpanded && (
                 <div className="mt-3 border border-[#EDE8E0] bg-[#F8F5F0] px-3 py-2 text-[11px] tabular-nums text-zinc-600">
-                  {Object.entries(teamRec.evidence)
-                    .map(([k, v]) => `${k}: ${v}`)
-                    .join(" · ")}{" "}
-                  · code: {teamRec.issueCode} · target: {teamRec.targetType}
+                  {evidenceDisplay}
                 </div>
               )}
             </article>
