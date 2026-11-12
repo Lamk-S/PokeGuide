@@ -50,9 +50,13 @@ function useDefensiveMetrics(member: TeamMember) {
     let resistCount = 0;
     let immuneCount = 0;
     for (const atk of ALL_POKEMON_TYPES) {
+      const defenderTypes =
+        member.isTeraActive && member.teraType
+          ? [member.teraType]
+          : member.types;
       const mult = TypeEffectiveness.getMultiplier(
         atk,
-        member.types as readonly PokemonType[],
+        defenderTypes as readonly PokemonType[],
         member.abilityId ?? member.ability ?? null,
         member.itemId ?? member.item ?? null,
       );
@@ -70,15 +74,18 @@ function useTeamCoverage(members: readonly TeamMember[], upToIndex: number) {
     if (slice.length === 0) return 0;
     let covered = 0;
     for (const atk of ALL_POKEMON_TYPES) {
-      const hasResist = slice.some(
-        (m) =>
+      const hasResist = slice.some((m) => {
+        const defenderTypes =
+          m.isTeraActive && m.teraType ? [m.teraType] : m.types;
+        return (
           TypeEffectiveness.getMultiplier(
             atk,
-            m.types as readonly PokemonType[],
+            defenderTypes as readonly PokemonType[],
             m.abilityId ?? m.ability ?? null,
             m.itemId ?? m.item ?? null,
-          ) < 1,
-      );
+          ) < 1
+        );
+      });
       if (hasResist) covered += 1;
     }
     return Math.round((covered / ALL_POKEMON_TYPES.length) * 100);
@@ -107,6 +114,7 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
   const team = useTeamStore((s) => s.team);
   const members = team.getMembers();
   const replaceMember = useTeamStore((s) => s.replaceMember);
+  const toggleTera = useTeamStore((s) => s.toggleTera);
   const [editOpen, setEditOpen] = useState(false);
 
   const { cobertura, resistCount, immuneCount } = useDefensiveMetrics(member);
@@ -155,6 +163,11 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             <div className="absolute -bottom-1.5 -right-1.5 border border-[#EDE8E0] bg-white px-1 py-0.5 font-mono text-[9px] tabular-nums text-zinc-600">
               #{String(dexNumber).padStart(3, "0")}
             </div>
+            {member.isTeraActive && member.teraType && (
+              <div className="absolute -top-1.5 -left-1.5 border border-[#111] bg-[#111] px-1 py-0.5 text-[8px] font-bold uppercase tracking-widest text-white">
+                TERA
+              </div>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="truncate font-serif text-[15px] font-semibold leading-tight tracking-[-0.02em] text-[#111] sm:text-[16px]">
@@ -169,6 +182,13 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
                   {translateTypeToSpanish(t)}
                 </span>
               ))}
+              {member.teraType && (
+                <span
+                  className={`border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest ${member.isTeraActive ? "border-[#111] bg-[#111] text-white" : "border-violet-200 bg-violet-50 text-violet-800"}`}
+                >
+                  Tera {translateTypeToSpanish(member.teraType)}
+                </span>
+              )}
             </div>
             <div className="mt-1.5 flex items-center gap-1.5 text-[10px] tabular-nums text-zinc-500">
               <span className="whitespace-nowrap">Nv. {member.level}</span>
@@ -200,8 +220,18 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             <div className="text-[9px] uppercase tracking-widest text-zinc-500">
               Configuración
             </div>
-            <div className="text-[9px] tabular-nums text-zinc-400">
-              {evTotal}/510
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] tabular-nums text-zinc-400">
+                {evTotal}/510
+              </span>
+              <button
+                type="button"
+                onClick={() => toggleTera(member.id)}
+                className={`border px-1.5 py-0.5 text-[9px] uppercase tracking-widest ${member.isTeraActive ? "border-[#111] bg-[#111] text-white" : "border-[#EDE8E0] bg-white text-zinc-500 hover:border-[#111]"}`}
+                title="Solo un Tera activo por equipo (Gen 9)"
+              >
+                {member.isTeraActive ? "Tera ON" : "Tera"}
+              </button>
             </div>
           </div>
           <div className="mt-2 flex flex-wrap gap-1">
@@ -229,6 +259,11 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             ) : (
               <span className="border border-dashed border-[#EDE8E0] px-1.5 py-0.5 text-[10px] text-zinc-400">
                 Sin objeto
+              </span>
+            )}
+            {member.teraType && (
+              <span className="inline-flex items-center gap-1 border border-[#111] bg-[#F8F5F0] px-1.5 py-0.5 text-[10px] text-[#111]">
+                Tera {translateTypeToSpanish(member.teraType)}
               </span>
             )}
           </div>
@@ -310,6 +345,7 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
           <div className="mt-1.5 truncate text-[9px] leading-[1.3] text-zinc-500">
             {resistCount} res. · {immuneCount} inm. ·{" "}
             {ALL_POKEMON_TYPES.length - resistCount - immuneCount} neutro/débil
+            {member.isTeraActive ? ` · Tera ${member.teraType} activo` : ""}
           </div>
         </div>
       </div>
