@@ -1,4 +1,5 @@
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
+import { normalizeId } from "@/domain/shared/utils/normalizeId";
 import { ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
 import type { PokemonTeam } from "../../entities/PokemonTeam";
 import type { OffensiveCoverage, OffensiveReport } from "../../types/TeamTypes";
@@ -42,8 +43,44 @@ const STALLBREAKER_MOVES = new Set([
   "circle-throw",
 ]);
 
+const ATE_ABILITIES: Record<string, PokemonType> = {
+  pixilate: "fairy",
+  "piel-feerica": "fairy",
+  aerilate: "flying",
+  "piel-celeste": "flying",
+  refrigerate: "ice",
+  "piel-helada": "ice",
+  galvanize: "electric",
+  "piel-electrica": "electric",
+  "piel-eléctrica": "electric",
+};
+
+const SCRAPPY_ABILITIES = new Set(["scrappy", "intrepido", "intrépido"]);
+const MINDS_EYE_ABILITIES = new Set([
+  "minds-eye",
+  "mind's-eye",
+  "mente-divina",
+  "mente-divina",
+]);
+
 function normalizeMoveName(name: string): string {
-  return name.toLowerCase().replace(/_/g, "-").trim();
+  return normalizeId(name);
+}
+
+function getEffectiveMoveType(
+  originalType: PokemonType,
+  abilityId: string | null | undefined,
+): PokemonType {
+  const ab = normalizeId(abilityId);
+  if (originalType === "normal" && ab && ATE_ABILITIES[ab]) {
+    return ATE_ABILITIES[ab] as PokemonType;
+  }
+  return originalType;
+}
+
+function canHitGhost(abilityId: string | null | undefined): boolean {
+  const ab = normalizeId(abilityId);
+  return SCRAPPY_ABILITIES.has(ab) || MINDS_EYE_ABILITIES.has(ab);
 }
 
 function analyze(team: PokemonTeam): OffensiveReport {
@@ -61,6 +98,7 @@ function analyze(team: PokemonTeam): OffensiveReport {
       isBalanced: false,
       stallVulnerability: true,
       wallbreakerPresent: false,
+      teraStabTypes: [],
     };
   }
 
@@ -69,6 +107,7 @@ function analyze(team: PokemonTeam): OffensiveReport {
   let hasKnock = false;
   let hasTaunt = false;
   let wallbreakerPresent = false;
+  const teraStabSet = new Set<PokemonType>();
 
   const coverageMap = new Map<PokemonType, Set<string>>();
 
@@ -78,10 +117,17 @@ function analyze(team: PokemonTeam): OffensiveReport {
 
   for (const member of members) {
     const memberId = member.id;
+    const abilityId = member.abilityId ?? member.ability ?? null;
+    const hasScrappy = canHitGhost(abilityId);
+
+    if (member.isTeraActive && member.teraType) {
+      teraStabSet.add(member.teraType);
+    }
 
     for (const move of member.moves) {
-      if (!move || move.category === "status") {
-        const norm = normalizeMoveName(move?.name ?? "");
+      if (!move || move.isInvalid) continue;
+      if (move.category === "status") {
+        const norm = normalizeMoveName(move.name ?? "");
         if (STALLBREAKER_MOVES.has(norm)) {
           if (norm === "knock-off" || norm === "desarme") hasKnock = true;
           if (norm === "taunt") hasTaunt = true;
@@ -91,13 +137,22 @@ function analyze(team: PokemonTeam): OffensiveReport {
 
       if (!move.power || move.power < 40) continue;
 
-      const moveType = move.type as PokemonType;
-      if (!moveType) continue;
+      const originalType = move.type as PokemonType;
+      if (!originalType) continue;
 
-      const superEffectiveTargets = SUPER_EFFECTIVE_MAP[moveType] ?? [];
+      const effectiveType = getEffectiveMoveType(originalType, abilityId);
+
+      const superEffectiveTargets = SUPER_EFFECTIVE_MAP[effectiveType] ?? [];
 
       for (const target of superEffectiveTargets) {
         coverageMap.get(target)?.add(memberId);
+      }
+
+      if (
+        hasScrappy &&
+        (effectiveType === "normal" || effectiveType === "fighting")
+      ) {
+        coverageMap.get("ghost")?.add(memberId);
       }
 
       if (move.category === "physical") {
@@ -106,11 +161,22 @@ function analyze(team: PokemonTeam): OffensiveReport {
         specialMoves += 1;
       }
 
+      const isTeraStab =
+        member.isTeraActive &&
+        member.teraType &&
+        effectiveType === member.teraType;
+
+      const powerThreshold = isTeraStab ? 80 : 110;
+
       if (
-        (move.power && move.power >= 110) ||
+        (move.power && move.power >= powerThreshold) ||
         normalizeMoveName(move.name).includes("close-combat") ||
         normalizeMoveName(move.name).includes("a-bocajarro")
       ) {
+        wallbreakerPresent = true;
+      }
+
+      if (isTeraStab && move.power && move.power >= 60) {
         wallbreakerPresent = true;
       }
     }
@@ -158,6 +224,7 @@ function analyze(team: PokemonTeam): OffensiveReport {
       stallVulnerability ||
       (!hasKnock && !hasTaunt && !wallbreakerPresent && totalCovered < 8),
     wallbreakerPresent,
+    teraStabTypes: Array.from(teraStabSet),
   };
 }
 
@@ -170,4 +237,6 @@ function getRedundantCoverage(report: OffensiveReport): PokemonType[] {
 export const OffensiveAnalyzer = Object.freeze({
   analyze,
   getRedundantCoverage,
+  getEffectiveMoveType,
+  canHitGhost,
 });
