@@ -36,6 +36,7 @@ export interface ResolvedMove {
   readonly pp?: number;
   readonly effect?: string;
   readonly shortEffect?: string;
+  readonly isInvalid?: boolean;
 }
 
 export interface TeamMember {
@@ -57,14 +58,27 @@ export interface TeamMember {
   readonly baseStats: BaseStats;
   readonly moves: readonly ResolvedMove[];
   readonly isCustom?: boolean;
+  readonly teraType?: PokemonType;
+  readonly isTeraActive?: boolean;
 }
 
-export interface TypeExposure {
+export interface TeamMemberInput extends TeamMember {
+  readonly id: string;
+  readonly pokemonId: number;
+  readonly name: string;
+  readonly types: readonly PokemonType[];
+  readonly level: number;
+  readonly moves: readonly ResolvedMove[];
+  readonly teraType?: PokemonType;
+  readonly isTeraActive?: boolean;
+}
+
+export type TypeExposure = {
   readonly weak: number;
   readonly resist: number;
   readonly immune: number;
   readonly neutral: number;
-}
+};
 
 export type DefensiveCoverage = Record<string, TypeExposure> &
   Partial<Record<PokemonType, TypeExposure>>;
@@ -107,6 +121,7 @@ export interface OffensiveReport {
   readonly isBalanced: boolean;
   readonly stallVulnerability: boolean;
   readonly wallbreakerPresent: boolean;
+  readonly teraStabTypes?: readonly PokemonType[];
 }
 
 export interface SpeedControlReport {

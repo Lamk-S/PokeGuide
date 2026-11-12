@@ -1,3 +1,4 @@
+import { normalizeId } from "@/domain/shared/utils/normalizeId";
 import type { PokemonTeam } from "../../entities/PokemonTeam";
 import type {
   CompetitiveRole,
@@ -7,7 +8,7 @@ import type {
 } from "../../types/TeamTypes";
 
 function normalize(name: string): string {
-  return name.toLowerCase().replace(/_/g, "-").trim();
+  return normalizeId(name);
 }
 
 function classifyMember(member: TeamMember): RoleAssignment {
@@ -15,23 +16,58 @@ function classifyMember(member: TeamMember): RoleAssignment {
   const reasoning: string[] = [];
 
   const stats = member.calculatedStats;
+  const base = member.baseStats;
   const moves = member.moves.map((m) => normalize(m.name));
   const item = normalize(member.itemId ?? member.item ?? "");
   const ability = normalize(member.abilityId ?? member.ability ?? "");
 
   const totalOffense = stats.attack + stats.specialAttack;
   const isFast = stats.speed >= 100;
-  const _isVeryFast = stats.speed >= 120;
+  const isVeryFast = stats.speed >= 120;
   const isBulky = stats.hp + stats.defense + stats.specialDefense >= 300;
 
   const isChoice = item.includes("choice-");
   const isScarf = item === "choice-scarf";
+  const isBand = item === "choice-band";
+  const isSpecs = item === "choice-specs";
   const isBoots = item.includes("heavy-duty-boots") || item.includes("botas");
   const isLeftovers =
     item.includes("leftovers") ||
     item.includes("restos") ||
     item.includes("black-sludge");
   const isRockyHelmet = item.includes("rocky-helmet");
+
+  const highAtkBase = (base.attack ?? 0) > 120 || stats.attack >= 150;
+  const highSpaBase =
+    (base["special-attack"] ?? 0) > 120 || stats.specialAttack >= 150;
+
+  if (isBand && highAtkBase) {
+    if (isFast || isVeryFast) {
+      roles.push("sweeper");
+      reasoning.push(
+        `Choice Band + ATQ alto ${base.attack}/${stats.attack} + veloz ${stats.speed} -> sweeper inmediato`,
+      );
+    } else {
+      roles.push("wallbreaker");
+      reasoning.push(
+        `Choice Band + ATQ alto ${base.attack}/${stats.attack} -> wallbreaker inmediato sin setup`,
+      );
+    }
+  }
+
+  if (isSpecs && highSpaBase) {
+    if (isFast || isVeryFast) {
+      roles.push("sweeper");
+      reasoning.push(
+        `Choice Specs + AtEsp alto ${base["special-attack"]}/${stats.specialAttack} + veloz -> sweeper especial`,
+      );
+    } else {
+      roles.push("wallbreaker");
+      reasoning.push(
+        `Choice Specs + AtEsp alto ${base["special-attack"]}/${stats.specialAttack} -> wallbreaker especial inmediato`,
+      );
+    }
+  }
 
   const hasSetup = moves.some((m) =>
     [
@@ -114,13 +150,17 @@ function classifyMember(member: TeamMember): RoleAssignment {
   );
 
   if (hasSetup && (isFast || totalOffense > 250)) {
-    roles.push("sweeper");
-    reasoning.push(`Setup (${hasSetup}) + ofensiva alta (${totalOffense})`);
+    if (!roles.includes("sweeper")) {
+      roles.push("sweeper");
+      reasoning.push(`Setup + ofensiva alta (${totalOffense})`);
+    }
   }
 
   if (!hasSetup && totalOffense > 280 && !isBulky) {
-    roles.push("wallbreaker");
-    reasoning.push("Alta ofensiva inmediata sin setup");
+    if (!roles.includes("wallbreaker")) {
+      roles.push("wallbreaker");
+      reasoning.push("Alta ofensiva inmediata sin setup");
+    }
   }
 
   if (isBulky && hasRecovery) {
@@ -140,10 +180,12 @@ function classifyMember(member: TeamMember): RoleAssignment {
   }
 
   if (isScarf || (isChoice && isFast) || hasPriority) {
-    roles.push("revenge_killer");
-    reasoning.push(
-      `Revenge killer: ${isScarf ? "Choice Scarf" : hasPriority ? "prioridad" : "Choice + veloz"}`,
-    );
+    if (!roles.includes("revenge_killer")) {
+      roles.push("revenge_killer");
+      reasoning.push(
+        `Revenge killer: ${isScarf ? "Choice Scarf" : hasPriority ? "prioridad" : "Choice + veloz"}`,
+      );
+    }
   }
 
   if (hasHazard) {
@@ -175,7 +217,7 @@ function classifyMember(member: TeamMember): RoleAssignment {
     reasoning.push("Cleric / curación de estado");
   }
 
-  if (hasStatus || isLeftovers || isRockyHelmet || isBoots || _isVeryFast) {
+  if (hasStatus || isLeftovers || isRockyHelmet || isBoots || isVeryFast) {
     if (!roles.includes("support") && !roles.includes("wall")) {
       roles.push("support");
       reasoning.push("Soporte con estado / objeto defensivo");
@@ -190,6 +232,12 @@ function classifyMember(member: TeamMember): RoleAssignment {
   ) {
     roles.push("stallbreaker");
     reasoning.push("Rompe stall: Taunt/Knock");
+  }
+
+  if (member.isTeraActive && member.teraType) {
+    reasoning.push(
+      `Tera ${member.teraType} activo: modifica resistencias y STAB`,
+    );
   }
 
   if (roles.length === 0) {

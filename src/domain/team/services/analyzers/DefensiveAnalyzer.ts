@@ -5,6 +5,7 @@ import type {
   DefensiveCoverage,
   DefensiveReport,
   SafeSwitchIns,
+  TeamMember,
 } from "../../types/TeamTypes";
 
 function buildEmptyCoverage(): DefensiveCoverage {
@@ -13,6 +14,13 @@ function buildEmptyCoverage(): DefensiveCoverage {
     coverage[atk] = { weak: 0, resist: 0, immune: 0, neutral: 0 };
   }
   return coverage;
+}
+
+function getEffectiveDefenderTypes(member: TeamMember): readonly PokemonType[] {
+  if (member.isTeraActive && member.teraType) {
+    return [member.teraType] as readonly PokemonType[];
+  }
+  return member.types as readonly PokemonType[];
 }
 
 function analyze(team: PokemonTeam): DefensiveCoverage {
@@ -27,13 +35,14 @@ function analyze(team: PokemonTeam): DefensiveCoverage {
     let neutral = 0;
 
     for (const member of members) {
-      if (!member.types || member.types.length === 0) {
+      const defenderTypes = getEffectiveDefenderTypes(member);
+      if (!defenderTypes || defenderTypes.length === 0) {
         neutral += 1;
         continue;
       }
       const mult = TypeEffectiveness.getMultiplier(
         attackingType,
-        member.types,
+        defenderTypes,
         member.abilityId ?? member.ability ?? null,
         member.itemId ?? member.item ?? null,
       );
@@ -80,20 +89,21 @@ function analyzeDetailed(team: PokemonTeam): DefensiveReport {
     let originalWeakCount = 0;
 
     for (const member of members) {
-      if (!member.types || member.types.length === 0) {
+      const defenderTypes = getEffectiveDefenderTypes(member);
+      if (!defenderTypes || defenderTypes.length === 0) {
         neutral += 1;
         continue;
       }
 
       const baseMult = TypeEffectiveness.getMultiplier(
         attackingType,
-        member.types,
+        defenderTypes,
         null,
         null,
       );
       const effectiveMult = TypeEffectiveness.getMultiplier(
         attackingType,
-        member.types,
+        defenderTypes,
         member.abilityId ?? member.ability ?? null,
         member.itemId ?? member.item ?? null,
       );
@@ -167,4 +177,5 @@ export const DefensiveAnalyzer = Object.freeze({
   analyze,
   analyzeDetailed,
   getUnsafeTypes,
+  getEffectiveDefenderTypes,
 });

@@ -234,9 +234,6 @@ function getMultiplier(
 ): number {
   const atk = normalizeId(attackType) as PokemonType;
 
-  if (normalizeId(abilityId) === "wonder-guard") {
-  }
-
   const immunity = getImmunity(abilityId, itemId);
   if (immunity && immunity === atk) return 0;
 
