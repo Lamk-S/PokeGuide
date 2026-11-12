@@ -20,6 +20,8 @@ export type TeamMemberInput = TeamMember & {
   types: readonly string[];
   level: number;
   moves: readonly ResolvedMove[];
+  teraType?: PokemonType;
+  isTeraActive?: boolean;
 };
 
 type LooseRecord = Record<string, unknown>;
@@ -42,6 +44,8 @@ interface LooseMember {
   calculatedStats?: unknown;
   baseStats?: unknown;
   displayNameEs?: unknown;
+  teraType?: unknown;
+  isTeraActive?: unknown;
 }
 
 interface TeamFacade {
@@ -65,6 +69,7 @@ interface TeamState {
   removeMember: (id: string | number) => void;
   updateMember: (id: string, patch: Partial<TeamMemberInput>) => void;
   replaceMember: (index: number, member: TeamMember | TeamMemberInput) => void;
+  toggleTera: (memberId: string) => void;
   analyze: () => Promise<void>;
   initialize: () => Promise<void>;
   reset: () => void;
@@ -147,38 +152,48 @@ function toResolvedMove(raw: unknown): ResolvedMove {
   const fallbackType: PokemonType = "normal";
 
   if (!raw) {
+    console.error(
+      "[toResolvedMove] Movimiento nulo recibido, marcado como inválido",
+    );
     return {
-      id: "unknown",
-      name: "unknown",
-      nameEs: "Desconocido",
+      id: "invalid-empty",
+      name: "invalid",
+      nameEs: "Movimiento inválido",
       type: fallbackType,
       power: null,
       accuracy: null,
       category: "status",
+      isInvalid: true,
     } as ResolvedMove;
   }
 
   if (isString(raw)) {
+    console.error(
+      `[toResolvedMove] String puro "${raw}" recibido, se marca inválido para evitar inferencia falsa`,
+    );
     return {
-      id: raw,
+      id: `invalid-${raw}`,
       name: raw,
-      nameEs: raw,
-      type: fallbackType,
-      power: 80,
-      accuracy: 100,
-      category: "physical",
-    } as ResolvedMove;
-  }
-
-  if (!isRecord(raw)) {
-    return {
-      id: "unknown",
-      name: "unknown",
-      nameEs: "Desconocido",
+      nameEs: "Movimiento inválido - requiere hidratación",
       type: fallbackType,
       power: null,
       accuracy: null,
       category: "status",
+      isInvalid: true,
+    } as ResolvedMove;
+  }
+
+  if (!isRecord(raw)) {
+    console.error("[toResolvedMove] Tipo no soportado, marcado inválido", raw);
+    return {
+      id: "invalid-unknown-type",
+      name: "unknown",
+      nameEs: "Movimiento inválido",
+      type: fallbackType,
+      power: null,
+      accuracy: null,
+      category: "status",
+      isInvalid: true,
     } as ResolvedMove;
   }
 
@@ -186,14 +201,30 @@ function toResolvedMove(raw: unknown): ResolvedMove {
     getStringProp(raw, "id") ?? getStringProp(raw, "name") ?? "unknown";
   const name =
     getStringProp(raw, "name") ?? getStringProp(raw, "id") ?? "unknown";
+
+  if (id === "unknown" || name === "unknown") {
+    console.error("[toResolvedMove] Movimiento sin id/nombre válido", raw);
+    return {
+      id: `invalid-${id}`,
+      name,
+      nameEs: "Movimiento inválido",
+      type: fallbackType,
+      power: null,
+      accuracy: null,
+      category: "status",
+      isInvalid: true,
+    } as ResolvedMove;
+  }
+
   const nameEs = getStringProp(raw, "nameEs") ?? name;
   const type = getStringProp(raw, "type") ?? fallbackType;
-  const power = getNumberProp(raw, "power") ?? 80;
-  const accuracy = getNumberProp(raw, "accuracy") ?? 100;
+  const power = getNumberProp(raw, "power") ?? null;
+  const accuracy = getNumberProp(raw, "accuracy") ?? null;
+
   const categoryRaw =
     getStringProp(raw, "category") ??
     getStringProp(raw, "damageClass") ??
-    "physical";
+    "status";
   const category = categoryRaw as ResolvedMove["category"];
   const priority = getNumberProp(raw, "priority") ?? 0;
   const pp = getNumberProp(raw, "pp");
@@ -212,6 +243,7 @@ function toResolvedMove(raw: unknown): ResolvedMove {
     pp,
     effect,
     shortEffect,
+    isInvalid: false,
   } as ResolvedMove;
 }
 
@@ -257,6 +289,13 @@ function toInput(member: TeamMember | TeamMemberInput): TeamMemberInput {
 
   const level = isNumber(m.level) ? m.level : 50;
 
+  const teraTypeRaw = m.teraType;
+  const teraType = isString(teraTypeRaw)
+    ? (teraTypeRaw as PokemonType)
+    : undefined;
+  const isTeraActive =
+    typeof m.isTeraActive === "boolean" ? m.isTeraActive : false;
+
   const baseRecord = member as unknown as LooseRecord;
 
   const full: TeamMemberInput = {
@@ -266,7 +305,7 @@ function toInput(member: TeamMember | TeamMemberInput): TeamMemberInput {
     name,
     displayNameEs,
     species,
-    types,
+    types: types as unknown as PokemonType[],
     abilityId,
     itemId,
     ability,
@@ -284,6 +323,8 @@ function toInput(member: TeamMember | TeamMemberInput): TeamMemberInput {
       (baseRecord.calculatedStats as CalculatedStats) ??
       defaultCalculated(),
     moves,
+    teraType,
+    isTeraActive,
   } as TeamMemberInput;
 
   return full;
@@ -390,6 +431,31 @@ export const useTeamStore = create<TeamState>((set, get) => {
         if (index >= 0 && index < next.length) {
           next[index] = input;
         }
+        return {
+          members: next,
+          team: buildFacade(),
+          isAnalysisStale: true,
+          analysisVersion: internalVersion,
+          error: null,
+        };
+      });
+    },
+
+    toggleTera: (memberId: string) => {
+      internalVersion += 1;
+      set((state) => {
+        const target = state.members.find((m) => m.id === memberId);
+        if (!target) return state;
+        const shouldActivate = !target.isTeraActive;
+        const next = state.members.map((m) => {
+          if (m.id === memberId) {
+            return { ...m, isTeraActive: shouldActivate } as TeamMemberInput;
+          }
+          if (shouldActivate && m.isTeraActive) {
+            return { ...m, isTeraActive: false } as TeamMemberInput;
+          }
+          return m;
+        });
         return {
           members: next,
           team: buildFacade(),
