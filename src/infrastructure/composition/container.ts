@@ -39,9 +39,7 @@ function toExecutable(mod: unknown, fallback?: unknown): Executable {
     m.OptimizeSurvivalWithBattleUseCase ??
     m.default ??
     m) as unknown;
-
   if (hasExecute(candidate)) return candidate;
-
   if (typeof candidate === "function") {
     const withProto = candidate as { prototype?: { execute?: unknown } };
     if (
@@ -57,7 +55,6 @@ function toExecutable(mod: unknown, fallback?: unknown): Executable {
       execute: (input: unknown) => (candidate as FunctionCandidate)(input),
     };
   }
-
   return { execute: async () => ({}) };
 }
 

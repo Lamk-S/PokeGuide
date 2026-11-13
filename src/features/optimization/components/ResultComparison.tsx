@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import { compareEVDistributions } from "@/domain/optimization/services/ComparisonService";
 import type { StatName } from "@/domain/optimization/types/OptimizationTypes";
 import type { EVDistribution } from "@/domain/optimization/value-objects/EVDistribution";
-import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
+import {
+  LocalPokemonRepository,
+  type PokemonFull,
+} from "@/infrastructure/local-data/repositories/local-pokemon.repository";
 import {
   useBuild,
   useObjective,
@@ -40,7 +43,7 @@ export function ResultComparison() {
     ensure().then(() =>
       repo
         .getById(build.pokemonId)
-        .then((p) => {
+        .then((p: PokemonFull | null) => {
           const data = p as unknown as PokemonData;
           setBaseStats(
             (data?.baseStats ?? null) as Record<StatName, number> | null,
@@ -89,11 +92,8 @@ export function ResultComparison() {
   if (!optimizedEVs) return null;
 
   const comparison = compareEVDistributions(build.evsActuales, optimizedEVs);
-
   const diffText = comparison.diffs.length
-    ? `Ahorro neto ${comparison.ahorro} EVs. Cambios: ${comparison.diffs
-        .map((d) => `${d.stat} ${d.original}→${d.optimizado}`)
-        .join(", ")}. Libres tras optimización ${comparison.libres}.`
+    ? `Ahorro neto ${comparison.ahorro} EVs. Cambios: ${comparison.diffs.map((d) => `${d.stat} ${d.original}→${d.optimizado}`).join(", ")}. Libres tras optimización ${comparison.libres}.`
     : `Sin cambios: distribución ya óptima. Libres ${comparison.libres}.`;
 
   return (

@@ -28,15 +28,6 @@ interface Props {
   readonly onReplace: (index: number) => void;
 }
 
-const BEST_LABEL_ES: Record<string, string> = {
-  hp: "PS",
-  attack: "ATQ",
-  defense: "DEF",
-  specialAttack: "AT. ESP.",
-  specialDefense: "DEF. ESP.",
-  speed: "VEL",
-};
-
 function getDisplayName(member: TeamMember): string {
   const meta = member as MemberWithMeta;
   return meta.displayNameEs ?? meta.name ?? meta.species ?? "Desconocido";
@@ -97,26 +88,21 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
   const rawName = getRawName(member);
   const baseName = resolveBaseName(rawName);
   const pokemonList = usePokedexStore((s) => s.pokemonList);
-
   const baseEntry = useMemo(
     () => pokemonList.find((p) => p.name === baseName),
     [pokemonList, baseName],
   );
-
   const formId = useMemo(() => resolvePokemonNumericId(member), [member]);
   const dexNumber = baseEntry?.id ?? formId;
-
   const spritePayload = useMemo(
     () => ({ id: formId, name: rawName }),
     [formId, rawName],
   );
-
   const team = useTeamStore((s) => s.team);
   const members = team.getMembers();
   const replaceMember = useTeamStore((s) => s.replaceMember);
   const toggleTera = useTeamStore((s) => s.toggleTera);
   const [editOpen, setEditOpen] = useState(false);
-
   const { cobertura, resistCount, immuneCount } = useDefensiveMetrics(member);
   const teamCoverage = useTeamCoverage(members, index);
   const stats = member.calculatedStats;
@@ -139,7 +125,6 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
     }
     return best;
   }, [stats]);
-
   const evTotal = useMemo(
     () => Object.values(member.evs).reduce((a, b) => a + b, 0),
     [member.evs],
@@ -261,11 +246,6 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
                 Sin objeto
               </span>
             )}
-            {member.teraType && (
-              <span className="inline-flex items-center gap-1 border border-[#111] bg-[#F8F5F0] px-1.5 py-0.5 text-[10px] text-[#111]">
-                Tera {translateTypeToSpanish(member.teraType)}
-              </span>
-            )}
           </div>
         </div>
         <div className="mt-3 flex-1">
@@ -308,17 +288,6 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
                 </div>
               );
             })}
-          </div>
-          <div className="mt-1.5 flex items-center justify-between text-[9px] text-zinc-500">
-            <span className="truncate">
-              Mejor: {BEST_LABEL_ES[bestStat] ?? bestStat}
-            </span>
-            {(member.itemId?.includes("scarf") ||
-              member.item?.includes("scarf")) && (
-              <span className="shrink-0 bg-[#111] px-1 py-0.5 text-[8px] text-white">
-                ×1.5 VEL
-              </span>
-            )}
           </div>
         </div>
         <div className="mt-3 border-t border-[#F5F1E8] pt-2.5">

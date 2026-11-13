@@ -145,11 +145,8 @@ export const useBattleStore = create<BattleStoreState>((set, get) => ({
     }
     const normalized = normalizeInput(input);
     set({ attackerInput: normalized, attacker: normalized });
-    if (get().autoCalculate && get().hasCalculatedOnce) {
-      void get().calculate();
-    }
+    if (get().autoCalculate && get().hasCalculatedOnce) void get().calculate();
   },
-
   setDefender: (input) => {
     if (input === null) {
       set({ defenderInput: null, defender: null });
@@ -157,47 +154,31 @@ export const useBattleStore = create<BattleStoreState>((set, get) => ({
     }
     const normalized = normalizeInput(input);
     set({ defenderInput: normalized, defender: normalized });
-    if (get().autoCalculate && get().hasCalculatedOnce) {
-      void get().calculate();
-    }
+    if (get().autoCalculate && get().hasCalculatedOnce) void get().calculate();
   },
-
   setMoveName: (name) => {
     set({ moveName: normalizeId(name) });
-    if (get().autoCalculate && get().hasCalculatedOnce) {
-      void get().calculate();
-    }
+    if (get().autoCalculate && get().hasCalculatedOnce) void get().calculate();
   },
-
   setConditions: (cond) => {
     const merged: IBattleConditions = {
       ...get().conditions,
       ...cond,
     } as IBattleConditions;
     set({ conditions: normalizeConditions(merged) });
-    if (get().autoCalculate && get().hasCalculatedOnce) {
-      void get().calculate();
-    }
+    if (get().autoCalculate && get().hasCalculatedOnce) void get().calculate();
   },
-
   setWeather: (weather) => {
     const next = normalizeConditions({ ...get().conditions, weather });
     set({ conditions: next });
-    if (get().autoCalculate && get().hasCalculatedOnce) {
-      void get().calculate();
-    }
+    if (get().autoCalculate && get().hasCalculatedOnce) void get().calculate();
   },
-
   setTerrain: (terrain) => {
     const next = normalizeConditions({ ...get().conditions, terrain });
     set({ conditions: next });
-    if (get().autoCalculate && get().hasCalculatedOnce) {
-      void get().calculate();
-    }
+    if (get().autoCalculate && get().hasCalculatedOnce) void get().calculate();
   },
-
   setAutoCalculate: (v) => set({ autoCalculate: v }),
-
   setGeneration: (gen) => {
     const { attackerInput, defenderInput } = get();
     const safeGen = Math.min(9, Math.max(1, Math.floor(gen)));
@@ -220,9 +201,7 @@ export const useBattleStore = create<BattleStoreState>((set, get) => ({
       result: null,
       error: null,
     });
-    if (get().autoCalculate && get().hasCalculatedOnce) {
-      void get().calculate();
-    }
+    if (get().autoCalculate && get().hasCalculatedOnce) void get().calculate();
   },
 
   calculate: async () => {
@@ -244,14 +223,11 @@ export const useBattleStore = create<BattleStoreState>((set, get) => ({
         itemRepository.init(),
         abilityRepository.init(),
       ]);
-
       const normalizedMoveId = normalizeId(moveName);
       const moveRecord = await moveRepository.getByName(normalizedMoveId);
       if (!moveRecord) throw new Error(`MOVE_NOT_FOUND: ${moveName}`);
-
       const attackerForCalc = normalizeInput(attackerInput);
       const defenderForCalc = normalizeInput(defenderInput);
-
       type ExecuteParams = Parameters<typeof calculateBattleUseCase.execute>;
       const result = await calculateBattleUseCase.execute(
         generation,
@@ -267,37 +243,35 @@ export const useBattleStore = create<BattleStoreState>((set, get) => ({
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("FORM_NOT_AVAILABLE")) {
+      if (msg.includes("FORM_NOT_AVAILABLE"))
         set({
           error:
             "El Pokémon o la forma seleccionada no está disponible en la generación elegida.",
           result: null,
         });
-      } else if (
+      else if (
         msg.includes("Invalid generation") ||
         msg.includes("INVALID_GENERATION")
-      ) {
+      )
         set({
           error:
             "La generación seleccionada no es compatible con los datos actuales.",
           result: null,
         });
-      } else if (msg.includes("MOVE_NOT_FOUND")) {
+      else if (msg.includes("MOVE_NOT_FOUND"))
         set({
           error: "El movimiento seleccionado no existe en la base de datos.",
           result: null,
         });
-      } else {
+      else
         set({
           error: msg || "Ocurrió un error al calcular el daño.",
           result: null,
         });
-      }
     } finally {
       set({ isCalculating: false });
     }
   },
-
   calculateResult: async () => {
     return get().calculate();
   },

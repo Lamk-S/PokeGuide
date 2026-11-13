@@ -5,17 +5,17 @@ import type { Pokemon } from "@/domain/pokemon/types/pokemon";
 import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 
 type PokemonListItem = Pokemon & {
-  nameEs?: string;
-  baseStats?: Record<string, number>;
-  bst?: number;
+  readonly nameEs?: string;
+  readonly baseStats?: Readonly<Record<string, number>>;
+  readonly bst?: number;
 };
 
 interface Props {
-  value: number | null;
-  onSelect: (id: number | null) => void;
-  label: string;
-  id: string;
-  placeholder?: string;
+  readonly value: number | null;
+  readonly onSelect: (id: number | null) => void;
+  readonly label: string;
+  readonly id: string;
+  readonly placeholder?: string;
 }
 
 export function PokemonPicker({
@@ -26,7 +26,7 @@ export function PokemonPicker({
   placeholder,
 }: Props) {
   const list = usePokedexStore(
-    (s) => (s.pokemonList ?? []) as PokemonListItem[],
+    (s) => (s.pokemonList ?? []) as unknown as readonly PokemonListItem[],
   );
   const [query, setQuery] = useState("");
 
@@ -42,7 +42,10 @@ export function PokemonPicker({
       .slice(0, 12);
   }, [list, query]);
 
-  const selected = list.find((p) => p.id === value);
+  const selected = useMemo(
+    () => list.find((p) => p.id === value),
+    [list, value],
+  );
 
   return (
     <div>
@@ -105,11 +108,7 @@ export function PokemonPicker({
                 onSelect(p.id);
                 setQuery("");
               }}
-              className={`flex flex-col items-center rounded-lg border bg-white p-2.5 transition-colors hover:bg-[#F8F5F0] ${
-                isSelected
-                  ? "border-[#111] bg-[#F8F5F0] ring-1 ring-[#111]"
-                  : "border-[#E5E2DA]"
-              }`}
+              className={`flex flex-col items-center rounded-lg border bg-white p-2.5 transition-colors hover:bg-[#F8F5F0] ${isSelected ? "border-[#111] bg-[#F8F5F0] ring-1 ring-[#111]" : "border-[#E5E2DA]"}`}
             >
               <PokemonSprite pokemon={{ id: p.id, name: p.name }} size={36} />
               <span className="mt-1 truncate text-[11px] font-medium text-[#111]">

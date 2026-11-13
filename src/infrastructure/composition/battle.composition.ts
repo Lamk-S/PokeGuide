@@ -4,7 +4,11 @@ import { SmogonCalculatorAdapter } from "../battle/smogon/SmogonCalculatorAdapte
 import { LocalPokemonRepository } from "../local-data/repositories/local-pokemon.repository";
 
 const pokemonRepo = new LocalPokemonRepository();
-const provider = new PokemonBaseProviderAdapter(pokemonRepo as never);
+const provider = new PokemonBaseProviderAdapter(
+  pokemonRepo as unknown as ConstructorParameters<
+    typeof PokemonBaseProviderAdapter
+  >[0],
+);
 const calculator = new SmogonCalculatorAdapter();
 export const battleUseCase = new CalculateBattleScenarioUseCase(
   provider as never,
