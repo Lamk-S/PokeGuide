@@ -1,242 +1,90 @@
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
-import { normalizeId } from "@/domain/shared/utils/normalizeId";
+import type { TeamMember } from "@/domain/team/types/TeamTypes";
 import { ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
-import type { PokemonTeam } from "../../entities/PokemonTeam";
-import type { OffensiveCoverage, OffensiveReport } from "../../types/TeamTypes";
 
-const SUPER_EFFECTIVE_MAP: Record<PokemonType, readonly PokemonType[]> = {
+export interface MoveMeta {
+  readonly id: string;
+  readonly type: PokemonType;
+  readonly power: number | null;
+}
+
+export interface CoverageInfo {
+  readonly covered: boolean;
+  readonly byMoves: readonly string[];
+}
+
+export interface TeamOffensiveAnalysis {
+  readonly coverageMap: Record<PokemonType, CoverageInfo>;
+  readonly uncoveredDefenderTypes: readonly PokemonType[];
+  readonly totalCoveragePercent: number;
+}
+
+const SUPER_EFFECTIVE: Record<PokemonType, readonly PokemonType[]> = {
   normal: [],
-  fire: ["grass", "ice", "bug", "steel"],
-  water: ["fire", "ground", "rock"],
-  electric: ["water", "flying"],
-  grass: ["water", "ground", "rock"],
-  ice: ["grass", "ground", "flying", "dragon"],
-  fighting: ["normal", "ice", "rock", "dark", "steel"],
-  poison: ["grass", "fairy"],
-  ground: ["fire", "electric", "poison", "rock", "steel"],
-  flying: ["grass", "fighting", "bug"],
-  psychic: ["fighting", "poison"],
-  bug: ["grass", "psychic", "dark"],
-  rock: ["fire", "ice", "flying", "bug"],
-  ghost: ["psychic", "ghost"],
-  dragon: ["dragon"],
-  dark: ["psychic", "ghost"],
-  steel: ["ice", "rock", "fairy"],
-  fairy: ["fighting", "dragon", "dark"],
+  fire: ["grass", "ice", "bug", "steel"] as PokemonType[],
+  water: ["fire", "ground", "rock"] as PokemonType[],
+  electric: ["water", "flying"] as PokemonType[],
+  grass: ["water", "ground", "rock"] as PokemonType[],
+  ice: ["grass", "ground", "flying", "dragon"] as PokemonType[],
+  fighting: ["normal", "ice", "rock", "dark", "steel"] as PokemonType[],
+  poison: ["grass", "fairy"] as PokemonType[],
+  ground: ["fire", "electric", "poison", "rock", "steel"] as PokemonType[],
+  flying: ["grass", "fighting", "bug"] as PokemonType[],
+  psychic: ["fighting", "poison"] as PokemonType[],
+  bug: ["grass", "psychic", "dark"] as PokemonType[],
+  rock: ["fire", "ice", "flying", "bug"] as PokemonType[],
+  ghost: ["psychic", "ghost"] as PokemonType[],
+  dragon: ["dragon"] as PokemonType[],
+  dark: ["psychic", "ghost"] as PokemonType[],
+  steel: ["ice", "rock", "fairy"] as PokemonType[],
+  fairy: ["fighting", "dragon", "dark"] as PokemonType[],
 } as const;
 
-const STALLBREAKER_MOVES = new Set([
-  "taunt",
-  "encore",
-  "torment",
-  "disable",
-  "knock-off",
-  "desarme",
-  "trick",
-  "switcheroo",
-  "trick-room",
-  "haze",
-  "clear-smog",
-  "whirlwind",
-  "roar",
-  "dragon-tail",
-  "circle-throw",
-]);
-
-const ATE_ABILITIES: Record<string, PokemonType> = {
-  pixilate: "fairy",
-  "piel-feerica": "fairy",
-  aerilate: "flying",
-  "piel-celeste": "flying",
-  refrigerate: "ice",
-  "piel-helada": "ice",
-  galvanize: "electric",
-  "piel-electrica": "electric",
-  "piel-eléctrica": "electric",
-};
-
-const SCRAPPY_ABILITIES = new Set(["scrappy", "intrepido", "intrépido"]);
-const MINDS_EYE_ABILITIES = new Set([
-  "minds-eye",
-  "mind's-eye",
-  "mente-divina",
-  "mente-divina",
-]);
-
-function normalizeMoveName(name: string): string {
-  return normalizeId(name);
+function getEffectiveness(
+  attackType: PokemonType,
+  defenderType: PokemonType,
+): number {
+  const list = SUPER_EFFECTIVE[attackType];
+  if (!list) return 1;
+  return list.includes(defenderType) ? 2 : 1;
 }
 
-function getEffectiveMoveType(
-  originalType: PokemonType,
-  abilityId: string | null | undefined,
-): PokemonType {
-  const ab = normalizeId(abilityId);
-  if (originalType === "normal" && ab && ATE_ABILITIES[ab]) {
-    return ATE_ABILITIES[ab] as PokemonType;
-  }
-  return originalType;
-}
-
-function canHitGhost(abilityId: string | null | undefined): boolean {
-  const ab = normalizeId(abilityId);
-  return SCRAPPY_ABILITIES.has(ab) || MINDS_EYE_ABILITIES.has(ab);
-}
-
-function analyze(team: PokemonTeam): OffensiveReport {
-  const members = team.getMembers();
-  if (members.length === 0) {
-    return {
-      coverage: [],
-      uncoveredTypes: [...ALL_POKEMON_TYPES],
-      totalCovered: 0,
-      coveragePercent: 0,
-      physicalMoves: 0,
-      specialMoves: 0,
-      hasPhysicalAttacker: false,
-      hasSpecialAttacker: false,
-      isBalanced: false,
-      stallVulnerability: true,
-      wallbreakerPresent: false,
-      teraStabTypes: [],
+function analyzeTeam(
+  _members: readonly TeamMember[],
+  moveMetaMap: ReadonlyMap<string, MoveMeta>,
+): TeamOffensiveAnalysis {
+  const moveList = [...moveMetaMap.values()];
+  const coverageMap = {} as Record<PokemonType, CoverageInfo>;
+  for (const defType of ALL_POKEMON_TYPES) {
+    const coveringMoves: string[] = [];
+    for (const move of moveList) {
+      if (!move.type) continue;
+      if (getEffectiveness(move.type, defType) > 1) coveringMoves.push(move.id);
+    }
+    coverageMap[defType] = {
+      covered: coveringMoves.length > 0,
+      byMoves: Object.freeze([...coveringMoves]),
     };
   }
-
-  let physicalMoves = 0;
-  let specialMoves = 0;
-  let hasKnock = false;
-  let hasTaunt = false;
-  let wallbreakerPresent = false;
-  const teraStabSet = new Set<PokemonType>();
-
-  const coverageMap = new Map<PokemonType, Set<string>>();
-
-  for (const type of ALL_POKEMON_TYPES) {
-    coverageMap.set(type, new Set());
-  }
-
-  for (const member of members) {
-    const memberId = member.id;
-    const abilityId = member.abilityId ?? member.ability ?? null;
-    const hasScrappy = canHitGhost(abilityId);
-
-    if (member.isTeraActive && member.teraType) {
-      teraStabSet.add(member.teraType);
-    }
-
-    for (const move of member.moves) {
-      if (!move || move.isInvalid) continue;
-      if (move.category === "status") {
-        const norm = normalizeMoveName(move.name ?? "");
-        if (STALLBREAKER_MOVES.has(norm)) {
-          if (norm === "knock-off" || norm === "desarme") hasKnock = true;
-          if (norm === "taunt") hasTaunt = true;
-        }
-        continue;
-      }
-
-      if (!move.power || move.power < 40) continue;
-
-      const originalType = move.type as PokemonType;
-      if (!originalType) continue;
-
-      const effectiveType = getEffectiveMoveType(originalType, abilityId);
-
-      const superEffectiveTargets = SUPER_EFFECTIVE_MAP[effectiveType] ?? [];
-
-      for (const target of superEffectiveTargets) {
-        coverageMap.get(target)?.add(memberId);
-      }
-
-      if (
-        hasScrappy &&
-        (effectiveType === "normal" || effectiveType === "fighting")
-      ) {
-        coverageMap.get("ghost")?.add(memberId);
-      }
-
-      if (move.category === "physical") {
-        physicalMoves += 1;
-      } else if (move.category === "special") {
-        specialMoves += 1;
-      }
-
-      const isTeraStab =
-        member.isTeraActive &&
-        member.teraType &&
-        effectiveType === member.teraType;
-
-      const powerThreshold = isTeraStab ? 80 : 110;
-
-      if (
-        (move.power && move.power >= powerThreshold) ||
-        normalizeMoveName(move.name).includes("close-combat") ||
-        normalizeMoveName(move.name).includes("a-bocajarro")
-      ) {
-        wallbreakerPresent = true;
-      }
-
-      if (isTeraStab && move.power && move.power >= 60) {
-        wallbreakerPresent = true;
-      }
-    }
-  }
-
-  const coverage: OffensiveCoverage[] = [];
-  const uncoveredTypes: PokemonType[] = [];
-
-  for (const type of ALL_POKEMON_TYPES) {
-    const set = coverageMap.get(type) ?? new Set();
-    const isCovered = set.size > 0;
-    if (!isCovered) uncoveredTypes.push(type);
-    coverage.push({
-      type,
-      superEffectiveHits: set.size,
-      membersCovering: Array.from(set),
-      isCovered,
-    });
-  }
-
-  const totalCovered = coverage.filter((c) => c.isCovered).length;
-  const coveragePercent = Math.round(
-    (totalCovered / ALL_POKEMON_TYPES.length) * 100,
-  );
-
-  const hasPhysicalAttacker = physicalMoves > 0;
-  const hasSpecialAttacker = specialMoves > 0;
-  const isBalanced = hasPhysicalAttacker && hasSpecialAttacker;
-
-  const stallVulnerability =
-    (!hasKnock && !hasTaunt && !wallbreakerPresent && totalCovered < 10) ||
-    (physicalMoves === 0 && specialMoves === 0);
-
+  const uncovered = ALL_POKEMON_TYPES.filter((t) => !coverageMap[t].covered);
+  const coveredCount = ALL_POKEMON_TYPES.length - uncovered.length;
+  const percent = Math.round((coveredCount / ALL_POKEMON_TYPES.length) * 100);
   return {
-    coverage,
-    uncoveredTypes,
-    totalCovered,
-    coveragePercent,
-    physicalMoves,
-    specialMoves,
-    hasPhysicalAttacker,
-    hasSpecialAttacker,
-    isBalanced,
-    stallVulnerability:
-      stallVulnerability ||
-      (!hasKnock && !hasTaunt && !wallbreakerPresent && totalCovered < 8),
-    wallbreakerPresent,
-    teraStabTypes: Array.from(teraStabSet),
+    coverageMap: Object.freeze(coverageMap) as Record<
+      PokemonType,
+      CoverageInfo
+    >,
+    uncoveredDefenderTypes: Object.freeze([
+      ...uncovered,
+    ]) as readonly PokemonType[],
+    totalCoveragePercent: percent,
   };
 }
 
-function getRedundantCoverage(report: OffensiveReport): PokemonType[] {
-  return report.coverage
-    .filter((c) => c.superEffectiveHits >= 4)
-    .map((c) => c.type);
+export const OffensiveAnalyzer = { analyze: analyzeTeam };
+export function analyzeOffensive(
+  members: readonly TeamMember[],
+  moveMetaMap: ReadonlyMap<string, MoveMeta>,
+): TeamOffensiveAnalysis {
+  return analyzeTeam(members, moveMetaMap);
 }
-
-export const OffensiveAnalyzer = Object.freeze({
-  analyze,
-  getRedundantCoverage,
-  getEffectiveMoveType,
-  canHitGhost,
-});
