@@ -1,49 +1,49 @@
 "use client";
 import { create } from "zustand";
-import type { Pokemon } from "@/domain/pokemon/types/pokemon";
-import { container } from "@/infrastructure/composition/container";
+import {
+  LocalPokemonRepository,
+  type OptimizedPokemon,
+  type PokemonFull,
+} from "@/infrastructure/local-data/repositories/local-pokemon.repository";
 
-interface State {
-  pokemonList: Pokemon[];
-  loading: boolean;
-  isLoading: boolean;
-  error: string | null;
-  loadPokemon: () => Promise<void>;
+interface PokedexState {
+  readonly pokemonList: ReadonlyArray<OptimizedPokemon>;
+  readonly isLoading: boolean;
+  readonly error: string | null;
+  readonly loadPokemon: () => Promise<void>;
+  readonly getPokemonById: (id: number) => Promise<PokemonFull | null>;
+  readonly searchOptimized: (
+    q: string,
+  ) => Promise<ReadonlyArray<OptimizedPokemon>>;
 }
 
-type PokemonRepo = {
-  init: () => Promise<void>;
-  getAll: () => Promise<Pokemon[]>;
-  getById?: (id: number) => Promise<Pokemon | undefined>;
-};
-
-export const usePokedexStore = create<State>((set) => ({
-  pokemonList: [],
-  loading: false,
+export const usePokedexStore = create<PokedexState>((set) => ({
+  pokemonList: Object.freeze([]) as ReadonlyArray<OptimizedPokemon>,
   isLoading: false,
   error: null,
+
   loadPokemon: async () => {
-    set({ loading: true, isLoading: true, error: null });
+    set({ isLoading: true, error: null });
     try {
-      await container.init();
-      const repo = (container as unknown as { pokemon: PokemonRepo })
-        .pokemon ?? {
-        getAll: () =>
-          container.getPokemonRepository().getAll() as unknown as Promise<
-            Pokemon[]
-          >,
-        init: async () => {},
-      };
-      if (repo.init) await repo.init();
-      const raw = await repo.getAll();
-      const list = raw as unknown as Pokemon[];
-      set({ pokemonList: list, loading: false, isLoading: false });
+      const list = await LocalPokemonRepository.getAllOptimized();
+      set({ pokemonList: Object.freeze([...list]), isLoading: false });
     } catch (e) {
       set({
-        loading: false,
+        error: e instanceof Error ? e.message : "Error cargando Pokédex",
         isLoading: false,
-        error: e instanceof Error ? e.message : String(e),
       });
     }
+  },
+
+  getPokemonById: async (id: number) => {
+    try {
+      return await LocalPokemonRepository.getById(id);
+    } catch {
+      return null;
+    }
+  },
+
+  searchOptimized: async (q: string) => {
+    return LocalPokemonRepository.searchOptimized(q);
   },
 }));

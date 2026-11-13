@@ -33,7 +33,8 @@ export const useMoveStore = create<State>((set) => ({
     try {
       await container.init();
       const fallback = {
-        getAll: () => container.getMoveRepository().getAll() as Promise<Move[]>,
+        getAll: () =>
+          container.getMoveRepository().getAll() as unknown as Promise<Move[]>,
         getGroupedByType: () =>
           (
             container.getMoveRepository() as unknown as {
