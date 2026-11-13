@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest";
-import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
+import { LocalPokemonRepository, type PokemonFull } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
 
 describe("LocalPokemonRepository", () => {
   const repo = new LocalPokemonRepository();
@@ -42,7 +42,7 @@ describe("LocalPokemonRepository", () => {
   it("getByType devuelve solo los pokemon del tipo especificado", async () => {
     const fire = await repo.getByType("fire");
     expect(fire.length).toBeGreaterThan(0);
-    expect(fire.every((p) => p.types.map((t) => String(t).toLowerCase()).includes("fire"))).toBe(true);
+    expect(fire.every((p: PokemonFull) => p.types.map((t: string) => String(t).toLowerCase()).includes("fire"))).toBe(true);
   });
 
   it("getCustomForms devuelve el array de formas personalizadas", async () => {
@@ -53,6 +53,6 @@ describe("LocalPokemonRepository", () => {
   it("getByBstRange filtra correctamente por rango de BST", async () => {
     const range = await repo.getByBstRange(300, 400);
     expect(range.length).toBeGreaterThan(0);
-    expect(range.every((p) => p.bst>=300 && p.bst<=400)).toBe(true);
+    expect(range.every((p: PokemonFull) => p.bst >= 300 && p.bst <= 400)).toBe(true);
   });
 });
