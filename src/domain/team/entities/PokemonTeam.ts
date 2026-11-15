@@ -1,119 +1,85 @@
-import type { TeamMember } from "../types/TeamTypes";
+import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
+import type { TeamMember } from "@/domain/team/types/TeamTypes";
 
 export class PokemonTeam {
-  public static readonly MAX_MEMBERS = 6 as const;
-  private readonly _members: readonly TeamMember[];
+  private readonly members: readonly TeamMember[];
 
-  constructor(initialMembers: readonly TeamMember[] = []) {
-    if (initialMembers.length > PokemonTeam.MAX_MEMBERS) {
-      throw new Error(
-        `Un equipo no puede tener más de ${PokemonTeam.MAX_MEMBERS} Pokémon. Recibidos: ${initialMembers.length}`,
-      );
-    }
-
-    const sanitized = initialMembers.filter(
-      (m): m is TeamMember => m !== null && m !== undefined,
-    );
-    if (sanitized.length !== initialMembers.length) {
-      throw new Error("El equipo contiene miembros nulos o indefinidos.");
-    }
-
-    for (const member of sanitized) {
-      if (!member.id || !member.name) {
-        throw new Error("TeamMember inválido: requiere id y name");
-      }
-      if (!member.types || member.types.length === 0) {
-        throw new Error(`TeamMember ${member.id} sin tipos definidos`);
-      }
-      if (!member.moves) {
-        throw new Error(
-          `TeamMember ${member.id} debe exponer array de moves (aunque sea vacío)`,
-        );
-      }
-    }
-
-    this._members = Object.freeze([...sanitized]);
+  constructor(members: readonly TeamMember[]) {
+    this.members = Object.freeze([...members]);
     Object.freeze(this);
   }
 
-  get size(): number {
-    return this._members.length;
-  }
-
-  get members(): readonly TeamMember[] {
-    return this._members;
-  }
-
   getMembers(): readonly TeamMember[] {
-    return this._members;
+    return this.members;
   }
 
-  getMemberById(id: string): TeamMember | undefined {
-    return this._members.find((m) => m.id === id);
+  get size(): number {
+    return this.members.length;
   }
 
-  getAllMoves(): readonly TeamMember["moves"][number][] {
-    return this._members.flatMap((m) => [...m.moves]);
+  get isEmpty(): boolean {
+    return this.members.length === 0;
   }
 
-  hasType(type: string): boolean {
-    return this._members.some((m) =>
-      (m.types as readonly string[]).includes(type),
-    );
-  }
-
-  isEmpty(): boolean {
-    return this._members.length === 0;
-  }
-
-  isFull(): boolean {
-    return this._members.length >= PokemonTeam.MAX_MEMBERS;
+  get isFull(): boolean {
+    return this.members.length >= DEFAULT_BATTLE_RULESET.maxMembers;
   }
 
   addMember(member: TeamMember): PokemonTeam {
-    if (!member) {
-      throw new Error("TeamMember no puede ser nulo.");
+    if (this.isFull) {
+      throw new Error("Team is full: maximum 6 members");
     }
-    if (this.isFull()) {
-      throw new Error(`El equipo está lleno (${PokemonTeam.MAX_MEMBERS}/6).`);
-    }
-    return new PokemonTeam([...this._members, member]);
+    const frozenMember = Object.freeze({
+      ...member,
+      types: Object.freeze([...member.types]),
+      moves: Object.freeze([...member.moves]),
+      evs: Object.freeze({ ...member.evs }),
+      ivs: Object.freeze({ ...member.ivs }),
+      baseStats: Object.freeze({ ...member.baseStats }),
+      calculatedStats: Object.freeze({ ...member.calculatedStats }),
+      nature: Object.freeze({ ...member.nature }),
+    }) as TeamMember;
+    return new PokemonTeam([...this.members, frozenMember]);
   }
 
   removeMember(index: number): PokemonTeam {
-    if (
-      !Number.isInteger(index) ||
-      index < 0 ||
-      index >= this._members.length
-    ) {
-      throw new Error(
-        `Índice inválido: ${index}. Tamaño actual: ${this._members.length}`,
-      );
+    if (index < 0 || index >= this.members.length) {
+      throw new Error(`Invalid index ${index}`);
     }
-    const next = this._members.filter((_, i) => i !== index);
+    const next = this.members.filter((_, i) => i !== index);
     return new PokemonTeam(next);
   }
 
   replaceMember(index: number, member: TeamMember): PokemonTeam {
-    if (!member) {
-      throw new Error("TeamMember no puede ser nulo.");
+    if (index < 0 || index >= this.members.length) {
+      throw new Error(`Invalid index ${index}`);
     }
-    if (
-      !Number.isInteger(index) ||
-      index < 0 ||
-      index >= this._members.length
-    ) {
-      throw new Error(`Índice inválido: ${index}.`);
-    }
-    const next = this._members.map((m, i) => (i === index ? member : m));
+    const frozenMember = Object.freeze({
+      ...member,
+      types: Object.freeze([...member.types]),
+      moves: Object.freeze([...member.moves]),
+      evs: Object.freeze({ ...member.evs }),
+      ivs: Object.freeze({ ...member.ivs }),
+      baseStats: Object.freeze({ ...member.baseStats }),
+      calculatedStats: Object.freeze({ ...member.calculatedStats }),
+      nature: Object.freeze({ ...member.nature }),
+    }) as TeamMember;
+    const next = [...this.members];
+    next[index] = frozenMember;
     return new PokemonTeam(next);
   }
 
-  clear(): PokemonTeam {
-    return new PokemonTeam([]);
-  }
-
-  toSnapshot(): { members: readonly TeamMember[]; size: number } {
-    return { members: this._members, size: this.size };
+  toggleTera(id: string): PokemonTeam {
+    const idx = this.members.findIndex((m) => m.id === id);
+    if (idx === -1) throw new Error(`Member ${id} not found`);
+    const member = this.members[idx];
+    if (!member) throw new Error(`Member ${id} not found`);
+    const toggled = Object.freeze({
+      ...member,
+      isTeraActive: !member.isTeraActive,
+    }) as TeamMember;
+    const next = [...this.members];
+    next[idx] = toggled;
+    return new PokemonTeam(next);
   }
 }

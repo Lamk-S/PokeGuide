@@ -76,6 +76,17 @@ export const VGC_RULESET: BattleRuleset = Object.freeze({
   allowItemClause: true,
 } as BattleRuleset);
 
+export const SMOGON_OU_RULESET: BattleRuleset = Object.freeze({
+  ...DEFAULT_BATTLE_RULESET,
+  id: "smogon-ou",
+  name: "Smogon OU",
+  format: "smogon-ou",
+  formatLabelEs: "Smogon OU",
+  level: 100,
+  speciesClause: true,
+  itemClause: false,
+} as BattleRuleset);
+
 type LooseRecord = Record<string, unknown>;
 function getStringField(r: LooseRecord, k: string): string | undefined {
   const v = r[k];
@@ -109,4 +120,12 @@ export function isVgcRuleset(ruleset: BattleRuleset): boolean {
 
 export function getScarfMultiplier(ruleset: BattleRuleset): number {
   return ruleset.speed.scarfMultiplier ?? 1.5;
+}
+
+export function getActiveRuleset(formatId?: string): BattleRuleset {
+  if (!formatId) return DEFAULT_BATTLE_RULESET;
+  const norm = formatId.toLowerCase();
+  if (norm.includes("vgc")) return VGC_RULESET;
+  if (norm.includes("ou") || norm.includes("smogon")) return SMOGON_OU_RULESET;
+  return DEFAULT_BATTLE_RULESET;
 }
