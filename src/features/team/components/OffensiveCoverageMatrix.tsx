@@ -35,7 +35,28 @@ function getMoveIds(members: readonly TeamMember[]): string[] {
         ids.push((m as ResolvedMove).id.toLowerCase().trim());
     }
   }
-  return ids;
+  return [...new Set(ids)];
+}
+
+function toMoveMeta(dto: {
+  id: string;
+  type: string;
+  power: number | null;
+  damageCategory?: string;
+  category?: string;
+}): MoveMeta {
+  const raw = (dto.damageCategory ?? dto.category ?? "physical").toLowerCase();
+  let damageCategory: MoveMeta["damageCategory"] = "physical";
+  if (raw.includes("special")) damageCategory = "special";
+  else if (raw.includes("status")) damageCategory = "status";
+  else if (raw === "physical" || raw === "special" || raw === "status")
+    damageCategory = raw as MoveMeta["damageCategory"];
+  return {
+    id: dto.id.toLowerCase(),
+    type: dto.type.toLowerCase() as PokemonType,
+    power: dto.power,
+    damageCategory,
+  };
 }
 
 export function OffensiveCoverageMatrix() {
@@ -61,7 +82,7 @@ export function OffensiveCoverageMatrix() {
         const converted = new Map<string, MoveMeta>(
           [...dtoMap.entries()].map(([id, dto]) => [
             id.toLowerCase(),
-            { id: dto.id, type: dto.type as PokemonType, power: dto.power },
+            toMoveMeta(dto as never),
           ]),
         );
         setMoveMetaMap(converted);

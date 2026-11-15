@@ -60,7 +60,7 @@ export function RecommendationList() {
     [analysis],
   );
 
-  if (team.isEmpty()) {
+  if (team.isEmpty) {
     return (
       <section
         className="border border-[#EDE8E0] bg-[#FFFEFB] p-8 text-center"
