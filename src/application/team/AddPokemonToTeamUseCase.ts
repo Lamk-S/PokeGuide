@@ -12,9 +12,8 @@ import type {
   IVSet,
   TeamMember,
 } from "@/domain/team/types/TeamTypes";
-import { ItemRepository } from "@/infrastructure/repositories/ItemRepository";
-import { MoveRepository } from "@/infrastructure/repositories/MoveRepository";
-import { PokemonRepository } from "@/infrastructure/repositories/PokemonRepository";
+import { LocalMoveRepository } from "@/infrastructure/local-data/repositories/local-move.repository";
+import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
 
 export interface AddPokemonInput {
   readonly pokemonId?: number;
@@ -36,7 +35,7 @@ function resolveNature(name?: string): Nature {
     nameEs: "Fuerte",
     increasedStat: null,
     decreasedStat: null,
-  }) as unknown as Nature;
+  }) as Nature;
   if (!name) return fallback;
   const q = normalizeId(name);
   return (
@@ -59,12 +58,6 @@ function toBaseStats(record: Record<string, number>): BaseStats {
 }
 
 export class AddPokemonToTeamUseCase {
-  constructor(
-    private readonly pokemonRepo = PokemonRepository,
-    private readonly moveRepo = MoveRepository,
-    private readonly itemRepo = ItemRepository,
-  ) {}
-
   async execute(input: AddPokemonInput): Promise<TeamMember> {
     const {
       pokemonId,
@@ -81,45 +74,25 @@ export class AddPokemonToTeamUseCase {
     } = input;
 
     let baseData = null;
-    if (pokemonId) {
-      baseData = await this.pokemonRepo.getById(pokemonId);
-    }
-    if (!baseData && pokemonName) {
-      baseData = await this.pokemonRepo.getByName(pokemonName);
-    }
-    if (!baseData) {
+    if (pokemonId) baseData = await LocalPokemonRepository.getById(pokemonId);
+    if (!baseData && pokemonName)
+      baseData = await LocalPokemonRepository.getByName(pokemonName);
+    if (!baseData)
       throw new Error(`Pokémon no encontrado: ${pokemonId ?? pokemonName}`);
-    }
 
-    const movesData = await this.moveRepo.getByNames(moveIds);
+    const movesDataMap = await LocalMoveRepository.getByIds(
+      moveIds as readonly string[],
+    );
+    const movesData = Array.from(movesDataMap.values());
     if (movesData.length !== moveIds.length) {
-      const found = new Set(movesData.map((m) => m.id));
+      const found = new Set(
+        Array.from(movesDataMap.keys()).map((k) => normalizeId(k)),
+      );
       const missing = moveIds.filter((id) => !found.has(normalizeId(id)));
       throw new Error(`Movimientos no encontrados: ${missing.join(", ")}`);
     }
 
-    if (itemId) {
-      const valid = await this.itemRepo.validate(itemId);
-      if (!valid) {
-        console.warn(`[AddPokemonToTeamUseCase] Item no válido: ${itemId}`);
-      }
-    }
-
-    const resolvedMoves = movesData.map((m) => ({
-      id: m.id,
-      name: m.name,
-      nameEs: m.nameEs,
-      type: m.type,
-      power: m.power,
-      accuracy: m.accuracy,
-      category: m.category,
-      priority: m.priority,
-      pp: m.pp,
-      effect: m.effect,
-      shortEffect: undefined,
-      isInvalid: false,
-    }));
-
+    void itemId;
     const nature = resolveNature(natureName);
     const lvl = level ?? DEFAULT_BATTLE_RULESET.level;
 
@@ -142,7 +115,7 @@ export class AddPokemonToTeamUseCase {
     });
 
     const baseStatsTyped: BaseStats = toBaseStats(
-      baseData.baseStats as Record<string, number>,
+      (baseData.baseStats ?? {}) as Record<string, number>,
     );
 
     const calculated = calculateStats({
@@ -154,20 +127,36 @@ export class AddPokemonToTeamUseCase {
       generation: DEFAULT_BATTLE_RULESET.generation,
     });
 
-    const member: TeamMember = {
+    const normalizedMoveIds = Object.freeze([
+      ...moveIds.map((id: string) => normalizeId(id)),
+    ]) as readonly string[];
+    const resolvedTeraType: PokemonType | null = teraType
+      ? (teraType as PokemonType)
+      : null;
+
+    const firstAbility = (() => {
+      const ab = baseData.abilities?.[0];
+      if (!ab) return null;
+      if (typeof ab === "string") return ab;
+      const obj = ab as Record<string, unknown>;
+      return (obj.name as string) ?? (obj.id as string) ?? null;
+    })();
+
+    const member: TeamMember = Object.freeze({
       id: `${baseData.id}-${Date.now()}`,
       pokemonId: baseData.id,
       name: baseData.name,
-      displayNameEs: baseData.nameEs,
+      displayNameEs: baseData.displayNameEs,
+      displayName: baseData.displayNameEs,
       species: baseData.nameEs,
-      types: baseData.types,
+      types: baseData.types as readonly PokemonType[],
       abilityId: abilityId
         ? normalizeId(abilityId)
-        : baseData.abilities[0]
-          ? normalizeId(baseData.abilities[0])
+        : firstAbility
+          ? normalizeId(firstAbility)
           : null,
       itemId: itemId ? normalizeId(itemId) : null,
-      ability: abilityId ?? baseData.abilities[0] ?? null,
+      ability: abilityId ?? firstAbility ?? null,
       item: itemId ?? null,
       nature,
       level: lvl,
@@ -182,11 +171,11 @@ export class AddPokemonToTeamUseCase {
         specialDefense: calculated["special-defense"],
         speed: calculated.speed,
       },
-      moves: resolvedMoves as unknown as TeamMember["moves"],
-      teraType: teraType as PokemonType | undefined,
+      moves: normalizedMoveIds,
+      teraType: resolvedTeraType,
       isTeraActive: isTeraActive ?? false,
-    };
+    }) as unknown as TeamMember;
 
-    return Object.freeze(member) as TeamMember;
+    return member;
   }
 }
