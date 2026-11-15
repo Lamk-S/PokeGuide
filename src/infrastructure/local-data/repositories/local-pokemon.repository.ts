@@ -1,6 +1,3 @@
-import fullDataset from "@/../data/pokemon/dataset.es.json";
-import optimizedDataset from "@/../data/pokemon/dataset.optimized.json";
-
 export interface PokemonOptimized {
   readonly id: number;
   readonly name: string;
@@ -8,6 +5,11 @@ export interface PokemonOptimized {
   readonly sprite?: string;
   readonly nameEs?: string;
   readonly displayNameEs?: string;
+  readonly baseStats?: Readonly<Record<string, number>>;
+  readonly abilities?: readonly unknown[];
+  readonly moves?: readonly unknown[];
+  readonly bst?: number;
+  readonly isCustomForm?: boolean;
 }
 
 export interface PokemonFull {
@@ -48,14 +50,15 @@ type RawPokemon = Record<string, unknown> & {
   readonly bst?: unknown;
   readonly abilities?: unknown;
   readonly moves?: unknown;
+  readonly learnset?: unknown;
   readonly isCustomForm?: unknown;
   readonly isCustom?: unknown;
   readonly custom?: unknown;
   readonly isForm?: unknown;
 };
 
-let fullCache: PokemonFull[] | null = null;
-let optimizedCache: PokemonOptimized[] | null = null;
+let fullCache: readonly PokemonFull[] | null = null;
+let optimizedCache: readonly PokemonOptimized[] | null = null;
 
 function toStringSafe(v: unknown): string {
   return typeof v === "string" ? v : "";
@@ -71,10 +74,10 @@ function toStringArray(v: unknown): string[] {
   return [];
 }
 
-function sumBaseStats(base: unknown): number {
-  if (!base || typeof base !== "object") return 0;
-  const obj = base as Record<string, unknown>;
-  let sum = 0;
+function toBaseStatsRecord(v: unknown): Record<string, number> | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const obj = v as Record<string, unknown>;
+  const out: Record<string, number> = {};
   for (const k of [
     "hp",
     "attack",
@@ -82,36 +85,79 @@ function sumBaseStats(base: unknown): number {
     "special-attack",
     "special-defense",
     "speed",
+    "spa",
+    "spd",
+    "spe",
   ]) {
     const val = obj[k];
-    if (typeof val === "number") sum += val;
+    if (typeof val === "number") out[k] = val;
   }
-  if (sum === 0) {
-    for (const val of Object.values(obj)) {
-      if (typeof val === "number") sum += val;
+  if (Object.keys(out).length === 0) {
+    for (const [k, val] of Object.entries(obj)) {
+      if (typeof val === "number") out[k.toLowerCase()] = val;
+      else if (val && typeof val === "object") {
+        const inner = val as Record<string, unknown>;
+        if (typeof inner.base === "number") out[k.toLowerCase()] = inner.base;
+      }
     }
   }
-  return sum;
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+function sumBaseStats(base: Record<string, number> | undefined): number {
+  if (!base) return 0;
+  return Object.values(base).reduce((a, b) => a + b, 0);
 }
 
 function normalizeOptimized(raw: RawPokemon): PokemonOptimized {
   const id = toNumberSafe(raw.id ?? raw.number ?? raw.dex, 0);
-  const name = toStringSafe(raw.name ?? raw.slug ?? "");
-  const types = toStringArray(raw.types ?? raw.type);
+  const name = toStringSafe(raw.name ?? raw.slug ?? raw.idName ?? "");
+  const types = toStringArray(raw.types ?? raw.type).map((t) =>
+    String(t).toLowerCase(),
+  );
   const sprite = toStringSafe(raw.sprite ?? raw.image ?? "");
   const nameEs = toStringSafe(
-    raw.nameEs ?? raw.displayNameEs ?? raw.name_es ?? raw.spanishName ?? name,
+    raw.nameEs ??
+      raw.displayNameEs ??
+      raw.name_es ??
+      raw.spanishName ??
+      raw.species ??
+      name,
   );
   const displayNameEs = toStringSafe(raw.displayNameEs ?? raw.nameEs ?? nameEs);
+  const baseStatsRaw = raw.baseStats ?? raw.stats ?? raw.base ?? null;
+  const baseStats = toBaseStatsRecord(baseStatsRaw);
+  const abilities = Array.isArray(raw.abilities)
+    ? (raw.abilities as unknown[])
+    : undefined;
+  const movesRaw = raw.moves ?? raw.learnset ?? undefined;
+  const moves = Array.isArray(movesRaw) ? (movesRaw as unknown[]) : undefined;
+  const bst =
+    typeof raw.bst === "number"
+      ? raw.bst
+      : baseStats
+        ? sumBaseStats(baseStats)
+        : 0;
+  const isCustom = Boolean(
+    raw.isCustomForm ?? raw.isCustom ?? raw.custom ?? raw.isForm ?? false,
+  );
+
   return Object.freeze({
     id,
     name,
-    types: Object.freeze(
-      types.map((t) => String(t).toLowerCase()),
-    ) as readonly string[],
+    types: Object.freeze(types) as readonly string[],
     sprite: sprite || undefined,
     nameEs: nameEs || undefined,
     displayNameEs: displayNameEs || undefined,
+    baseStats: baseStats ? Object.freeze({ ...baseStats }) : undefined,
+    abilities: abilities
+      ? (Object.freeze([...abilities]) as readonly unknown[])
+      : undefined,
+    moves: moves
+      ? (Object.freeze([...moves]) as readonly unknown[])
+      : undefined,
+    bst: bst || undefined,
+    isCustomForm: isCustom || undefined,
   });
 }
 
@@ -128,15 +174,23 @@ function normalizeFull(raw: RawPokemon): PokemonFull {
   const displayRaw = raw.displayNameEs ?? raw.nameEs ?? nameEsRaw;
   const nameEs = toStringSafe(nameEsRaw);
   const displayNameEs = toStringSafe(displayRaw);
-  const types = toStringArray(raw.types ?? raw.type);
+  const types = toStringArray(raw.types ?? raw.type).map((t) =>
+    String(t).toLowerCase(),
+  );
   const baseStatsRaw = raw.baseStats ?? raw.stats ?? raw.base ?? null;
+  const baseStats = toBaseStatsRecord(baseStatsRaw);
   const bstRaw = raw.bst;
   const computedBst =
-    typeof bstRaw === "number" ? bstRaw : sumBaseStats(baseStatsRaw);
-  const baseStats =
-    baseStatsRaw && typeof baseStatsRaw === "object"
-      ? (baseStatsRaw as Record<string, number>)
-      : undefined;
+    typeof bstRaw === "number"
+      ? bstRaw
+      : baseStats
+        ? sumBaseStats(baseStats)
+        : 0;
+  const abilities = Array.isArray(raw.abilities)
+    ? (raw.abilities as unknown[])
+    : undefined;
+  const movesRaw = raw.moves ?? raw.learnset ?? undefined;
+  const moves = Array.isArray(movesRaw) ? (movesRaw as unknown[]) : undefined;
   const isCustom = Boolean(
     raw.isCustomForm ?? raw.isCustom ?? raw.custom ?? raw.isForm ?? false,
   );
@@ -146,17 +200,15 @@ function normalizeFull(raw: RawPokemon): PokemonFull {
     name,
     nameEs: nameEs || name,
     displayNameEs: displayNameEs || nameEs || name,
-    types: Object.freeze(
-      types.map((t) => String(t).toLowerCase()),
-    ) as readonly string[],
+    types: Object.freeze(types) as readonly string[],
     bst: computedBst,
     baseStats: baseStats ? Object.freeze({ ...baseStats }) : undefined,
     sprite: toStringSafe(raw.sprite ?? "") || undefined,
-    abilities: Array.isArray(raw.abilities)
-      ? (Object.freeze([...(raw.abilities as unknown[])]) as readonly unknown[])
+    abilities: abilities
+      ? (Object.freeze([...abilities]) as readonly unknown[])
       : undefined,
-    moves: Array.isArray(raw.moves)
-      ? (Object.freeze([...(raw.moves as unknown[])]) as readonly unknown[])
+    moves: moves
+      ? (Object.freeze([...moves]) as readonly unknown[])
       : undefined,
     isCustomForm: isCustom || undefined,
   });
@@ -170,21 +222,24 @@ function getRawArray(mod: unknown): RawPokemon[] {
     if (Array.isArray(obj.pokemon)) return obj.pokemon as RawPokemon[];
     if (Array.isArray(obj.data)) return obj.data as RawPokemon[];
     if (Array.isArray(obj.pokemons)) return obj.pokemons as RawPokemon[];
+    if (Array.isArray(obj.results)) return obj.results as RawPokemon[];
   }
   return [];
 }
 
-async function loadFullInternal(): Promise<PokemonFull[]> {
+async function loadFullInternal(): Promise<readonly PokemonFull[]> {
   if (fullCache) return fullCache;
-  const raws = getRawArray(fullDataset);
-  fullCache = raws.map(normalizeFull);
+  const mod = await import("@/../data/pokemon/dataset.es.json");
+  const raws = getRawArray(mod);
+  fullCache = Object.freeze(raws.map(normalizeFull));
   return fullCache;
 }
 
-async function loadOptimizedInternal(): Promise<PokemonOptimized[]> {
+async function loadOptimizedInternal(): Promise<readonly PokemonOptimized[]> {
   if (optimizedCache) return optimizedCache;
-  const raws = getRawArray(optimizedDataset);
-  optimizedCache = raws.map(normalizeOptimized);
+  const mod = await import("@/../data/pokemon/dataset.optimized.json");
+  const raws = getRawArray(mod);
+  optimizedCache = Object.freeze(raws.map(normalizeOptimized));
   return optimizedCache;
 }
 
@@ -233,16 +288,13 @@ export class LocalPokemonRepository {
   static async getAllOptimized(): Promise<readonly PokemonOptimized[]> {
     return loadOptimizedInternal();
   }
-
   static async getAll(): Promise<readonly PokemonFull[]> {
     return loadFullInternal();
   }
-
   static async getById(id: number): Promise<PokemonFull | null> {
     const all = await loadFullInternal();
     return all.find((p) => p.id === id) ?? null;
   }
-
   static async getByName(name: string): Promise<PokemonFull | null> {
     const all = await loadFullInternal();
     const norm = name.toLowerCase().trim();
@@ -255,7 +307,6 @@ export class LocalPokemonRepository {
       ) ?? null
     );
   }
-
   static async getByNameEs(nameEs: string): Promise<PokemonFull | null> {
     const all = await loadFullInternal();
     const norm = nameEs.toLowerCase().trim();
@@ -268,7 +319,6 @@ export class LocalPokemonRepository {
       ) ?? null
     );
   }
-
   static async getByIds(
     ids: readonly number[],
   ): Promise<readonly PokemonFull[]> {
@@ -276,14 +326,12 @@ export class LocalPokemonRepository {
     const set = new Set(ids);
     return all.filter((p) => set.has(p.id));
   }
-
   static async search(query: string): Promise<readonly PokemonFull[]> {
     const all = await loadFullInternal();
     const q = query.trim();
     if (!q) return all;
     return all.filter((p) => matchesQuery(p, q));
   }
-
   static async searchOptimized(
     query: string,
   ): Promise<readonly PokemonOptimized[]> {
@@ -292,7 +340,6 @@ export class LocalPokemonRepository {
     if (!q) return all;
     return all.filter((p) => matchesOptimized(p, q));
   }
-
   static async getByType(type: string): Promise<readonly PokemonFull[]> {
     const all = await loadFullInternal();
     const norm = type.toLowerCase().trim();
@@ -300,12 +347,10 @@ export class LocalPokemonRepository {
       p.types.map((t) => t.toLowerCase()).includes(norm),
     );
   }
-
   static async getCustomForms(): Promise<readonly PokemonFull[]> {
     const all = await loadFullInternal();
     return all.filter((p) => p.isCustomForm);
   }
-
   static async getByBstRange(
     min: number,
     max: number,
@@ -317,43 +362,33 @@ export class LocalPokemonRepository {
   async getAllOptimized(): Promise<readonly PokemonOptimized[]> {
     return LocalPokemonRepository.getAllOptimized();
   }
-
   async getAll(): Promise<readonly PokemonFull[]> {
     return LocalPokemonRepository.getAll();
   }
-
   async getById(id: number): Promise<PokemonFull | null> {
     return LocalPokemonRepository.getById(id);
   }
-
   async getByName(name: string): Promise<PokemonFull | null> {
     return LocalPokemonRepository.getByName(name);
   }
-
   async getByNameEs(nameEs: string): Promise<PokemonFull | null> {
     return LocalPokemonRepository.getByNameEs(nameEs);
   }
-
   async getByIds(ids: readonly number[]): Promise<readonly PokemonFull[]> {
     return LocalPokemonRepository.getByIds(ids);
   }
-
   async search(query: string): Promise<readonly PokemonFull[]> {
     return LocalPokemonRepository.search(query);
   }
-
   async searchOptimized(query: string): Promise<readonly PokemonOptimized[]> {
     return LocalPokemonRepository.searchOptimized(query);
   }
-
   async getByType(type: string): Promise<readonly PokemonFull[]> {
     return LocalPokemonRepository.getByType(type);
   }
-
   async getCustomForms(): Promise<readonly PokemonFull[]> {
     return LocalPokemonRepository.getCustomForms();
   }
-
   async getByBstRange(
     min: number,
     max: number,
