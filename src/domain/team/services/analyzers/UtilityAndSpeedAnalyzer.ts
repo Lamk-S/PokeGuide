@@ -65,6 +65,20 @@ const PIVOT_MOVES = new Set([
 const KNOCK_OFF_MOVES = new Set(["knock-off", "desarme"]);
 const TAUNT_MOVES = new Set(["taunt", "mofa", "encore", "otra-vez"]);
 
+const PRIORITY_MOVES = new Set([
+  "quick-attack",
+  "ataque-rapido",
+  "mach-punch",
+  "bullet-punch",
+  "ice-shard",
+  "shadow-sneak",
+  "sucker-punch",
+  "extremespeed",
+  "fake-out",
+  "aqua-jet",
+  "vacuum-wave",
+]);
+
 function normalize(name: string): string {
   return name.toLowerCase().replace(/_/g, "-").trim();
 }
@@ -88,15 +102,13 @@ function analyzeSpeedControl(team: PokemonTeam): SpeedControlReport {
       itemNorm === "choice-scarf" ||
       itemNorm === "pa" ||
       itemNorm.includes("scarf")
-    ) {
+    )
       hasChoiceScarf = true;
-    }
-    if (itemNorm === "booster-energy" || itemNorm.includes("booster")) {
+    if (itemNorm === "booster-energy" || itemNorm.includes("booster"))
       hasBoosterEnergy = true;
-    }
 
-    for (const move of member.moves) {
-      const n = normalize(move.name);
+    for (const moveId of member.moves) {
+      const n = normalize(moveId);
       const mapped = SPEED_CONTROL_MOVES[n];
       if (mapped === "tailwind") {
         hasTailwind = true;
@@ -121,18 +133,14 @@ function analyzeSpeedControl(team: PokemonTeam): SpeedControlReport {
       }
 
       if (
-        (move.priority && move.priority > 0) ||
-        [
-          "quick-attack",
-          "ataque-rapido",
-          "mach-punch",
-          "bullet-punch",
-          "ice-shard",
-          "shadow-sneak",
-          "sucker-punch",
-          "extremespeed",
-          "fake-out",
-        ].some((p) => n.includes(p))
+        PRIORITY_MOVES.has(n) ||
+        n.includes("quick-attack") ||
+        n.includes("mach-punch") ||
+        n.includes("bullet-punch") ||
+        n.includes("ice-shard") ||
+        n.includes("sucker-punch") ||
+        n.includes("extremespeed") ||
+        n.includes("fake-out")
       ) {
         hasPriority = true;
         if (!controlMethods.includes("Priority"))
@@ -192,12 +200,11 @@ function analyzeHazardControl(team: PokemonTeam): HazardControlReport {
       itemNorm === "heavy-duty-boots" ||
       itemNorm === "botas-gruesas" ||
       itemNorm.includes("heavy-duty-boots")
-    ) {
+    )
       heavyDutyBoots += 1;
-    }
 
-    for (const move of member.moves) {
-      const n = normalize(move.name);
+    for (const moveId of member.moves) {
+      const n = normalize(moveId);
       if (n === "stealth-rock" || n === "trampa-rocas") {
         hasStealthRock = true;
         if (!setters.includes(member.id)) setters.push(member.id);
@@ -252,8 +259,8 @@ function analyzeUtility(team: PokemonTeam): UtilityReport {
   let hasTaunt = false;
 
   for (const member of members) {
-    for (const move of member.moves) {
-      const n = normalize(move.name);
+    for (const moveId of member.moves) {
+      const n = normalize(moveId);
       if (
         PIVOT_MOVES.has(n) ||
         n.includes("u-turn") ||
