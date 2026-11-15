@@ -11,6 +11,10 @@ interface Props {
   readonly maxMoves?: number;
 }
 
+type PokemonWithMoves = {
+  readonly moves?: readonly (string | { name: string })[];
+};
+
 export function MoveSelector({
   pokemonId,
   selectedMoves,
@@ -27,10 +31,10 @@ export function MoveSelector({
     (async () => {
       setLoading(true);
       try {
-        const pokemon = await LocalPokemonRepository.getById(pokemonId);
-        const rawMoves =
-          (pokemon as { moves?: readonly (string | { name: string })[] } | null)
-            ?.moves ?? [];
+        const pokemon = (await LocalPokemonRepository.getById(
+          pokemonId,
+        )) as PokemonWithMoves | null;
+        const rawMoves = pokemon?.moves ?? [];
         const moveNames: string[] = rawMoves.map((m) =>
           typeof m === "string" ? m : m.name,
         );
@@ -48,6 +52,7 @@ export function MoveSelector({
   }, [pokemonId]);
 
   const legalMoves = useMemo(() => {
+    if (learnset.length === 0) return allMoves.slice(0, 200);
     const set = new Set(learnset.map((m) => m.toLowerCase()));
     return allMoves.filter(
       (m) => set.has(m.id.toLowerCase()) || set.has(m.name.toLowerCase()),
@@ -66,12 +71,21 @@ export function MoveSelector({
   }, [legalMoves, query]);
 
   const toggleMove = (moveId: string) => {
-    if (selectedMoves.includes(moveId))
+    if (selectedMoves.includes(moveId)) {
       onChange(selectedMoves.filter((m) => m !== moveId));
-    else {
-      if (selectedMoves.length >= maxMoves)
-        onChange([...selectedMoves.slice(1), moveId]);
-      else onChange([...selectedMoves, moveId]);
+    } else {
+      if (selectedMoves.length >= maxMoves) {
+        onChange(
+          Object.freeze([
+            ...selectedMoves.slice(1),
+            moveId,
+          ]) as readonly string[],
+        );
+      } else {
+        onChange(
+          Object.freeze([...selectedMoves, moveId]) as readonly string[],
+        );
+      }
     }
   };
 

@@ -15,12 +15,6 @@ import { translateTypeToSpanish } from "@/features/team/constants/typeTranslatio
 import { useTeamStore } from "../store/useTeamStore";
 import { EditMemberModal } from "./EditMemberModal";
 
-type MemberWithMeta = TeamMember & {
-  readonly id?: string;
-  readonly name?: string;
-  readonly displayNameEs?: string;
-  readonly species?: string;
-};
 interface Props {
   readonly member: TeamMember;
   readonly index: number;
@@ -28,14 +22,6 @@ interface Props {
   readonly onReplace: (index: number) => void;
 }
 
-function getDisplayName(member: TeamMember): string {
-  const meta = member as MemberWithMeta;
-  return meta.displayNameEs ?? meta.name ?? meta.species ?? "Desconocido";
-}
-function getRawName(member: TeamMember): string {
-  const meta = member as MemberWithMeta;
-  return (meta.name ?? meta.species ?? "unknown").toLowerCase();
-}
 function useDefensiveMetrics(member: TeamMember) {
   return useMemo(() => {
     let resistCount = 0;
@@ -59,6 +45,7 @@ function useDefensiveMetrics(member: TeamMember) {
     return { resistCount, immuneCount, cobertura };
   }, [member]);
 }
+
 function useTeamCoverage(members: readonly TeamMember[], upToIndex: number) {
   return useMemo(() => {
     const slice = members.slice(0, upToIndex + 1);
@@ -84,8 +71,8 @@ function useTeamCoverage(members: readonly TeamMember[], upToIndex: number) {
 }
 
 export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
-  const displayName = getDisplayName(member);
-  const rawName = getRawName(member);
+  const displayName = member.displayNameEs;
+  const rawName = member.name.toLowerCase();
   const baseName = resolveBaseName(rawName);
   const pokemonList = usePokedexStore((s) => s.pokemonList);
   const baseEntry = useMemo(
@@ -106,6 +93,7 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
   const { cobertura, resistCount, immuneCount } = useDefensiveMetrics(member);
   const teamCoverage = useTeamCoverage(members, index);
   const stats = member.calculatedStats;
+
   const bestStat: keyof typeof stats = useMemo(() => {
     const entries: [keyof typeof stats, number][] = [
       ["hp", stats.hp ?? 0],
@@ -125,13 +113,12 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
     }
     return best;
   }, [stats]);
+
   const evTotal = useMemo(
     () => Object.values(member.evs).reduce((a, b) => a + b, 0),
     [member.evs],
   );
-  const natureLabel = member.nature
-    ? `${member.nature.nameEs} · ${member.nature.name}`
-    : "Neutro";
+  const natureLabel = `${member.nature.nameEs} · ${member.nature.name}`;
 
   return (
     <>
@@ -200,6 +187,7 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             </button>
           </div>
         </div>
+
         <div className="mt-4 min-h-13 border-t border-[#F5F1E8] pt-3">
           <div className="flex items-center justify-between">
             <div className="text-[9px] uppercase tracking-widest text-zinc-500">
@@ -248,6 +236,34 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             )}
           </div>
         </div>
+
+        <div className="mt-3">
+          <div className="text-[9px] uppercase tracking-widest text-zinc-500">
+            Movimientos · {member.moves.length}/4
+          </div>
+          <div className="mt-2 flex flex-col gap-1">
+            {member.moves.length === 0 ? (
+              <div className="border border-dashed border-[#EDE8E0] bg-[#FFFEFB] px-2 py-2 text-[10px] italic text-zinc-500">
+                Sin movimientos configurados
+              </div>
+            ) : (
+              member.moves.slice(0, 4).map((moveId) => (
+                <div
+                  key={moveId}
+                  className="flex items-center justify-between border border-[#EDE8E0] bg-white px-2 py-1.5 text-[11px]"
+                >
+                  <span className="truncate font-medium text-[#111]">
+                    {moveId.replace(/-/g, " ")}
+                  </span>
+                  <span className="ml-2 shrink-0 text-[9px] uppercase tracking-widest text-zinc-400">
+                    {moveId.includes("status") ? "Estado" : "Ofensivo"}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
         <div className="mt-3 flex-1">
           <div className="text-[9px] uppercase tracking-widest text-zinc-500">
             Estadísticas · Nv. {member.level}
@@ -290,6 +306,7 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
             })}
           </div>
         </div>
+
         <div className="mt-3 border-t border-[#F5F1E8] pt-2.5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">

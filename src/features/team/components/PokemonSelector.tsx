@@ -12,7 +12,11 @@ import type { Nature } from "@/domain/stats/types/StatTypes";
 import { EV } from "@/domain/stats/value-objects/EV";
 import { IV } from "@/domain/stats/value-objects/IV";
 import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
-import type { BaseStats, TeamMember } from "@/domain/team/types/TeamTypes";
+import type {
+  BaseStats,
+  EVSet,
+  TeamMember,
+} from "@/domain/team/types/TeamTypes";
 import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 import type { PokemonFull } from "@/infrastructure/local-data/repositories/local-pokemon.repository";
 import { translateTypeToSpanish } from "../constants/typeTranslations";
@@ -141,12 +145,12 @@ export function PokemonSelector({
   const toTeamMember = useCallback((full: PokemonFull): TeamMember => {
     const baseRaw = full.baseStats as unknown as Record<StatName, number>;
     const safeBase: BaseStats = {
-      hp: baseRaw.hp ?? 80,
-      attack: baseRaw.attack ?? 80,
-      defense: baseRaw.defense ?? 80,
-      "special-attack": baseRaw["special-attack"] ?? 80,
-      "special-defense": baseRaw["special-defense"] ?? 80,
-      speed: baseRaw.speed ?? 80,
+      hp: baseRaw?.hp ?? 80,
+      attack: baseRaw?.attack ?? 80,
+      defense: baseRaw?.defense ?? 80,
+      "special-attack": baseRaw?.["special-attack"] ?? 80,
+      "special-defense": baseRaw?.["special-defense"] ?? 80,
+      speed: baseRaw?.speed ?? 80,
     };
     const sorted = (Object.entries(safeBase) as [StatName, number][]).sort(
       (a, b) => b[1] - a[1],
@@ -164,7 +168,9 @@ export function PokemonSelector({
     };
     evsDist[highest] = 252;
     evsDist[secondName] = 252;
-    evsDist[sorted[2]?.[0] ?? "hp"] = 4;
+    const third = sorted[2]?.[0];
+    if (third) evsDist[third] = 4;
+
     const ivs = IV.createPerfectSet();
     const evs = EV.createSet(evsDist);
     const calculated = calculateStats({
@@ -175,42 +181,48 @@ export function PokemonSelector({
       nature,
       generation: DEFAULT_BATTLE_RULESET.generation,
     });
+    const calc = calculated as Record<StatName, number>;
     const defaultAbility =
       (full.abilities as readonly { name: string }[] | undefined)?.[0]?.name ??
       "";
-    const calc = calculated as unknown as Record<StatName, number>;
-    return {
+
+    const member: TeamMember = Object.freeze({
       id: String(full.id),
+      pokemonId: full.id,
       name: normalizeId(full.name),
-      displayNameEs: displayNameEs(full.name),
-      species: displayNameEs(full.name),
-      types: full.types as readonly PokemonType[],
+      displayNameEs: full.displayNameEs || displayNameEs(full.name),
+      species: full.displayNameEs || displayNameEs(full.name),
+      types: Object.freeze([...full.types]) as readonly PokemonType[],
       abilityId: defaultAbility ? normalizeId(defaultAbility) : null,
       itemId: null,
       ability: defaultAbility || null,
       item: null,
-      nature,
+      nature: Object.freeze({ ...nature }),
       level: DEFAULT_BATTLE_RULESET.level,
-      evs,
-      ivs,
-      calculatedStats: {
+      evs: Object.freeze({ ...evs }) as EVSet,
+      ivs: Object.freeze({ ...ivs }) as EVSet,
+      calculatedStats: Object.freeze({
         hp: calc.hp,
         attack: calc.attack,
         defense: calc.defense,
         specialAttack: calc["special-attack"],
         specialDefense: calc["special-defense"],
         speed: calc.speed,
-      },
-      baseStats: safeBase,
-      moves: [],
-    } as unknown as TeamMember;
+      }),
+      baseStats: Object.freeze({ ...safeBase }),
+      moves: Object.freeze([]) as readonly string[],
+      teraType: null,
+      isTeraActive: false,
+    });
+
+    return member;
   }, []);
 
   const handleSelect = useCallback(
     async (optimized: OptimizedWithTypes) => {
       const full = await getPokemonById(optimized.id);
       if (!full) return;
-      const member = toTeamMember(full as unknown as PokemonFull);
+      const member = toTeamMember(full as PokemonFull);
       onSelect(member);
       onClose();
       setQuery("");
@@ -220,6 +232,7 @@ export function PokemonSelector({
 
   if (!open || typeof document === "undefined") return null;
   const virtualItems = virtualizer.getVirtualItems();
+
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#111]/20 p-0 sm:items-center sm:p-6">
       <div className="flex max-h-[92vh] w-full max-w-130 flex-col border border-[#EDE8E0] bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)]">

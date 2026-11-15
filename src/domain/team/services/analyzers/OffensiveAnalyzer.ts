@@ -2,21 +2,28 @@ import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import type { TeamMember } from "@/domain/team/types/TeamTypes";
 import { ALL_POKEMON_TYPES } from "@/domain/types/TypeChart";
 
+export type MoveDamageCategory = "physical" | "special" | "status";
+
 export interface MoveMeta {
   readonly id: string;
   readonly type: PokemonType;
   readonly power: number | null;
+  readonly damageCategory: MoveDamageCategory;
 }
 
 export interface CoverageInfo {
   readonly covered: boolean;
   readonly byMoves: readonly string[];
+  readonly physicalHits: number;
+  readonly specialHits: number;
 }
 
 export interface TeamOffensiveAnalysis {
   readonly coverageMap: Record<PokemonType, CoverageInfo>;
   readonly uncoveredDefenderTypes: readonly PokemonType[];
   readonly totalCoveragePercent: number;
+  readonly physicalSuperEffective: number;
+  readonly specialSuperEffective: number;
 }
 
 const SUPER_EFFECTIVE: Record<PokemonType, readonly PokemonType[]> = {
@@ -53,23 +60,45 @@ function analyzeTeam(
   _members: readonly TeamMember[],
   moveMetaMap: ReadonlyMap<string, MoveMeta>,
 ): TeamOffensiveAnalysis {
-  const moveList = [...moveMetaMap.values()];
+  const allMoves = [...moveMetaMap.values()];
+  const offensiveMoves = allMoves.filter(
+    (m) => m.damageCategory !== "status" && m.power !== null && m.power > 0,
+  );
+
   const coverageMap = {} as Record<PokemonType, CoverageInfo>;
+  let physicalSuper = 0;
+  let specialSuper = 0;
+
   for (const defType of ALL_POKEMON_TYPES) {
-    const coveringMoves: string[] = [];
-    for (const move of moveList) {
+    const covering: string[] = [];
+    let phys = 0;
+    let spec = 0;
+    for (const move of offensiveMoves) {
       if (!move.type) continue;
-      if (getEffectiveness(move.type, defType) > 1) coveringMoves.push(move.id);
+      if (getEffectiveness(move.type, defType) > 1) {
+        covering.push(move.id);
+        if (move.damageCategory === "physical") {
+          phys += 1;
+          physicalSuper += 1;
+        } else if (move.damageCategory === "special") {
+          spec += 1;
+          specialSuper += 1;
+        }
+      }
     }
     coverageMap[defType] = {
-      covered: coveringMoves.length > 0,
-      byMoves: Object.freeze([...coveringMoves]),
+      covered: covering.length > 0,
+      byMoves: Object.freeze([...covering]),
+      physicalHits: phys,
+      specialHits: spec,
     };
   }
+
   const uncovered = ALL_POKEMON_TYPES.filter((t) => !coverageMap[t].covered);
   const coveredCount = ALL_POKEMON_TYPES.length - uncovered.length;
   const percent = Math.round((coveredCount / ALL_POKEMON_TYPES.length) * 100);
-  return {
+
+  return Object.freeze({
     coverageMap: Object.freeze(coverageMap) as Record<
       PokemonType,
       CoverageInfo
@@ -78,10 +107,13 @@ function analyzeTeam(
       ...uncovered,
     ]) as readonly PokemonType[],
     totalCoveragePercent: percent,
-  };
+    physicalSuperEffective: physicalSuper,
+    specialSuperEffective: specialSuper,
+  });
 }
 
 export const OffensiveAnalyzer = { analyze: analyzeTeam };
+
 export function analyzeOffensive(
   members: readonly TeamMember[],
   moveMetaMap: ReadonlyMap<string, MoveMeta>,

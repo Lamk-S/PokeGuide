@@ -24,6 +24,8 @@ export interface CalculatedStats {
   readonly spDefense?: number;
 }
 
+export type MoveDamageCategory = "physical" | "special" | "status";
+
 export interface ResolvedMove {
   readonly id: string;
   readonly name: string;
@@ -31,7 +33,8 @@ export interface ResolvedMove {
   readonly type: PokemonType;
   readonly power: number | null;
   readonly accuracy: number | null;
-  readonly category: "physical" | "special" | "status";
+  readonly category: MoveDamageCategory;
+  readonly damageCategory: MoveDamageCategory;
   readonly priority?: number;
   readonly pp?: number;
   readonly effect?: string;
@@ -43,8 +46,8 @@ export interface TeamMember {
   readonly id: string;
   readonly pokemonId: number;
   readonly name: string;
-  readonly displayNameEs?: string;
-  readonly species?: string;
+  readonly displayNameEs: string;
+  readonly species: string;
   readonly types: readonly PokemonType[];
   readonly abilityId: string | null;
   readonly itemId: string | null;
@@ -56,21 +59,32 @@ export interface TeamMember {
   readonly ivs: IVSet;
   readonly calculatedStats: CalculatedStats;
   readonly baseStats: BaseStats;
-  readonly moves: readonly ResolvedMove[];
+  readonly moves: readonly string[];
   readonly isCustom?: boolean;
-  readonly teraType?: PokemonType;
-  readonly isTeraActive?: boolean;
+  readonly teraType: PokemonType | null;
+  readonly isTeraActive: boolean;
 }
 
-export interface TeamMemberInput extends TeamMember {
+export interface TeamMemberInput {
   readonly id: string;
   readonly pokemonId: number;
   readonly name: string;
+  readonly displayNameEs: string;
+  readonly species: string;
   readonly types: readonly PokemonType[];
+  readonly abilityId: string | null;
+  readonly itemId: string | null;
+  readonly ability: string | null;
+  readonly item: string | null;
+  readonly nature: Nature;
   readonly level: number;
-  readonly moves: readonly ResolvedMove[];
-  readonly teraType?: PokemonType;
-  readonly isTeraActive?: boolean;
+  readonly evs: EVSet;
+  readonly ivs: IVSet;
+  readonly calculatedStats: CalculatedStats;
+  readonly baseStats: BaseStats;
+  readonly moves: readonly string[];
+  readonly teraType: PokemonType | null;
+  readonly isTeraActive: boolean;
 }
 
 export type TypeExposure = {
@@ -107,6 +121,8 @@ export interface OffensiveCoverage {
   readonly superEffectiveHits: number;
   readonly membersCovering: readonly string[];
   readonly isCovered: boolean;
+  readonly physicalHits?: number;
+  readonly specialHits?: number;
 }
 
 export interface OffensiveReport {
@@ -197,7 +213,9 @@ export type LegalityIssueCode =
   | "ability_illegal"
   | "move_illegal"
   | "ev_overflow"
-  | "level_illegal";
+  | "level_illegal"
+  | "incomplete_moves"
+  | "zero_evs";
 
 export interface LegalityIssue {
   readonly code: LegalityIssueCode;
@@ -282,6 +300,8 @@ export interface ActionableRecommendation {
   readonly neutral?: number;
 }
 
+export type TeamCompleteness = "empty" | "building" | "incomplete" | "ready";
+
 export interface TeamAnalysis {
   readonly defensiveCoverage: DefensiveCoverage;
   readonly defensiveReport: DefensiveReport;
@@ -295,6 +315,8 @@ export interface TeamAnalysis {
   readonly effectiveMaxSpeed: number;
   readonly teamSize: number;
   readonly isLegal: boolean;
+  readonly isEmpty: boolean;
+  readonly teamStatus: TeamCompleteness;
   readonly generatedAt: number;
   readonly analysisVersion?: number;
 }

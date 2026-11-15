@@ -1,49 +1,71 @@
-import { normalizeId } from "@/domain/shared/utils/normalizeId";
 import { NATURES } from "@/domain/stats/constants/natures";
 import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
 
 export interface ShowdownPokemonRaw {
-  name: string;
-  item?: string | null;
-  ability?: string | null;
-  level?: number;
-  nature?: string | null;
-  evs?: Partial<Record<string, number>>;
-  ivs?: Partial<Record<string, number>>;
-  moves: string[];
+  readonly name: string;
+  readonly species?: string;
+  readonly item?: string;
+  readonly ability?: string;
+  readonly level?: number;
+  readonly evs?: Record<string, number>;
+  readonly ivs?: Record<string, number>;
+  readonly nature?: string;
+  readonly moves: readonly string[];
+  readonly teraType?: string;
 }
 
-const STAT_MAP: Record<string, string> = {
-  HP: "hp",
-  Atk: "attack",
-  Def: "defense",
-  SpA: "special-attack",
-  SpD: "special-defense",
-  Spe: "speed",
-  PS: "hp",
-  ATQ: "attack",
-  VEL: "speed",
-};
+const EV_LINE_REGEX = /EVs:\s*(.+)/i;
+const IV_LINE_REGEX = /IVs:\s*(.+)/i;
+const NATURE_REGEX = /^\s*(\w+)\s+Nature\s*$/i;
+const LEVEL_REGEX = /Level:\s*(\d+)/i;
+const ABILITY_REGEX = /Ability:\s*(.+)/i;
+const TERA_REGEX = /Tera Type:\s*(.+)/i;
 
-function parseEVsLine(line: string): Partial<Record<string, number>> {
-  const evs: Partial<Record<string, number>> = {};
-  const content = line.replace(/^EVs:\s*/i, "");
-  const parts = content
-    .split("/")
-    .map((s) => s.trim())
-    .filter(Boolean);
+function parseEvs(line: string): Record<string, number> {
+  const evs: Record<string, number> = {};
+  const parts = line.split("/");
   for (const part of parts) {
-    const match = part.match(/(\d+)\s+(\w+)/);
-    if (!match) continue;
-    const valueStr = match[1];
-    const statEs = match[2];
-    if (!valueStr || !statEs) continue;
-    const value = Number.parseInt(valueStr, 10);
-    if (Number.isNaN(value)) continue;
-    const key = STAT_MAP[statEs] ?? statEs.toLowerCase();
-    evs[key] = value;
+    const m = part.trim().match(/(\d+)\s+(\w+)/);
+    if (!m) continue;
+    const value = Number(m[1]);
+    const statRaw = m[2]?.toLowerCase() ?? "";
+    const key = normalizeStat(statRaw);
+    if (key) evs[key] = value;
   }
   return evs;
+}
+
+function normalizeStat(raw: string): string | null {
+  const s = raw.toLowerCase();
+  if (s.startsWith("hp")) return "hp";
+  if (s.startsWith("atk") && !s.includes("spa")) return "attack";
+  if (s.startsWith("def") && !s.includes("spd") && !s.includes("spa"))
+    return "defense";
+  if (
+    s.includes("spa") ||
+    s === "spatk" ||
+    s === "sp. atk" ||
+    s === "special-attack"
+  )
+    return "special-attack";
+  if (
+    s.includes("spd") ||
+    s === "spdef" ||
+    s === "sp. def" ||
+    s === "special-defense"
+  )
+    return "special-defense";
+  if (s.startsWith("spe") || s === "speed") return "speed";
+  return null;
+}
+
+function isNatureLine(line: string): string | null {
+  const m = line.match(NATURE_REGEX);
+  if (!m) return null;
+  const name = m[1]?.trim() ?? "";
+  return NATURES.some((n) => n.name.toLowerCase() === name.toLowerCase())
+    ? name
+    : null;
 }
 
 export function parseShowdownTeam(input: string): ShowdownPokemonRaw[] {
@@ -51,6 +73,7 @@ export function parseShowdownTeam(input: string): ShowdownPokemonRaw[] {
     .split(/\n\s*\n/)
     .map((b) => b.trim())
     .filter(Boolean);
+
   const team: ShowdownPokemonRaw[] = [];
 
   for (const block of blocks) {
@@ -60,54 +83,70 @@ export function parseShowdownTeam(input: string): ShowdownPokemonRaw[] {
       .filter(Boolean);
     if (lines.length === 0) continue;
 
-    const firstLine = lines[0];
-    if (!firstLine) continue;
+    const firstLine = lines[0] ?? "";
+    const atSplit = firstLine.split("@");
+    const namePart = (atSplit[0] ?? firstLine).trim();
+    const itemPart = atSplit[1]?.trim();
 
-    const splitAt = firstLine.split("@");
-    const namePart = splitAt[0]?.trim();
-    if (!namePart) continue;
-    const itemPart = splitAt[1]?.trim();
+    let level: number | undefined;
+    let ability: string | undefined;
+    let nature: string | undefined;
+    let evs: Record<string, number> | undefined;
+    let ivs: Record<string, number> | undefined;
+    let teraType: string | undefined;
+    const moves: string[] = [];
 
-    const raw: ShowdownPokemonRaw = {
-      name: namePart,
-      item: itemPart ? normalizeId(itemPart) : null,
-      moves: [],
-    };
-
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i];
-      if (!line) continue;
-
-      if (/^Ability:/i.test(line)) {
-        raw.ability = normalizeId(line.replace(/^Ability:\s*/i, ""));
-      } else if (/^Level:/i.test(line)) {
-        const lvl = Number.parseInt(line.replace(/^Level:\s*/i, ""), 10);
-        if (!Number.isNaN(lvl)) raw.level = lvl;
-      } else if (/^EVs:/i.test(line)) {
-        raw.evs = parseEVsLine(line);
-      } else if (/Nature$/i.test(line)) {
-        const natureName = line.replace(/ Nature$/i, "").trim();
-        raw.nature =
-          NATURES.find((n) => n.name.toLowerCase() === natureName.toLowerCase())
-            ?.name ?? natureName;
-      } else if (line.startsWith("-")) {
-        const moveName = line.replace(/^-+\s*/, "").trim();
-        if (moveName) raw.moves.push(normalizeId(moveName));
+    for (const line of lines.slice(1)) {
+      if (LEVEL_REGEX.test(line)) {
+        const m = line.match(LEVEL_REGEX);
+        if (m) level = Number(m[1]);
+        continue;
+      }
+      if (ABILITY_REGEX.test(line)) {
+        const m = line.match(ABILITY_REGEX);
+        if (m) ability = m[1]?.trim();
+        continue;
+      }
+      const evMatch = line.match(EV_LINE_REGEX);
+      if (evMatch) {
+        evs = parseEvs(evMatch[1] ?? "");
+        continue;
+      }
+      const ivMatch = line.match(IV_LINE_REGEX);
+      if (ivMatch) {
+        ivs = parseEvs(ivMatch[1] ?? "");
+        continue;
+      }
+      const natureFound = isNatureLine(line);
+      if (natureFound) {
+        nature = natureFound;
+        continue;
+      }
+      const teraMatch = line.match(TERA_REGEX);
+      if (teraMatch) {
+        teraType = teraMatch[1]?.trim();
+        continue;
+      }
+      if (line.startsWith("-")) {
+        const moveName = line.slice(1).trim();
+        if (moveName) moves.push(moveName);
       }
     }
 
-    if (!raw.level) raw.level = DEFAULT_BATTLE_RULESET.level;
-    if (!raw.evs)
-      raw.evs = {
-        hp: 0,
-        attack: 0,
-        defense: 0,
-        "special-attack": 0,
-        "special-defense": 0,
-        speed: 0,
-      };
-
-    team.push(raw);
+    team.push(
+      Object.freeze({
+        name: namePart,
+        species: namePart,
+        item: itemPart,
+        ability,
+        level: level ?? DEFAULT_BATTLE_RULESET.level,
+        evs,
+        ivs,
+        nature,
+        moves: Object.freeze([...moves]),
+        teraType,
+      }),
+    );
   }
 
   return team;
@@ -115,40 +154,41 @@ export function parseShowdownTeam(input: string): ShowdownPokemonRaw[] {
 
 export function serializeToShowdown(
   members: readonly {
-    id: string;
-    name: string;
-    displayNameEs?: string;
-    itemId?: string | null;
-    item?: string | null;
-    abilityId?: string | null;
-    ability?: string | null;
-    level: number;
-    evs: Record<string, number>;
-    nature: { name: string };
-    moves: readonly string[];
+    readonly name: string;
+    readonly displayNameEs?: string;
+    readonly englishName?: string;
+    readonly item?: string | null;
+    readonly itemId?: string | null;
+    readonly ability?: string | null;
+    readonly abilityId?: string | null;
+    readonly level?: number;
+    readonly evs?: Record<string, number>;
+    readonly nature?: { name: string } | string;
+    readonly moves: readonly string[];
+    readonly teraType?: string | null;
   }[],
 ): string {
   return members
     .map((m) => {
       const lines: string[] = [];
-      const item = m.itemId ?? m.item;
-      lines.push(
-        item
-          ? `${m.displayNameEs ?? m.name} @ ${item}`
-          : `${m.displayNameEs ?? m.name}`,
-      );
-      const ability = m.abilityId ?? m.ability;
-      if (ability) lines.push(`Ability: ${ability}`);
-      lines.push(`Level: ${m.level}`);
-      const evEntries = Object.entries(m.evs)
-        .filter(([, v]) => (v as number) > 0)
-        .map(([k, v]) => `${v} ${k}`)
-        .join(" / ");
-      if (evEntries) lines.push(`EVs: ${evEntries}`);
-      if (m.nature) lines.push(`${m.nature.name} Nature`);
-      for (const move of m.moves ?? []) {
-        lines.push(`- ${move}`);
+      const header = m.item
+        ? `${m.englishName ?? m.name} @ ${m.item}`
+        : (m.englishName ?? m.name);
+      lines.push(header);
+      if (m.ability) lines.push(`Ability: ${m.ability}`);
+      if (m.level) lines.push(`Level: ${m.level}`);
+      if (m.evs) {
+        const evStr = Object.entries(m.evs)
+          .filter(([, v]) => v > 0)
+          .map(([k, v]) => `${v} ${k}`)
+          .join(" / ");
+        if (evStr) lines.push(`EVs: ${evStr}`);
       }
+      const natureName =
+        typeof m.nature === "string" ? m.nature : m.nature?.name;
+      if (natureName) lines.push(`${natureName} Nature`);
+      if (m.teraType) lines.push(`Tera Type: ${m.teraType}`);
+      for (const move of m.moves) lines.push(`- ${move}`);
       return lines.join("\n");
     })
     .join("\n\n");

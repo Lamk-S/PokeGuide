@@ -18,8 +18,6 @@ import { LocalPokemonRepository } from "@/infrastructure/local-data/repositories
 type ContainerState = "idle" | "initializing" | "ready" | "failed";
 type Executable = { execute: (input: unknown) => Promise<unknown> };
 type ModuleRecord = Record<string, unknown>;
-type FunctionCandidate = (input: unknown) => Promise<unknown>;
-type ClassCandidate = new (arg?: unknown) => Executable;
 
 function hasExecute(value: unknown): value is Executable {
   return (
@@ -30,32 +28,76 @@ function hasExecute(value: unknown): value is Executable {
   );
 }
 
+function isConstructor(
+  value: unknown,
+): value is new (
+  arg?: unknown,
+) => Executable {
+  return (
+    typeof value === "function" &&
+    !!value.prototype &&
+    typeof value.prototype.execute === "function"
+  );
+}
+
 function toExecutable(mod: unknown, fallback?: unknown): Executable {
   const m = mod as ModuleRecord;
-  const candidate = (m.OptimizeBuildUseCase ??
-    m.OptimizeSpeedUseCase ??
-    m.OptimizeSurvivalUseCase ??
-    m.OptimizeDamageUseCase ??
-    m.OptimizeSurvivalWithBattleUseCase ??
-    m.default ??
-    m) as unknown;
-  if (hasExecute(candidate)) return candidate;
-  if (typeof candidate === "function") {
-    const withProto = candidate as { prototype?: { execute?: unknown } };
-    if (
-      withProto.prototype &&
-      typeof withProto.prototype.execute === "function"
-    ) {
-      try {
-        const inst = new (candidate as ClassCandidate)(fallback);
-        if (hasExecute(inst)) return inst;
-      } catch {}
-    }
-    return {
-      execute: (input: unknown) => (candidate as FunctionCandidate)(input),
-    };
+  const candidateKeys = [
+    "OptimizeBuildUseCase",
+    "OptimizeSpeedUseCase",
+    "OptimizeSurvivalUseCase",
+    "OptimizeDamageUseCase",
+    "OptimizeSurvivalWithBattleUseCase",
+  ];
+
+  for (const key of candidateKeys) {
+    const candidate = m[key];
+    if (hasExecute(candidate)) return candidate as Executable;
   }
-  return { execute: async () => ({}) };
+
+  const defaultExport = m.default;
+  if (hasExecute(defaultExport)) return defaultExport as Executable;
+  if (hasExecute(m)) return m as unknown as Executable;
+
+  const potentialConstructors: unknown[] = [
+    defaultExport,
+    m.OptimizeBuildUseCase,
+    m.OptimizeSpeedUseCase,
+    m.OptimizeSurvivalUseCase,
+    m.OptimizeDamageUseCase,
+    m.OptimizeSurvivalWithBattleUseCase,
+  ];
+
+  for (const ctor of potentialConstructors) {
+    if (!isConstructor(ctor)) continue;
+    try {
+      const instance = fallback !== undefined ? new ctor(fallback) : new ctor();
+      if (hasExecute(instance)) return instance;
+    } catch (error) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          "[CompositionContainer] Constructor instantiation failed, trying functional fallback",
+          error,
+        );
+      }
+    }
+  }
+
+  if (typeof defaultExport === "function") {
+    const fn = defaultExport as (input: unknown) => Promise<unknown>;
+    return { execute: (input: unknown) => fn(input) };
+  }
+
+  return {
+    execute: async () => {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          "[CompositionContainer] No executable found in module, returning empty result",
+        );
+      }
+      return {};
+    },
+  };
 }
 
 export class CompositionContainer {
@@ -87,8 +129,9 @@ export class CompositionContainer {
   private constructor() {}
 
   static getInstance(): CompositionContainer {
-    if (!CompositionContainer.instance)
+    if (!CompositionContainer.instance) {
       CompositionContainer.instance = new CompositionContainer();
+    }
     return CompositionContainer.instance;
   }
 
@@ -96,8 +139,10 @@ export class CompositionContainer {
     if (this.state === "ready") return;
     if (this.state === "initializing" && this.initPromise)
       return this.initPromise;
+
     this.state = "initializing";
     this.initError = null;
+
     this.initPromise = (async () => {
       try {
         this.pokemonRepository = new LocalPokemonRepository();
@@ -144,12 +189,16 @@ export class CompositionContainer {
         throw this.initError;
       }
     })();
+
     return this.initPromise;
   }
 
   ensureReady(): void {
-    if (this.state !== "ready")
-      throw new Error(`Container not ready. State=${this.state}.`);
+    if (this.state !== "ready") {
+      throw new Error(
+        `Container not ready. State=${this.state}${this.initError ? ` - ${this.initError.message}` : ""}`,
+      );
+    }
   }
 
   getCalculateBattleScenarioUseCase(): CalculateBattleScenarioUseCase {
@@ -172,7 +221,6 @@ export class CompositionContainer {
     this.ensureReady();
     return this.calculatePokemonStatsUseCase;
   }
-
   getOptimizeBuildUseCase(): Executable {
     this.ensureReady();
     return this.optimizeBuildUseCase;
@@ -193,7 +241,6 @@ export class CompositionContainer {
     this.ensureReady();
     return this.optimizeSurvivalWithBattleUseCase;
   }
-
   getPokemonRepository(): LocalPokemonRepository {
     this.ensureReady();
     return this.pokemonRepository;
@@ -210,7 +257,6 @@ export class CompositionContainer {
     this.ensureReady();
     return this.itemRepository;
   }
-
   getState(): ContainerState {
     return this.state;
   }

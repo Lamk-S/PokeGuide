@@ -11,13 +11,28 @@ function normalize(name: string): string {
   return normalizeId(name);
 }
 
+const PRIORITY_MOVE_IDS = new Set([
+  "quick-attack",
+  "mach-punch",
+  "bullet-punch",
+  "ice-shard",
+  "shadow-sneak",
+  "sucker-punch",
+  "extremespeed",
+  "fake-out",
+  "aqua-jet",
+  "vacuum-wave",
+  "ataque-rapido",
+  "puño-bala",
+]);
+
 function classifyMember(member: TeamMember): RoleAssignment {
   const roles: CompetitiveRole[] = [];
   const reasoning: string[] = [];
 
   const stats = member.calculatedStats;
   const base = member.baseStats;
-  const moves = member.moves.map((m) => normalize(m.name));
+  const moves = member.moves.map((m) => normalize(m));
   const item = normalize(member.itemId ?? member.item ?? "");
   const ability = normalize(member.abilityId ?? member.ability ?? "");
 
@@ -126,18 +141,18 @@ function classifyMember(member: TeamMember): RoleAssignment {
       "parting-shot",
     ].includes(m),
   );
-  const hasPriority = member.moves.some(
+
+  const hasPriority = moves.some(
     (m) =>
-      (m.priority && m.priority > 0) ||
-      [
-        "quick-attack",
-        "mach-punch",
-        "bullet-punch",
-        "ice-shard",
-        "sucker-punch",
-        "extremespeed",
-      ].includes(normalize(m.name)),
+      PRIORITY_MOVE_IDS.has(m) ||
+      m.includes("quick-attack") ||
+      m.includes("mach-punch") ||
+      m.includes("bullet-punch") ||
+      m.includes("ice-shard") ||
+      m.includes("sucker-punch") ||
+      m.includes("extremespeed"),
   );
+
   const hasStatus = moves.some((m) =>
     [
       "thunder-wave",

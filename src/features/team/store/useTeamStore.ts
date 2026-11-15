@@ -1,25 +1,19 @@
 "use client";
 import { z } from "zod";
 import { create } from "zustand";
-import { resolveBaseName } from "@/domain/pokemon/mappers/PokemonIdMapper";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import { normalizeId } from "@/domain/shared/utils/normalizeId";
+import type { Nature } from "@/domain/stats/types/StatTypes";
+import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
 import { PokemonTeam } from "@/domain/team/entities/PokemonTeam";
-import {
-  type MoveMeta,
-  OffensiveAnalyzer,
-} from "@/domain/team/services/analyzers/OffensiveAnalyzer";
-import type { TeamAnalysis, TeamMember } from "@/domain/team/types/TeamTypes";
-import { LocalMoveRepository } from "@/infrastructure/local-data/repositories/local-move.repository";
-
-interface ResolvedMove {
-  readonly id: string;
-}
-type ExtendedMember = TeamMember & {
-  readonly displayNameEs?: string;
-  readonly itemId?: string | null;
-  readonly item?: string | null;
-};
+import { TeamLegalityValidator } from "@/domain/team/services/TeamLegalityValidator";
+import type {
+  BaseStats,
+  CalculatedStats,
+  EVSet,
+  TeamAnalysis,
+  TeamMember,
+} from "@/domain/team/types/TeamTypes";
 
 const natureSchema = z
   .object({
@@ -29,6 +23,7 @@ const natureSchema = z
     decreasedStat: z.string().nullable(),
   })
   .strict();
+
 const evSetSchema = z
   .object({
     hp: z.number().int().min(0).max(252),
@@ -42,6 +37,7 @@ const evSetSchema = z
   .refine(
     (evs) => (Object.values(evs) as number[]).reduce((a, b) => a + b, 0) <= 510,
   );
+
 const ivSetSchema = z
   .object({
     hp: z.number().int().min(0).max(31),
@@ -52,6 +48,7 @@ const ivSetSchema = z
     speed: z.number().int().min(0).max(31),
   })
   .strict();
+
 const baseStatsSchema = z
   .object({
     hp: z.number().int().min(1).max(255),
@@ -62,6 +59,7 @@ const baseStatsSchema = z
     speed: z.number().int().min(1).max(255),
   })
   .strict();
+
 const calculatedStatsSchema = z
   .object({
     hp: z.number().int().min(1),
@@ -72,6 +70,7 @@ const calculatedStatsSchema = z
     speed: z.number().int().min(1),
   })
   .strict();
+
 export const teamMemberSchema = z
   .object({
     pokemonId: z.number().int().min(1),
@@ -90,17 +89,9 @@ export const teamMemberSchema = z
     ivs: ivSetSchema,
     calculatedStats: calculatedStatsSchema,
     baseStats: baseStatsSchema,
-    moves: z
-      .array(
-        z.union([
-          z.string().min(1),
-          z.object({ id: z.string().min(1) }).passthrough(),
-        ]),
-      )
-      .max(4)
-      .default([]),
-    teraType: z.string().nullable().optional(),
-    isTeraActive: z.boolean().optional(),
+    moves: z.array(z.string().min(1)).max(4).default([]),
+    teraType: z.string().nullable(),
+    isTeraActive: z.boolean(),
   })
   .strict();
 
@@ -110,59 +101,6 @@ export interface LegalityIssue {
   readonly members: readonly string[];
 }
 
-function extractMoveIdsFromMember(member: TeamMember): string[] {
-  const moves = (
-    member as unknown as { moves?: readonly (string | ResolvedMove)[] }
-  ).moves;
-  if (!moves) return [];
-  return moves
-    .map((m) => (typeof m === "string" ? m.toLowerCase() : m.id.toLowerCase()))
-    .filter(Boolean);
-}
-function validateSpeciesClause(
-  members: readonly TeamMember[],
-): LegalityIssue | null {
-  const seen = new Map<string, string[]>();
-  for (const m of members) {
-    const base = resolveBaseName(m.name.toLowerCase());
-    const list = seen.get(base) ?? [];
-    const ext = m as ExtendedMember;
-    list.push(ext.displayNameEs ?? m.name);
-    seen.set(base, list);
-  }
-  for (const [base, names] of seen) {
-    if (names.length > 1)
-      return {
-        code: "SPECIES_CLAUSE",
-        message: `Species Clause: ${base} duplicado (${names.join(", ")})`,
-        members: names,
-      };
-  }
-  return null;
-}
-function _validateItemClause(
-  members: readonly TeamMember[],
-): LegalityIssue | null {
-  const seen = new Map<string, string[]>();
-  for (const m of members) {
-    const ext = m as ExtendedMember;
-    const rawItem = ext.itemId ?? ext.item ?? "";
-    const item = normalizeId(rawItem);
-    if (!item) continue;
-    const list = seen.get(item) ?? [];
-    list.push(ext.displayNameEs ?? m.name);
-    seen.set(item, list);
-  }
-  for (const [item, names] of seen) {
-    if (names.length > 1)
-      return {
-        code: "ITEM_CLAUSE",
-        message: `Item Clause: ${item} en ${names.join(", ")}`,
-        members: names,
-      };
-  }
-  return null;
-}
 interface TeamStoreState {
   readonly team: PokemonTeam;
   readonly analysis: TeamAnalysis | null;
@@ -183,18 +121,37 @@ function toValidatedMember(raw: unknown): TeamMember {
     throw new Error(`TeamMember inválido: ${issues}`);
   }
   const data = parsed.data;
+  const nature = Object.freeze({ ...data.nature }) as Nature;
+  const evs = Object.freeze({ ...data.evs }) as EVSet;
+  const ivs = Object.freeze({ ...data.ivs }) as EVSet;
+  const baseStats = Object.freeze({ ...data.baseStats }) as BaseStats;
+  const calculatedStats = Object.freeze({
+    ...data.calculatedStats,
+  }) as CalculatedStats;
+  const types = Object.freeze([...data.types]) as readonly PokemonType[];
+  const moves = Object.freeze([...data.moves]) as readonly string[];
+
   return Object.freeze({
-    ...data,
-    types: Object.freeze([...data.types]),
-    moves: Object.freeze([
-      ...(data.moves as readonly (string | ResolvedMove)[]),
-    ]),
-    evs: Object.freeze({ ...data.evs }),
-    ivs: Object.freeze({ ...data.ivs }),
-    baseStats: Object.freeze({ ...data.baseStats }),
-    calculatedStats: Object.freeze({ ...data.calculatedStats }),
-    nature: Object.freeze({ ...data.nature }),
-  }) as unknown as TeamMember;
+    id: data.id,
+    pokemonId: data.pokemonId,
+    name: data.name,
+    displayNameEs: data.displayNameEs,
+    species: data.species,
+    types,
+    abilityId: data.abilityId ? normalizeId(data.abilityId) : null,
+    itemId: data.itemId ? normalizeId(data.itemId) : null,
+    ability: data.ability,
+    item: data.item,
+    nature,
+    level: data.level,
+    evs,
+    ivs,
+    calculatedStats,
+    baseStats,
+    moves,
+    teraType: data.teraType ? (data.teraType as PokemonType) : null,
+    isTeraActive: data.isTeraActive,
+  }) as TeamMember;
 }
 
 export const useTeamStore = create<TeamStoreState>((set, get) => ({
@@ -205,31 +162,31 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
   addMember: async (raw: unknown) => {
     try {
       const member = toValidatedMember(raw);
-      const nextTeam = get().team.addMember(member);
-      const speciesIssue = validateSpeciesClause(
-        nextTeam.getMembers() as readonly TeamMember[],
+      const currentTeam = get().team;
+      const nextTeam = currentTeam.addMember(member);
+
+      const legality = TeamLegalityValidator.validate(
+        nextTeam,
+        DEFAULT_BATTLE_RULESET,
       );
-      if (speciesIssue) {
-        set({ error: speciesIssue.message, legalityIssues: [speciesIssue] });
+      const critical = legality.issues.filter((i) => i.severity === "Critical");
+      if (critical.length > 0) {
+        const first = critical[0];
+        set({
+          error: first ? first.message : "Error de legalidad",
+          legalityIssues: critical.map((i) => ({
+            code:
+              i.code === "species_clause" ? "SPECIES_CLAUSE" : "ITEM_CLAUSE",
+            message: i.message,
+            members: Object.freeze([...i.membersInvolved]),
+          })),
+        });
         return;
       }
-      const moveIds = nextTeam
-        .getMembers()
-        .flatMap((m) => extractMoveIdsFromMember(m as TeamMember));
-      const moveMap = await LocalMoveRepository.getByIds(moveIds);
-      const metaMap = new Map<string, MoveMeta>(
-        [...moveMap.entries()].map(([id, dto]) => [
-          id,
-          { id: dto.id, type: dto.type as PokemonType, power: dto.power },
-        ]),
-      );
-      const offensive = OffensiveAnalyzer.analyze(
-        nextTeam.getMembers() as readonly TeamMember[],
-        metaMap,
-      );
+
       set({
         team: nextTeam,
-        analysis: { offensiveCoverage: offensive } as unknown as TeamAnalysis,
+        analysis: null,
         error: null,
         legalityIssues: [],
       });
@@ -248,24 +205,31 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
   replaceMember: async (index: number, raw: unknown) => {
     try {
       const member = toValidatedMember(raw);
-      const nextTeam = get().team.replaceMember(index, member);
-      const moveIds = nextTeam
-        .getMembers()
-        .flatMap((m) => extractMoveIdsFromMember(m as TeamMember));
-      const moveMap = await LocalMoveRepository.getByIds(moveIds);
-      const metaMap = new Map<string, MoveMeta>(
-        [...moveMap.entries()].map(([id, dto]) => [
-          id,
-          { id: dto.id, type: dto.type as PokemonType, power: dto.power },
-        ]),
+      const currentTeam = get().team;
+      const nextTeam = currentTeam.replaceMember(index, member);
+
+      const legality = TeamLegalityValidator.validate(
+        nextTeam,
+        DEFAULT_BATTLE_RULESET,
       );
-      const offensive = OffensiveAnalyzer.analyze(
-        nextTeam.getMembers() as readonly TeamMember[],
-        metaMap,
-      );
+      const critical = legality.issues.filter((i) => i.severity === "Critical");
+      if (critical.length > 0) {
+        const first = critical[0];
+        set({
+          error: first ? first.message : "Error de legalidad",
+          legalityIssues: critical.map((i) => ({
+            code:
+              i.code === "species_clause" ? "SPECIES_CLAUSE" : "ITEM_CLAUSE",
+            message: i.message,
+            members: Object.freeze([...i.membersInvolved]),
+          })),
+        });
+        return;
+      }
+
       set({
         team: nextTeam,
-        analysis: { offensiveCoverage: offensive } as unknown as TeamAnalysis,
+        analysis: null,
         error: null,
         legalityIssues: [],
       });
@@ -275,22 +239,7 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
   },
   toggleTera: (id: string) => {
     try {
-      const currentTeam = get().team;
-      const members = currentTeam.getMembers() as readonly TeamMember[];
-      const idx = members.findIndex((m) => m.id === id);
-      if (idx === -1) return;
-      const target = members[idx];
-      if (!target) return;
-      const willActivate = !target.isTeraActive;
-      const updatedMembers = members.map((m, i) => {
-        if (i === idx) return { ...m, isTeraActive: willActivate };
-        if (willActivate && m.isTeraActive)
-          return { ...m, isTeraActive: false };
-        return m;
-      });
-      let nextTeam = new PokemonTeam([]);
-      for (const m of updatedMembers)
-        nextTeam = nextTeam.addMember(m as TeamMember);
+      const nextTeam = get().team.toggleTera(id);
       set({ team: nextTeam, error: null });
     } catch (e) {
       set({ error: e instanceof Error ? e.message : "Error toggle Tera" });
