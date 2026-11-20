@@ -5,6 +5,7 @@ import {
   parseShowdownTeam,
   serializeToShowdown,
 } from "@/application/team/ShowdownParser";
+import { resolveBaseName } from "@/domain/pokemon/mappers/PokemonIdMapper";
 import type { PokemonType, StatName } from "@/domain/pokemon/types/pokemon";
 import { normalizeId } from "@/domain/shared/utils/normalizeId";
 import { NATURES } from "@/domain/stats/constants/natures";
@@ -82,7 +83,7 @@ function buildMemberFromParsed(
     pokemonId: full.id,
     name: normalizeId(full.name),
     displayNameEs: full.displayNameEs || displayNameEs(full.name),
-    species: full.displayNameEs || displayNameEs(full.name),
+    species: resolveBaseName(full.name),
     types: full.types as readonly PokemonType[],
     abilityId: parsed.ability ? normalizeId(parsed.ability) : null,
     itemId: parsed.item ? normalizeId(parsed.item) : null,
@@ -120,7 +121,6 @@ export function ShowdownModal({ open, onClose, mode }: Props) {
     setMounted(true);
     return () => setMounted(false);
   }, []);
-
   useEffect(() => {
     if (!open) return;
     if (mode === "export") {
@@ -259,6 +259,5 @@ export function ShowdownModal({ open, onClose, mode }: Props) {
       </div>
     </div>
   );
-
   return createPortal(modalContent, document.body);
 }

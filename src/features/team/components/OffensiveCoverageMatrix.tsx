@@ -12,39 +12,26 @@ import { useTeamStore } from "@/features/team/store/useTeamStore";
 import { LocalMoveRepository } from "@/infrastructure/local-data/repositories/local-move.repository";
 import { translateTypeToSpanish } from "../constants/typeTranslations";
 
-interface ResolvedMove {
-  readonly id: string;
-  readonly name?: string;
-}
-
 function getMoveIds(members: readonly TeamMember[]): string[] {
   const ids: string[] = [];
   for (const member of members) {
-    const moves = (
-      member as unknown as { moves?: readonly (string | ResolvedMove)[] }
-    ).moves;
-    if (!moves) continue;
-    for (const m of moves) {
-      if (typeof m === "string" && m.trim()) ids.push(m.toLowerCase().trim());
-      else if (
-        m &&
-        typeof m === "object" &&
-        "id" in m &&
-        typeof (m as ResolvedMove).id === "string"
-      )
-        ids.push((m as ResolvedMove).id.toLowerCase().trim());
+    for (const moveId of member.moves) {
+      const trimmed = moveId.trim().toLowerCase();
+      if (trimmed) ids.push(trimmed);
     }
   }
   return [...new Set(ids)];
 }
 
-function toMoveMeta(dto: {
-  id: string;
-  type: string;
-  power: number | null;
-  damageCategory?: string;
-  category?: string;
-}): MoveMeta {
+type MoveDtoInput = {
+  readonly id: string;
+  readonly type: string;
+  readonly power: number | null;
+  readonly damageCategory?: string;
+  readonly category?: string;
+};
+
+function toMoveMeta(dto: MoveDtoInput): MoveMeta {
   const raw = (dto.damageCategory ?? dto.category ?? "physical").toLowerCase();
   let damageCategory: MoveMeta["damageCategory"] = "physical";
   if (raw.includes("special")) damageCategory = "special";
@@ -80,10 +67,10 @@ export function OffensiveCoverageMatrix() {
         const dtoMap = await LocalMoveRepository.getByIds(moveIds);
         if (cancelled) return;
         const converted = new Map<string, MoveMeta>(
-          [...dtoMap.entries()].map(([id, dto]) => [
-            id.toLowerCase(),
-            toMoveMeta(dto as never),
-          ]),
+          [...dtoMap.entries()].map(([id, dto]) => {
+            const typed = dto as MoveDtoInput;
+            return [id.toLowerCase(), toMoveMeta(typed)];
+          }),
         );
         setMoveMetaMap(converted);
       } finally {

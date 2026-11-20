@@ -1,6 +1,6 @@
 "use client";
 import { ChevronDown, Info } from "lucide-react";
-import { memo, useId, useMemo, useState } from "react";
+import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Combobox } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
@@ -11,11 +11,7 @@ import {
 } from "@/domain/battle/value-objects/BattleModifiers";
 import { formatPokemonDisplayName } from "@/domain/pokemon/services/PokemonDisplayName";
 import { resolvePokemonForm } from "@/domain/pokemon/services/PokemonFormResolver";
-import type {
-  Pokemon,
-  PokemonAbilityRef,
-  StatName,
-} from "@/domain/pokemon/types/pokemon";
+import type { Pokemon, StatName } from "@/domain/pokemon/types/pokemon";
 import {
   extractTypeName,
   getStatNumber,
@@ -37,7 +33,6 @@ import { PokemonSelect } from "./PokemonSelect";
 
 const seriousFound = NATURES.find((n) => n.name === "Serious");
 const SERIOUS = seriousFound ?? NATURES[0];
-
 const STAT_ORDER: StatName[] = [
   "hp",
   "attack",
@@ -46,7 +41,6 @@ const STAT_ORDER: StatName[] = [
   "special-defense",
   "speed",
 ];
-
 const STAT_LABELS: Record<StatName, { full: string; abbr: string }> = {
   hp: { full: "PS", abbr: "PS" },
   attack: { full: "ATQ", abbr: "ATQ" },
@@ -55,6 +49,7 @@ const STAT_LABELS: Record<StatName, { full: string; abbr: string }> = {
   "special-defense": { full: "DEF. ESP", abbr: "DEF. ESP" },
   speed: { full: "VEL", abbr: "VEL" },
 };
+
 type MoveOption = {
   value: string;
   label: string;
@@ -70,6 +65,54 @@ type FormResolverPokemon = {
   types?: PokemonTypeRef[];
   abilities?: Array<{ name: string }>;
 };
+type TypeLike = PokemonTypeRef | { type: { name: string } } | string;
+type CardPokemon = {
+  id: number;
+  name: string;
+  types?: Array<TypeLike | unknown> | unknown[] | undefined;
+  baseStats?: BaseStats | Record<string, number> | undefined;
+  stats?: BaseStats | Record<string, number> | undefined;
+  abilities?: unknown;
+  moves?: unknown;
+  learnset?: unknown;
+  height?: number;
+  weight?: number;
+  sprites?: unknown;
+  [key: string]: unknown;
+};
+type StoreAbility = {
+  name: string;
+  nameEs?: string;
+  id?: string;
+  description?: string;
+  descriptionEs?: string;
+};
+
+function extractAbilityName(a: unknown): string | null {
+  if (!a) return null;
+  if (typeof a === "string") return a;
+  const obj = a as Record<string, unknown>;
+  if (typeof obj.name === "string") return obj.name;
+  if (typeof obj.id === "string") return obj.id;
+  const abilityField = obj.ability as
+    | Record<string, unknown>
+    | string
+    | undefined;
+  if (typeof abilityField === "string") return abilityField;
+  if (abilityField && typeof abilityField === "object") {
+    if (typeof abilityField.name === "string") return abilityField.name;
+    if (typeof abilityField.id === "string") return abilityField.id;
+  }
+  if (typeof obj.value === "string") return obj.value;
+  return null;
+}
+function toArraySafe(raw: unknown): unknown[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "object")
+    return Object.values(raw as Record<string, unknown>);
+  return [];
+}
 
 function CompactStatGrid({
   liveStats,
@@ -94,23 +137,6 @@ function CompactStatGrid({
     </div>
   );
 }
-
-type AbilityLike = PokemonAbilityRef | { name: string } | string;
-type TypeLike = PokemonTypeRef | { type: { name: string } } | string;
-
-type CardPokemon = {
-  id: number;
-  name: string;
-  types?: Array<TypeLike | unknown> | unknown[] | undefined;
-  baseStats?: BaseStats | Record<string, number> | undefined;
-  stats?: BaseStats | Record<string, number> | undefined;
-  abilities?: Array<AbilityLike | unknown> | unknown[] | undefined;
-  moves?: Array<string | { name: string } | unknown> | unknown[] | undefined;
-  height?: number;
-  weight?: number;
-  sprites?: unknown;
-  [key: string]: unknown;
-};
 
 export const ParticipantCard = memo(function ParticipantCard({
   label,
@@ -140,16 +166,17 @@ export const ParticipantCard = memo(function ParticipantCard({
   const [openIV, setOpenIV] = useState(false);
   const [openEV, setOpenEV] = useState(true);
   const [openMods, setOpenMods] = useState(false);
-  const abilityList = useAbilityStore((s) => s.abilityList);
+  const abilityListRaw = useAbilityStore((s) => s.abilityList);
   const itemList = useItemStore((s) => s.itemList);
-
+  const abilityList = useMemo(
+    () => (abilityListRaw as unknown as StoreAbility[]) ?? [],
+    [abilityListRaw],
+  );
   const currentPokemon = useMemo(
     () => pokemonList.find((p) => p.id === input?.pokemonId),
     [pokemonList, input?.pokemonId],
   );
-
   const isShedinja = input?.pokemonId === 292;
-
   const identity = useMemo(
     () =>
       currentPokemon
@@ -167,7 +194,6 @@ export const ParticipantCard = memo(function ParticipantCard({
         : null,
     [identity, pokemonList],
   );
-
   const liveStats = useMemo(() => {
     if (!currentPokemon || !input) return null;
     const base =
@@ -185,41 +211,72 @@ export const ParticipantCard = memo(function ParticipantCard({
         evs: input.evs as unknown as Record<StatName, number>,
         generation,
       }) as Record<StatName, number>;
-      if (isShedinja) {
-        return { ...calculated, hp: 1 };
-      }
+      if (isShedinja) return { ...calculated, hp: 1 };
       return calculated;
     } catch {
       const fallback = base as unknown as Record<StatName, number>;
-      if (isShedinja) {
-        return { ...fallback, hp: 1 };
-      }
+      if (isShedinja) return { ...fallback, hp: 1 };
       return fallback;
     }
   }, [currentPokemon, resolvedForm, input, generation, isShedinja]);
 
-  const evTotal = useMemo(() => {
-    if (!input) return 0;
-    return Object.values(
-      input.evs as unknown as Record<string, StatValue>,
-    ).reduce<number>((s, v) => s + getStatNumber(v), 0);
-  }, [input]);
+  const evTotal = useMemo(
+    () =>
+      input
+        ? Object.values(
+            input.evs as unknown as Record<string, StatValue>,
+          ).reduce<number>((s, v) => s + getStatNumber(v), 0)
+        : 0,
+    [input],
+  );
 
   const abilityOptions = useMemo(() => {
-    if (!currentPokemon?.abilities) return [];
-    const abilities = currentPokemon.abilities as Array<AbilityLike | unknown>;
-    return abilities
+    const raw = (currentPokemon as CardPokemon | undefined)?.abilities;
+    const arr = toArraySafe(raw);
+    if (arr.length === 0) return [];
+    const opts = arr
       .map((a) => {
-        if (!a) return null;
-        if (typeof a === "string") return { value: a, label: a };
-        const abilityObj = a as { name?: string };
-        const name = abilityObj.name;
+        const name = extractAbilityName(a);
         if (!name) return null;
-        const found = abilityList.find((ab) => ab.name === name);
-        return { value: name, label: found?.nameEs || name };
+        const lower = name.toLowerCase();
+        const found = abilityList.find(
+          (ab) =>
+            ab.name.toLowerCase() === lower ||
+            ab.nameEs?.toLowerCase() === lower ||
+            ab.id?.toLowerCase() === lower,
+        );
+        return {
+          value: name,
+          label: found?.nameEs ?? found?.name ?? name.replace(/-/g, " "),
+        };
       })
       .filter((x): x is { value: string; label: string } => x !== null);
+    const seen = new Set<string>();
+    return opts.filter((o) => {
+      const k = o.value.toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
   }, [currentPokemon, abilityList]);
+
+  const prevPokemonIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!input) return;
+    if (!currentPokemon) return;
+    if (abilityOptions.length === 0) return;
+    const pokemonChanged = prevPokemonIdRef.current !== input.pokemonId;
+    if (pokemonChanged) prevPokemonIdRef.current = input.pokemonId;
+    const currentAbility = input.ability?.toLowerCase?.() ?? "";
+    const exists = abilityOptions.some(
+      (o) => o.value.toLowerCase() === currentAbility,
+    );
+    if (!currentAbility || !exists) {
+      const first = abilityOptions[0];
+      if (!first) return;
+      onChange({ ...input, ability: first.value });
+    }
+  }, [input?.pokemonId, abilityOptions, input, onChange, currentPokemon]);
 
   const natureOptions = useMemo(
     () => NATURES.map((n) => ({ value: n.name, label: n.nameEs || n.name })),
@@ -280,18 +337,18 @@ export const ParticipantCard = memo(function ParticipantCard({
         emptyEvs.hp = 0;
         perfectIvs.hp = 0;
       }
+      const firstAbility = (() => {
+        const raw = (p as CardPokemon).abilities;
+        const arr = toArraySafe(raw);
+        return extractAbilityName(arr[0]) ?? "";
+      })();
       onChange({
         pokemonId: id,
         level: 50,
         nature: SERIOUS,
         evs: emptyEvs,
         ivs: perfectIvs,
-        ability: (() => {
-          const a = p.abilities?.[0];
-          if (!a) return "";
-          if (typeof a === "string") return a;
-          return (a as { name: string }).name || "";
-        })(),
+        ability: firstAbility,
         status: "none" as StatusId,
         moves: [],
         item: null,
@@ -403,15 +460,15 @@ export const ParticipantCard = memo(function ParticipantCard({
                 nextEvs.hp = 0;
                 nextIvs.hp = 0;
               }
+              const firstAbility = (() => {
+                const raw = (p as CardPokemon).abilities;
+                const arr = toArraySafe(raw);
+                return extractAbilityName(arr[0]) ?? "";
+              })();
               onChange({
                 ...input,
                 pokemonId: id,
-                ability: (() => {
-                  const a = p.abilities?.[0];
-                  if (!a) return "";
-                  if (typeof a === "string") return a;
-                  return (a as { name: string }).name || "";
-                })(),
+                ability: firstAbility,
                 moves: [],
                 item: null,
                 status: "none" as StatusId,
@@ -484,7 +541,7 @@ export const ParticipantCard = memo(function ParticipantCard({
               />
               <div className="text-[10px] font-mono text-[#9A9590] leading-snug">
                 {availableMoves.find((m) => m.value === moveName)
-                  ?.description || "—"}
+                  ?.description || "Selecciona un movimiento"}
               </div>
             </div>
           )}
@@ -499,8 +556,13 @@ export const ParticipantCard = memo(function ParticipantCard({
               onValueChange={(val) => {
                 onChange({ ...input, ability: val || null });
               }}
-              placeholder="—"
+              placeholder={abilityOptions.length === 0 ? "Cargando..." : "—"}
             />
+            {abilityOptions.length === 0 && (
+              <span className="text-[10px] text-amber-600">
+                Sin habilidades para este Pokémon - revisa dataset
+              </span>
+            )}
           </div>
           <div className="space-y-1">
             <Label className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[#9A9590]">
@@ -671,8 +733,7 @@ export const ParticipantCard = memo(function ParticipantCard({
                 );
               })}
               <p className="text-[9px] font-mono text-[#9A9590]">
-                Límite 510 total · 252 por stat · 252/252/6 = 510 (2 EVs
-                desperdiciados) es válido
+                Límite 510 total · 252 por stat
               </p>
             </div>
           )}

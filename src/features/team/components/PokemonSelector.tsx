@@ -170,7 +170,6 @@ export function PokemonSelector({
     evsDist[secondName] = 252;
     const third = sorted[2]?.[0];
     if (third) evsDist[third] = 4;
-
     const ivs = IV.createPerfectSet();
     const evs = EV.createSet(evsDist);
     const calculated = calculateStats({
@@ -185,13 +184,12 @@ export function PokemonSelector({
     const defaultAbility =
       (full.abilities as readonly { name: string }[] | undefined)?.[0]?.name ??
       "";
-
     const member: TeamMember = Object.freeze({
       id: String(full.id),
       pokemonId: full.id,
       name: normalizeId(full.name),
       displayNameEs: full.displayNameEs || displayNameEs(full.name),
-      species: full.displayNameEs || displayNameEs(full.name),
+      species: resolveBaseName(full.name),
       types: Object.freeze([...full.types]) as readonly PokemonType[],
       abilityId: defaultAbility ? normalizeId(defaultAbility) : null,
       itemId: null,
@@ -214,7 +212,6 @@ export function PokemonSelector({
       teraType: null,
       isTeraActive: false,
     });
-
     return member;
   }, []);
 

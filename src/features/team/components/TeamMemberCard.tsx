@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PokemonSprite } from "@/components/ui/PokemonSprite";
 import {
   resolveBaseName,
@@ -8,6 +8,7 @@ import {
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import type { TeamMember } from "@/domain/team/types/TeamTypes";
 import { ALL_POKEMON_TYPES, TypeEffectiveness } from "@/domain/types/TypeChart";
+import { useMoveStore } from "@/features/moves/store/useMoveStore";
 import { usePokedexStore } from "@/features/pokemon/store/usePokedexStore";
 import { translateAbilityToSpanish } from "@/features/team/constants/competitiveAbilities";
 import { translateItemToSpanish } from "@/features/team/constants/competitiveItems";
@@ -20,6 +21,23 @@ interface Props {
   readonly index: number;
   readonly onRemove: (index: number) => void;
   readonly onReplace: (index: number) => void;
+}
+
+type MoveLike = {
+  readonly id: string;
+  readonly name?: string;
+  readonly nameEs?: string;
+  readonly damageCategory?: string;
+  readonly category?: string;
+};
+
+function isMoveLike(value: unknown): value is MoveLike {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    typeof (value as { id: unknown }).id === "string"
+  );
 }
 
 function useDefensiveMetrics(member: TeamMember) {
@@ -93,6 +111,37 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
   const { cobertura, resistCount, immuneCount } = useDefensiveMetrics(member);
   const teamCoverage = useTeamCoverage(members, index);
   const stats = member.calculatedStats;
+  const moveListRaw = useMoveStore((s) => s.moveList);
+  const loadMoves = useMoveStore((s) => s.loadMoves);
+
+  const moveArray: readonly MoveLike[] = useMemo(() => {
+    if (!moveListRaw) return [];
+    if (Array.isArray(moveListRaw)) {
+      return moveListRaw.filter(isMoveLike);
+    }
+    if (moveListRaw instanceof Map) {
+      const vals = Array.from(moveListRaw.values());
+      return vals.filter(isMoveLike);
+    }
+    if (typeof moveListRaw === "object") {
+      const record = moveListRaw as Record<string, unknown>;
+      const vals = Object.values(record);
+      if (vals.length > 0 && vals.every(isMoveLike)) {
+        return vals as MoveLike[];
+      }
+      const single = moveListRaw as unknown;
+      if (isMoveLike(single)) return [single];
+      return vals.filter(isMoveLike);
+    }
+    return [];
+  }, [moveListRaw]);
+
+  useEffect(() => {
+    const isEmpty = moveArray.length === 0;
+    if (isEmpty && typeof loadMoves === "function") {
+      void loadMoves();
+    }
+  }, [moveArray, loadMoves]);
 
   const bestStat: keyof typeof stats = useMemo(() => {
     const entries: [keyof typeof stats, number][] = [
@@ -119,6 +168,12 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
     [member.evs],
   );
   const natureLabel = `${member.nature.nameEs} · ${member.nature.name}`;
+
+  function resolveMove(moveId: string): MoveLike | undefined {
+    return moveArray.find(
+      (m: MoveLike) => m.id === moveId || m.name === moveId,
+    );
+  }
 
   return (
     <>
@@ -199,9 +254,8 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
               </span>
               <button
                 type="button"
-                onClick={() => toggleTera(member.id)}
+                onClick={() => void toggleTera(member.id)}
                 className={`border px-1.5 py-0.5 text-[9px] uppercase tracking-widest ${member.isTeraActive ? "border-[#111] bg-[#111] text-white" : "border-[#EDE8E0] bg-white text-zinc-500 hover:border-[#111]"}`}
-                title="Solo un Tera activo por equipo (Gen 9)"
               >
                 {member.isTeraActive ? "Tera ON" : "Tera"}
               </button>
@@ -247,19 +301,31 @@ export function TeamMemberCard({ member, index, onRemove, onReplace }: Props) {
                 Sin movimientos configurados
               </div>
             ) : (
-              member.moves.slice(0, 4).map((moveId) => (
-                <div
-                  key={moveId}
-                  className="flex items-center justify-between border border-[#EDE8E0] bg-white px-2 py-1.5 text-[11px]"
-                >
-                  <span className="truncate font-medium text-[#111]">
-                    {moveId.replace(/-/g, " ")}
-                  </span>
-                  <span className="ml-2 shrink-0 text-[9px] uppercase tracking-widest text-zinc-400">
-                    {moveId.includes("status") ? "Estado" : "Ofensivo"}
-                  </span>
-                </div>
-              ))
+              member.moves.slice(0, 4).map((moveId: string) => {
+                const move = resolveMove(moveId);
+                const label = move?.nameEs ?? moveId.replace(/-/g, " ");
+                const category: string =
+                  move?.damageCategory === "status"
+                    ? "Estado"
+                    : move?.damageCategory === "physical"
+                      ? "Físico"
+                      : move?.damageCategory === "special"
+                        ? "Especial"
+                        : "Movimiento";
+                return (
+                  <div
+                    key={moveId}
+                    className="flex items-center justify-between border border-[#EDE8E0] bg-white px-2 py-1.5 text-[11px]"
+                  >
+                    <span className="truncate font-medium text-[#111]">
+                      {label}
+                    </span>
+                    <span className="ml-2 shrink-0 text-[9px] uppercase tracking-widest text-zinc-400">
+                      {category}
+                    </span>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
