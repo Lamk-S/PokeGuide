@@ -4,6 +4,10 @@ import { create } from "zustand";
 import type { PokemonType } from "@/domain/pokemon/types/pokemon";
 import { normalizeId } from "@/domain/shared/utils/normalizeId";
 import type { Nature } from "@/domain/stats/types/StatTypes";
+import type {
+  BattleFormat,
+  BattleRuleset,
+} from "@/domain/team/config/battleFormat";
 import { DEFAULT_BATTLE_RULESET } from "@/domain/team/config/battleFormat";
 import { PokemonTeam } from "@/domain/team/entities/PokemonTeam";
 import { TeamLegalityValidator } from "@/domain/team/services/TeamLegalityValidator";
@@ -14,6 +18,7 @@ import type {
   TeamAnalysis,
   TeamMember,
 } from "@/domain/team/types/TeamTypes";
+import { container } from "@/infrastructure/composition/container";
 
 const natureSchema = z
   .object({
@@ -101,15 +106,30 @@ export interface LegalityIssue {
   readonly members: readonly string[];
 }
 
-interface TeamStoreState {
-  readonly team: PokemonTeam;
-  readonly analysis: TeamAnalysis | null;
-  readonly error: string | null;
-  readonly legalityIssues: readonly LegalityIssue[];
-  readonly addMember: (raw: unknown) => Promise<void>;
-  readonly removeMember: (index: number) => void;
-  readonly replaceMember: (index: number, raw: unknown) => Promise<void>;
-  readonly toggleTera: (id: string) => void;
+function getRulesetForFormat(
+  format: BattleFormat,
+  base: BattleRuleset,
+): BattleRuleset {
+  const level = format === "smogon-ou" ? 100 : 50;
+  return Object.freeze({
+    ...base,
+    id: format,
+    format,
+    level,
+  }) as BattleRuleset;
+}
+
+async function runAnalysis(
+  team: PokemonTeam,
+  ruleset: BattleRuleset,
+): Promise<TeamAnalysis | null> {
+  try {
+    await container.init();
+    const useCase = container.getAnalyzeTeamUseCase();
+    return await useCase.execute(team, ruleset);
+  } catch {
+    return null;
+  }
 }
 
 function toValidatedMember(raw: unknown): TeamMember {
@@ -154,21 +174,39 @@ function toValidatedMember(raw: unknown): TeamMember {
   }) as TeamMember;
 }
 
+interface TeamStoreState {
+  readonly team: PokemonTeam;
+  readonly analysis: TeamAnalysis | null;
+  readonly error: string | null;
+  readonly legalityIssues: readonly LegalityIssue[];
+  readonly ruleset: BattleRuleset;
+  readonly setFormat: (format: BattleFormat) => Promise<void>;
+  readonly addMember: (raw: unknown) => Promise<void>;
+  readonly removeMember: (index: number) => Promise<void>;
+  readonly replaceMember: (index: number, raw: unknown) => Promise<void>;
+  readonly toggleTera: (id: string) => Promise<void>;
+}
+
 export const useTeamStore = create<TeamStoreState>((set, get) => ({
   team: new PokemonTeam([]),
   analysis: null,
   error: null,
   legalityIssues: [],
+  ruleset: DEFAULT_BATTLE_RULESET as BattleRuleset,
+  setFormat: async (format) => {
+    const newRuleset = getRulesetForFormat(format, get().ruleset);
+    const currentTeam = get().team;
+    const analysis =
+      currentTeam.size > 0 ? await runAnalysis(currentTeam, newRuleset) : null;
+    set({ ruleset: newRuleset, analysis, error: null });
+  },
   addMember: async (raw: unknown) => {
     try {
       const member = toValidatedMember(raw);
       const currentTeam = get().team;
+      const currentRuleset = get().ruleset;
       const nextTeam = currentTeam.addMember(member);
-
-      const legality = TeamLegalityValidator.validate(
-        nextTeam,
-        DEFAULT_BATTLE_RULESET,
-      );
+      const legality = TeamLegalityValidator.validate(nextTeam, currentRuleset);
       const critical = legality.issues.filter((i) => i.severity === "Critical");
       if (critical.length > 0) {
         const first = critical[0];
@@ -183,21 +221,19 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
         });
         return;
       }
-
-      set({
-        team: nextTeam,
-        analysis: null,
-        error: null,
-        legalityIssues: [],
-      });
+      const analysis = await runAnalysis(nextTeam, currentRuleset);
+      set({ team: nextTeam, analysis, error: null, legalityIssues: [] });
     } catch (e) {
       set({ error: e instanceof Error ? e.message : "Error añadiendo" });
     }
   },
-  removeMember: (index: number) => {
+  removeMember: async (index: number) => {
     try {
-      const nextTeam = get().team.removeMember(index);
-      set({ team: nextTeam, analysis: null, error: null, legalityIssues: [] });
+      const { team, ruleset } = get();
+      const nextTeam = team.removeMember(index);
+      const analysis =
+        nextTeam.size > 0 ? await runAnalysis(nextTeam, ruleset) : null;
+      set({ team: nextTeam, analysis, error: null, legalityIssues: [] });
     } catch (e) {
       set({ error: e instanceof Error ? e.message : "Error eliminando" });
     }
@@ -205,13 +241,9 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
   replaceMember: async (index: number, raw: unknown) => {
     try {
       const member = toValidatedMember(raw);
-      const currentTeam = get().team;
-      const nextTeam = currentTeam.replaceMember(index, member);
-
-      const legality = TeamLegalityValidator.validate(
-        nextTeam,
-        DEFAULT_BATTLE_RULESET,
-      );
+      const { team, ruleset } = get();
+      const nextTeam = team.replaceMember(index, member);
+      const legality = TeamLegalityValidator.validate(nextTeam, ruleset);
       const critical = legality.issues.filter((i) => i.severity === "Critical");
       if (critical.length > 0) {
         const first = critical[0];
@@ -226,21 +258,18 @@ export const useTeamStore = create<TeamStoreState>((set, get) => ({
         });
         return;
       }
-
-      set({
-        team: nextTeam,
-        analysis: null,
-        error: null,
-        legalityIssues: [],
-      });
+      const analysis = await runAnalysis(nextTeam, ruleset);
+      set({ team: nextTeam, analysis, error: null, legalityIssues: [] });
     } catch (e) {
       set({ error: e instanceof Error ? e.message : "Error reemplazando" });
     }
   },
-  toggleTera: (id: string) => {
+  toggleTera: async (id: string) => {
     try {
-      const nextTeam = get().team.toggleTera(id);
-      set({ team: nextTeam, error: null });
+      const { team, ruleset } = get();
+      const nextTeam = team.toggleTera(id);
+      const analysis = await runAnalysis(nextTeam, ruleset);
+      set({ team: nextTeam, analysis, error: null });
     } catch (e) {
       set({ error: e instanceof Error ? e.message : "Error toggle Tera" });
     }
