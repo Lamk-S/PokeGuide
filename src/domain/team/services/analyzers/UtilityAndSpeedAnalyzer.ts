@@ -64,7 +64,6 @@ const PIVOT_MOVES = new Set([
 
 const KNOCK_OFF_MOVES = new Set(["knock-off", "desarme"]);
 const TAUNT_MOVES = new Set(["taunt", "mofa", "encore", "otra-vez"]);
-
 const PRIORITY_MOVES = new Set([
   "quick-attack",
   "ataque-rapido",
@@ -93,7 +92,6 @@ function analyzeSpeedControl(team: PokemonTeam): SpeedControlReport {
   let hasPriority = false;
   let hasChoiceScarf = false;
   let hasBoosterEnergy = false;
-
   const controlMethods: string[] = [];
 
   for (const member of members) {
@@ -102,11 +100,16 @@ function analyzeSpeedControl(team: PokemonTeam): SpeedControlReport {
       itemNorm === "choice-scarf" ||
       itemNorm === "pa" ||
       itemNorm.includes("scarf")
-    )
+    ) {
       hasChoiceScarf = true;
-    if (itemNorm === "booster-energy" || itemNorm.includes("booster"))
+      if (!controlMethods.includes("Choice Scarf"))
+        controlMethods.push("Choice Scarf");
+    }
+    if (itemNorm === "booster-energy" || itemNorm.includes("booster")) {
       hasBoosterEnergy = true;
-
+      if (!controlMethods.includes("Booster Energy"))
+        controlMethods.push("Booster Energy");
+    }
     for (const moveId of member.moves) {
       const n = normalize(moveId);
       const mapped = SPEED_CONTROL_MOVES[n];
@@ -149,25 +152,11 @@ function analyzeSpeedControl(team: PokemonTeam): SpeedControlReport {
     }
   }
 
-  for (const m of members) {
-    const id = normalize(m.itemId ?? m.item ?? "");
-    if (id === "choice-scarf" || id === "pa" || id.includes("scarf")) {
-      hasChoiceScarf = true;
-      if (!controlMethods.includes("Choice Scarf"))
-        controlMethods.push("Choice Scarf");
-    }
-    if (id === "booster-energy" || id.includes("booster")) {
-      hasBoosterEnergy = true;
-      if (!controlMethods.includes("Booster Energy"))
-        controlMethods.push("Booster Energy");
-    }
-  }
-
   const isSpeedControlPresent =
     controlMethods.length > 0 || hasChoiceScarf || hasBoosterEnergy;
   const conflict = hasTailwind && hasTrickRoom;
 
-  return {
+  return Object.freeze({
     hasTailwind,
     hasTrickRoom,
     hasStickyWeb,
@@ -176,10 +165,10 @@ function analyzeSpeedControl(team: PokemonTeam): SpeedControlReport {
     hasPriority,
     hasChoiceScarf,
     hasBoosterEnergy,
-    controlMethods,
+    controlMethods: Object.freeze([...controlMethods]),
     isSpeedControlPresent,
     conflict,
-  };
+  }) as SpeedControlReport;
 }
 
 function analyzeHazardControl(team: PokemonTeam): HazardControlReport {
@@ -202,7 +191,6 @@ function analyzeHazardControl(team: PokemonTeam): HazardControlReport {
       itemNorm.includes("heavy-duty-boots")
     )
       heavyDutyBoots += 1;
-
     for (const moveId of member.moves) {
       const n = normalize(moveId);
       if (n === "stealth-rock" || n === "trampa-rocas") {
@@ -229,11 +217,7 @@ function analyzeHazardControl(team: PokemonTeam): HazardControlReport {
       }
     }
   }
-
-  const isHazardControlPresent = hasStealthRock || hasSpikes || hasToxicSpikes;
-  const isRemovalPresent = hasDefog || hasRapidSpin || hasCourtChange;
-
-  return {
+  return Object.freeze({
     hasStealthRock,
     hasSpikes,
     hasToxicSpikes,
@@ -241,23 +225,21 @@ function analyzeHazardControl(team: PokemonTeam): HazardControlReport {
     hasRapidSpin,
     hasCourtChange,
     hasHeavyDutyBoots: heavyDutyBoots,
-    setters,
-    removers,
-    isHazardControlPresent,
-    isRemovalPresent,
-  };
+    setters: Object.freeze([...setters]),
+    removers: Object.freeze([...removers]),
+    isHazardControlPresent: hasStealthRock || hasSpikes || hasToxicSpikes,
+    isRemovalPresent: hasDefog || hasRapidSpin || hasCourtChange,
+  }) as HazardControlReport;
 }
 
 function analyzeUtility(team: PokemonTeam): UtilityReport {
   const speedControl = analyzeSpeedControl(team);
   const hazardControl = analyzeHazardControl(team);
-
   const members = team.getMembers();
   let hasPivot = false;
   const pivotMembers: string[] = [];
   let hasKnockOff = false;
   let hasTaunt = false;
-
   for (const member of members) {
     for (const moveId of member.moves) {
       const n = normalize(moveId);
@@ -274,15 +256,14 @@ function analyzeUtility(team: PokemonTeam): UtilityReport {
       if (TAUNT_MOVES.has(n)) hasTaunt = true;
     }
   }
-
-  return {
+  return Object.freeze({
     speedControl,
     hazardControl,
     hasPivot,
-    pivotMembers,
+    pivotMembers: Object.freeze([...pivotMembers]),
     hasKnockOff,
     hasTaunt,
-  };
+  }) as UtilityReport;
 }
 
 export const UtilityAndSpeedAnalyzer = Object.freeze({
