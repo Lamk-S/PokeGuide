@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { translateType } from "@/components/ui/TypeBadge";
 import {
   type BattleValidationError,
@@ -31,6 +31,38 @@ import { BattleLabView } from "./BattleLabView";
 
 type TabId = "attacker" | "defender" | "result";
 
+function getMoveNameSafe(m: unknown): string | null {
+  if (!m) return null;
+  if (typeof m === "string") return m.trim().toLowerCase().replace(/\s+/g, "-");
+  if (typeof m === "object") {
+    const o = m as Record<string, unknown>;
+    if (typeof o.name === "string" && o.name.trim())
+      return o.name.trim().toLowerCase().replace(/\s+/g, "-");
+    if (typeof o.id === "string" && o.id.trim())
+      return o.id.trim().toLowerCase().replace(/\s+/g, "-");
+    if (typeof o.value === "string" && o.value.trim())
+      return o.value.trim().toLowerCase().replace(/\s+/g, "-");
+    if (typeof o.move === "string" && (o.move as string).trim())
+      return (o.move as string).trim().toLowerCase().replace(/\s+/g, "-");
+    const inner = o.move as Record<string, unknown> | undefined;
+    if (inner) {
+      if (typeof inner.name === "string" && inner.name.trim())
+        return inner.name.trim().toLowerCase().replace(/\s+/g, "-");
+      if (typeof inner.id === "string" && inner.id.trim())
+        return inner.id.trim().toLowerCase().replace(/\s+/g, "-");
+    }
+  }
+  return null;
+}
+
+function toArraySafe(raw: unknown): unknown[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "object")
+    return Object.values(raw as Record<string, unknown>);
+  return [];
+}
+
 export function BattleLabContainer() {
   const pokemonList = usePokedexStore((s) => s.pokemonList as never) as Array<{
     id: number;
@@ -38,8 +70,9 @@ export function BattleLabContainer() {
     types?: unknown[];
     baseStats?: Record<string, number>;
     stats?: Record<string, number>;
-    abilities?: Array<{ name: string }>;
-    moves?: Array<string | { name: string }>;
+    abilities?: unknown;
+    moves?: unknown;
+    learnset?: unknown;
   }>;
   const loadPokemon = usePokedexStore((s) => s.loadPokemon);
   const moveList = useMoveStore((s) => s.moveList) as Record<
@@ -51,6 +84,7 @@ export function BattleLabContainer() {
       power?: number | null;
       accuracy?: number | null;
       category?: string;
+      damageCategory?: string;
     }
   >;
   const loadMoves = useMoveStore((s) => s.loadMoves);
@@ -159,28 +193,56 @@ export function BattleLabContainer() {
   }, [attackerIdentity, pokemonList]);
 
   const availableMovesRich = useMemo(() => {
-    if (!attackerInput || resolvedAttackerMoves.moves.length === 0) return [];
-    return resolvedAttackerMoves.moves.map((mName: string) => {
+    if (!attackerInput) return [];
+
+    let moveNames: string[] = resolvedAttackerMoves.moves
+      .map((m) => getMoveNameSafe(m))
+      .filter(Boolean) as string[];
+
+    if (moveNames.length === 0) {
+      const rawMoves =
+        (attackerPokemon as { moves?: unknown; learnset?: unknown })?.moves ??
+        (attackerPokemon as { moves?: unknown; learnset?: unknown })?.learnset;
+      const arr = toArraySafe(rawMoves);
+      if (arr.length > 0) {
+        moveNames = arr
+          .map((m) => getMoveNameSafe(m))
+          .filter(Boolean) as string[];
+      }
+    }
+
+    if (moveNames.length === 0) return [];
+
+    const seen = new Set<string>();
+    const uniqueNames = moveNames.filter((n) => {
+      const k = n.toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+
+    return uniqueNames.map((mName: string) => {
       const key = normalizeId(mName);
-      const fm = moveList[mName] ?? moveList[key];
+      const fm =
+        moveList[mName] ?? moveList[key] ?? moveList[mName.toLowerCase()];
       const typeEs = fm?.type ? translateType(fm.type) : "Normal";
-      const rawCat = fm?.category;
+      const rawCat = fm?.category ?? fm?.damageCategory ?? "physical";
       const cat =
-        rawCat === "special"
+        rawCat === "special" || rawCat === "Especial"
           ? "Especial"
-          : rawCat === "status"
+          : rawCat === "status" || rawCat === "Estado"
             ? "Estado"
             : "Físico";
       return {
         value: mName,
-        label: fm?.nameEs || fm?.name || mName,
+        label: fm?.nameEs || fm?.name || mName.replace(/-/g, " "),
         type: fm?.type || "normal",
         power: fm?.power ?? null,
         accuracy: fm?.accuracy ?? null,
         description: `${typeEs.toUpperCase()} • ${fm?.power || 0} pot. · Precisión ${fm?.accuracy ?? 100}% · ${cat}`,
       };
     });
-  }, [attackerInput, resolvedAttackerMoves, moveList]);
+  }, [attackerInput, attackerPokemon, resolvedAttackerMoves, moveList]);
 
   const validationState: BattleValidationState = useMemo(() => {
     const attackerData = attackerPokemon
@@ -213,14 +275,12 @@ export function BattleLabContainer() {
           type: moveDetail?.type,
         }
       : null;
-
     const base = validateBattleState({
       attacker: attackerData,
       defender: defenderData,
       move: moveData,
       generation,
     });
-
     const genErrors: BattleValidationError[] = [];
     if (attackerIdentity) {
       const res = SmogonSpeciesMapper.resolve(attackerIdentity, generation);
@@ -232,13 +292,11 @@ export function BattleLabContainer() {
       if (!res.supported && !res.isFallbackToBase)
         genErrors.push("UNSUPPORTED_FORM_FOR_GENERATION");
     }
-
     const allErrors = [...base.errors, ...genErrors];
     const filtered = allErrors.filter(
       (e) => !(e === "INVALID_BATTLE_CONTEXT" && generation === 9),
     );
     const dedup = Array.from(new Set(filtered));
-
     return {
       attacker: base.attacker,
       defender: base.defender,
@@ -313,15 +371,11 @@ export function BattleLabContainer() {
     setMoveNameStore,
   ]);
 
-  const handleMoveChange = useCallback(
-    (val: string) => {
-      userHasManuallySelectedMove.current = true;
-      setMoveNameStore(val);
-    },
-    [setMoveNameStore],
-  );
-
-  const handleCalculate = useCallback(async () => {
+  const handleMoveChange = useRef((val: string) => {
+    userHasManuallySelectedMove.current = true;
+    setMoveNameStore(val);
+  }).current;
+  const handleCalculate = useRef(async () => {
     setLocalError(null);
     if (!validationState.valid) {
       setLocalError(
@@ -335,16 +389,15 @@ export function BattleLabContainer() {
     } catch (e) {
       setLocalError(e instanceof Error ? e.message : String(e));
     }
-  }, [validationState, calculateResult]);
-
-  const handleSwap = useCallback(() => {
+  }).current;
+  const handleSwap = useRef(() => {
     if (!attackerInput || !defenderInput) return;
     const atk = attackerInput;
     const def = defenderInput;
     setAttacker(def as never);
     setDefender(atk as never);
     userHasManuallySelectedMove.current = false;
-  }, [attackerInput, defenderInput, setAttacker, setDefender]);
+  }).current;
 
   const evTotalAtk = useMemo(
     () =>
@@ -364,7 +417,6 @@ export function BattleLabContainer() {
         : 0,
     [defenderInput],
   );
-
   const currentMoveDetail = moveName
     ? (moveList[moveName] ?? moveList[normalizeId(moveName)])
     : null;

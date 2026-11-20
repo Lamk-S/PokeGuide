@@ -22,13 +22,21 @@ export const useMoveStore = create<State>((set) => ({
       await container.init();
       const repo = container.getMoveRepository();
       const allMoves = await repo.getAll();
-
       const mapMutable: Record<string, Move> = {};
       for (const move of allMoves) {
-        const key = move.id ?? move.name;
-        if (key) {
-          mapMutable[key] = move;
-        }
+        const idKey = move.id?.toLowerCase().replace(/\s+/g, "-");
+        const nameKey = move.name?.toLowerCase();
+        const nameEsKey = move.nameEs?.toLowerCase();
+        const idWithSpace = move.id?.toLowerCase().replace(/-/g, " ");
+        const nameWithDash = move.name?.toLowerCase().replace(/\s+/g, "-");
+
+        if (idKey) mapMutable[idKey] = move;
+        if (nameKey) mapMutable[nameKey] = move;
+        if (nameEsKey) mapMutable[nameEsKey] = move;
+        if (idWithSpace) mapMutable[idWithSpace] = move;
+        if (nameWithDash) mapMutable[nameWithDash] = move;
+        const originalKey = move.id ?? move.name;
+        if (originalKey) mapMutable[originalKey] = move;
       }
 
       const hasGrouped =
@@ -44,7 +52,10 @@ export const useMoveStore = create<State>((set) => ({
         groupedResult = await repoWithGroup.getGroupedByType();
       } else {
         const byTypeMutable: Record<string, Move[]> = {};
-        for (const move of Object.values(mapMutable)) {
+        const seenIds = new Set<string>();
+        for (const move of allMoves) {
+          if (seenIds.has(move.id)) continue;
+          seenIds.add(move.id);
           const typeKey = move.type ?? "unknown";
           const existing = byTypeMutable[typeKey] ?? [];
           existing.push(move);
@@ -52,6 +63,10 @@ export const useMoveStore = create<State>((set) => ({
         }
         groupedResult = byTypeMutable as Record<string, readonly Move[]>;
       }
+
+      console.log(
+        `[useMoveStore] ${allMoves.length} movimientos cargados, ${Object.keys(mapMutable).length} claves indexadas`,
+      );
 
       set({
         moveList: Object.freeze({ ...mapMutable }),

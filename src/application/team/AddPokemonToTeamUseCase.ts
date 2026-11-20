@@ -72,7 +72,6 @@ export class AddPokemonToTeamUseCase {
       teraType,
       isTeraActive,
     } = input;
-
     let baseData = null;
     if (pokemonId) baseData = await LocalPokemonRepository.getById(pokemonId);
     if (!baseData && pokemonName)
@@ -92,10 +91,8 @@ export class AddPokemonToTeamUseCase {
       throw new Error(`Movimientos no encontrados: ${missing.join(", ")}`);
     }
 
-    void itemId;
     const nature = resolveNature(natureName);
     const lvl = level ?? DEFAULT_BATTLE_RULESET.level;
-
     const evSet = EV.createSet({
       hp: evs?.hp ?? 0,
       attack: evs?.attack ?? 0,
@@ -104,7 +101,6 @@ export class AddPokemonToTeamUseCase {
       "special-defense": evs?.["special-defense"] ?? 0,
       speed: evs?.speed ?? 0,
     });
-
     const ivSet = IV.createSet({
       hp: ivs?.hp ?? 31,
       attack: ivs?.attack ?? 31,
@@ -113,27 +109,23 @@ export class AddPokemonToTeamUseCase {
       "special-defense": ivs?.["special-defense"] ?? 31,
       speed: ivs?.speed ?? 31,
     });
-
     const baseStatsTyped: BaseStats = toBaseStats(
       (baseData.baseStats ?? {}) as Record<string, number>,
     );
-
     const calculated = calculateStats({
       baseStats: baseStatsTyped,
-      ivs: ivSet as unknown as Partial<Record<string, number>>,
-      evs: evSet as unknown as Partial<Record<string, number>>,
+      ivs: ivSet as Partial<Record<string, number>>,
+      evs: evSet as Partial<Record<string, number>>,
       level: lvl,
       nature,
       generation: DEFAULT_BATTLE_RULESET.generation,
     });
-
     const normalizedMoveIds = Object.freeze([
       ...moveIds.map((id: string) => normalizeId(id)),
     ]) as readonly string[];
     const resolvedTeraType: PokemonType | null = teraType
       ? (teraType as PokemonType)
       : null;
-
     const firstAbility = (() => {
       const ab = baseData.abilities?.[0];
       if (!ab) return null;
@@ -147,9 +139,8 @@ export class AddPokemonToTeamUseCase {
       pokemonId: baseData.id,
       name: baseData.name,
       displayNameEs: baseData.displayNameEs,
-      displayName: baseData.displayNameEs,
-      species: baseData.nameEs,
-      types: baseData.types as readonly PokemonType[],
+      species: baseData.name,
+      types: Object.freeze([...baseData.types]) as readonly PokemonType[],
       abilityId: abilityId
         ? normalizeId(abilityId)
         : firstAbility
@@ -160,8 +151,8 @@ export class AddPokemonToTeamUseCase {
       item: itemId ?? null,
       nature,
       level: lvl,
-      evs: evSet as unknown as EVSet,
-      ivs: ivSet as unknown as IVSet,
+      evs: evSet as EVSet,
+      ivs: ivSet as IVSet,
       baseStats: baseStatsTyped,
       calculatedStats: {
         hp: calculated.hp,
@@ -174,8 +165,7 @@ export class AddPokemonToTeamUseCase {
       moves: normalizedMoveIds,
       teraType: resolvedTeraType,
       isTeraActive: isTeraActive ?? false,
-    }) as unknown as TeamMember;
-
+    });
     return member;
   }
 }

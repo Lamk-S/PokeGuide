@@ -21,6 +21,23 @@ const LEVEL_REGEX = /Level:\s*(\d+)/i;
 const ABILITY_REGEX = /Ability:\s*(.+)/i;
 const TERA_REGEX = /Tera Type:\s*(.+)/i;
 
+const STAT_TO_SHOWDOWN: Record<string, string> = {
+  hp: "HP",
+  attack: "Atk",
+  defense: "Def",
+  "special-attack": "SpA",
+  "special-defense": "SpD",
+  speed: "Spe",
+};
+
+function toTitleCase(slug: string): string {
+  return slug
+    .split(/[-_ ]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
 function parseEvs(line: string): Record<string, number> {
   const evs: Record<string, number> = {};
   const parts = line.split("/");
@@ -73,21 +90,17 @@ export function parseShowdownTeam(input: string): ShowdownPokemonRaw[] {
     .split(/\n\s*\n/)
     .map((b) => b.trim())
     .filter(Boolean);
-
   const team: ShowdownPokemonRaw[] = [];
-
   for (const block of blocks) {
     const lines = block
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean);
     if (lines.length === 0) continue;
-
     const firstLine = lines[0] ?? "";
     const atSplit = firstLine.split("@");
     const namePart = (atSplit[0] ?? firstLine).trim();
     const itemPart = atSplit[1]?.trim();
-
     let level: number | undefined;
     let ability: string | undefined;
     let nature: string | undefined;
@@ -95,7 +108,6 @@ export function parseShowdownTeam(input: string): ShowdownPokemonRaw[] {
     let ivs: Record<string, number> | undefined;
     let teraType: string | undefined;
     const moves: string[] = [];
-
     for (const line of lines.slice(1)) {
       if (LEVEL_REGEX.test(line)) {
         const m = line.match(LEVEL_REGEX);
@@ -132,7 +144,6 @@ export function parseShowdownTeam(input: string): ShowdownPokemonRaw[] {
         if (moveName) moves.push(moveName);
       }
     }
-
     team.push(
       Object.freeze({
         name: namePart,
@@ -148,7 +159,6 @@ export function parseShowdownTeam(input: string): ShowdownPokemonRaw[] {
       }),
     );
   }
-
   return team;
 }
 
@@ -171,24 +181,24 @@ export function serializeToShowdown(
   return members
     .map((m) => {
       const lines: string[] = [];
-      const header = m.item
-        ? `${m.englishName ?? m.name} @ ${m.item}`
-        : (m.englishName ?? m.name);
+      const species = toTitleCase(m.englishName ?? m.name);
+      const item = m.item ? toTitleCase(m.item) : null;
+      const header = item ? `${species} @ ${item}` : species;
       lines.push(header);
-      if (m.ability) lines.push(`Ability: ${m.ability}`);
+      if (m.ability) lines.push(`Ability: ${toTitleCase(m.ability)}`);
       if (m.level) lines.push(`Level: ${m.level}`);
       if (m.evs) {
         const evStr = Object.entries(m.evs)
           .filter(([, v]) => v > 0)
-          .map(([k, v]) => `${v} ${k}`)
+          .map(([k, v]) => `${v} ${STAT_TO_SHOWDOWN[k] ?? k}`)
           .join(" / ");
         if (evStr) lines.push(`EVs: ${evStr}`);
       }
       const natureName =
         typeof m.nature === "string" ? m.nature : m.nature?.name;
-      if (natureName) lines.push(`${natureName} Nature`);
-      if (m.teraType) lines.push(`Tera Type: ${m.teraType}`);
-      for (const move of m.moves) lines.push(`- ${move}`);
+      if (natureName) lines.push(`${toTitleCase(natureName)} Nature`);
+      if (m.teraType) lines.push(`Tera Type: ${toTitleCase(m.teraType)}`);
+      for (const move of m.moves) lines.push(`- ${toTitleCase(move)}`);
       return lines.join("\n");
     })
     .join("\n\n");

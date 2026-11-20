@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
+import type { BattleFormat } from "@/domain/team/config/battleFormat";
 import { useTeamStore } from "../store/useTeamStore";
+import { OffensiveCoverageMatrix } from "./OffensiveCoverageMatrix";
 import { RecommendationList } from "./RecommendationList";
 import { ShowdownModal } from "./ShowdownModal";
 import { TeamBuilderGrid } from "./TeamBuilderGrid";
@@ -49,6 +51,8 @@ export function TeamBuilderContainer() {
   const [showExport, setShowExport] = useState(false);
   const team = useTeamStore((s) => s.team);
   const analysis = useTeamStore((s) => s.analysis);
+  const ruleset = useTeamStore((s) => s.ruleset);
+  const setFormat = useTeamStore((s) => s.setFormat);
   const size = team.size;
   const risks =
     analysis?.recommendations.filter((r) => r.severity === "Critical").length ??
@@ -63,7 +67,25 @@ export function TeamBuilderContainer() {
           </h1>
           <EstadoEquipo size={size} risks={risks} />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 border border-[#EDE8E0] bg-white px-2 py-1">
+            <label
+              htmlFor="format-select"
+              className="text-[10px] font-medium uppercase tracking-widest text-zinc-600"
+            >
+              Formato
+            </label>
+            <select
+              id="format-select"
+              value={ruleset.id}
+              onChange={(e) => void setFormat(e.target.value as BattleFormat)}
+              className="bg-white text-[11px] font-medium text-[#111] outline-none"
+            >
+              <option value="singles-6v6">Individual 6c6</option>
+              <option value="vgc-regulation">VGC Regulación</option>
+              <option value="smogon-ou">Smogon OU</option>
+            </select>
+          </div>
           <button
             type="button"
             onClick={() => setShowImport(true)}
@@ -81,7 +103,10 @@ export function TeamBuilderContainer() {
         </div>
       </div>
       <TeamBuilderGrid />
-      <TypeExposureMatrix />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <TypeExposureMatrix />
+        <OffensiveCoverageMatrix />
+      </div>
       <RecommendationList />
       <ShowdownModal
         open={showImport}
